@@ -35,35 +35,35 @@
 #
 # ---- Parameters
 #
-LC_POOL_NAME="TICKR"
-LC_POOL_ID="your_pool_id"
-LC_POOL_PORT="6000"
+NES_POOL_NAME="TICKR"
+NES_POOL_ID="your_pool_id"
+NES_POOL_PORT="6000"
 #
 # ---- The following defaults should be ok when using cntools
 #
-LC_POOL_VRF="/opt/cardano/cnode/priv/pool/${LC_POOL_NAME}/vrf.skey"
-LC_POOL_BYRON_GEN="/opt/cardano/cnode/files/byron-genesis.json"
-LC_POOL_SHELLEY_GEN="/opt/cardano/cnode/files/shelley-genesis.json"
-LC_POOL_SOCKET="/opt/cardano/cnode/sockets/node0.socket"
-LC_CNCLI_BIN="${HOME}/.cargo/bin/cncli"
-LC_CNCLI_DB="/opt/cardano/cnode/guild-db/cncli/cncli.db"
-LC_CARDANOCLI_BIN="${HOME}/.cabal/bin/cardano-cli"
+NES_POOL_VRF="/opt/cardano/cnode/priv/pool/${NES_POOL_NAME}/vrf.skey"
+NES_POOL_BYRON_GEN="/opt/cardano/cnode/files/byron-genesis.json"
+NES_POOL_SHELLEY_GEN="/opt/cardano/cnode/files/shelley-genesis.json"
+NES_POOL_SOCKET="/opt/cardano/cnode/sockets/node0.socket"
+NES_CNCLI_BIN="${HOME}/.cargo/bin/cncli"
+NES_CNCLI_DB="/opt/cardano/cnode/guild-db/cncli/cncli.db"
+NES_CARDANOCLI_BIN="${HOME}/.cabal/bin/cardano-cli"
 #
 # ---- Do not edit the code below
 #
-export CARDANO_NODE_SOCKET_PATH=$LC_POOL_SOCKET
-echo "## Syncing cncli database for ${LC_POOL_NAME} pool..."
-$LC_CNCLI_BIN sync --host 127.0.0.1 --port $LC_POOL_PORT --db $LC_CNCLI_DB --no-service
-echo "## Querying stake snapshot for ${LC_POOL_NAME} pool..."
-LC_SNAPSHOT=`$LC_CARDANOCLI_BIN query stake-snapshot --stake-pool-id $LC_POOL_ID --mainnet`
-LC_POOL_STAKE=$(echo "$LC_SNAPSHOT" | grep -oP '(?<=    "poolStakeMark": )\d+(?=,?)')
-LC_ACTIVE_STAKE=$(echo "$LC_SNAPSHOT" | grep -oP '(?<=    "activeStakeMark": )\d+(?=,?)')
-echo "## Executing cncli leaderlog for ${LC_POOL_NAME} pool..."
-LC_POOL=`$LC_CNCLI_BIN leaderlog --pool-id $LC_POOL_ID --pool-vrf-skey $LC_POOL_VRF --db $LC_CNCLI_DB --byron-genesis $LC_POOL_BYRON_GEN --shelley-genesis $LC_POOL_SHELLEY_GEN  --pool-stake $LC_POOL_STAKE --active-stake $LC_ACTIVE_STAKE --ledger-set next`
-EPOCH=`jq .epoch <<< $LC_POOL`
-SLOTS=`jq .epochSlots <<< $LC_POOL`
-IDEAL=`jq .epochSlotsIdeal <<< $LC_POOL`
-PERFORMANCE=`jq .maxPerformance <<< $LC_POOL`
-echo " POOL:${LC_POOL_NAME} EPOCH:${EPOCH} SLOTS:${SLOTS} PERFORMANCE:${PERFORMANCE} IDEAL:${IDEAL}"
+export CARDANO_NODE_SOCKET_PATH=$NES_POOL_SOCKET
+echo "## Syncing cncli database for ${NES_POOL_NAME} pool..."
+$NES_CNCLI_BIN sync --host 127.0.0.1 --port $NES_POOL_PORT --db $NES_CNCLI_DB --no-service
+echo "## Querying stake snapshot for ${NES_POOL_NAME} pool..."
+NES_SNAPSHOT=`$NES_CARDANOCLI_BIN query stake-snapshot --stake-pool-id $NES_POOL_ID --mainnet`
+NES_POOL_STAKE=$(echo "$NES_SNAPSHOT" | grep -oP '(?<=    "poolStakeMark": )\d+(?=,?)')
+NES_ACTIVE_STAKE=$(echo "$NES_SNAPSHOT" | grep -oP '(?<=    "activeStakeMark": )\d+(?=,?)')
+echo "## Executing cncli leaderlog for ${NES_POOL_NAME} pool..."
+NES_POOL=`$NES_CNCLI_BIN leaderlog --pool-id $NES_POOL_ID --pool-vrf-skey $NES_POOL_VRF --db $NES_CNCLI_DB --byron-genesis $NES_POOL_BYRON_GEN --shelley-genesis $NES_POOL_SHELLEY_GEN  --pool-stake $NES_POOL_STAKE --active-stake $NES_ACTIVE_STAKE --ledger-set next`
+EPOCH=`jq .epoch <<< $NES_POOL`
+SLOTS=`jq .epochSlots <<< $NES_POOL`
+IDEAL=`jq .epochSlotsIdeal <<< $NES_POOL`
+PERFORMANCE=`jq .maxPerformance <<< $NES_POOL`
+echo " POOL:${NES_POOL_NAME} EPOCH:${EPOCH} SLOTS:${SLOTS} PERFORMANCE:${PERFORMANCE} IDEAL:${IDEAL}"
 echo "## Complete cncli leaderlog ouput:"
-echo $LC_POOL
+echo $NES_POOL
