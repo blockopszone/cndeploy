@@ -59,7 +59,10 @@ NES_SNAPSHOT=`$NES_CARDANOCLI_BIN query stake-snapshot --stake-pool-id $NES_POOL
 NES_POOL_STAKE=$(echo "$NES_SNAPSHOT" | grep -oP '(?<=    "poolStakeMark": )\d+(?=,?)')
 NES_ACTIVE_STAKE=$(echo "$NES_SNAPSHOT" | grep -oP '(?<=    "activeStakeMark": )\d+(?=,?)')
 echo "## Executing cncli leaderlog for ${NES_POOL_NAME} pool..."
-NES_POOL=`$NES_CNCLI_BIN leaderlog --pool-id $NES_POOL_ID --pool-vrf-skey $NES_POOL_VRF --db $NES_CNCLI_DB --byron-genesis $NES_POOL_BYRON_GEN --shelley-genesis $NES_POOL_SHELLEY_GEN  --pool-stake $NES_POOL_STAKE --active-stake $NES_ACTIVE_STAKE --ledger-set next`
+NES_POOL_PARMS="--pool-id $NES_POOL_ID --pool-vrf-skey $NES_POOL_VRF --db $NES_CNCLI_DB "
+NES_POOL_PARMS+="--byron-genesis $NES_POOL_BYRON_GEN --shelley-genesis $NES_POOL_SHELLEY_GEN "
+NES_POOL_PARMS+="--pool-stake $NES_POOL_STAKE --active-stake $NES_ACTIVE_STAKE --ledger-set next"
+NES_POOL=`$NES_CNCLI_BIN leaderlog $NES_POOL_PARMS`
 EPOCH=`jq .epoch <<< $NES_POOL`
 SLOTS=`jq .epochSlots <<< $NES_POOL`
 IDEAL=`jq .epochSlotsIdeal <<< $NES_POOL`
