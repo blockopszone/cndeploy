@@ -1,0 +1,47 @@
+---
+- name: resolve platform specific vars
+  include_vars: '{{ item }}'
+  with_first_found:
+    - files:
+        - '{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml'
+        - '{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml'
+        - '{{ ansible_distribution }}-{{ ansible_distribution_release }}.yml'
+        - '{{ ansible_distribution }}.yml'
+        - '{{ ansible_os_family }}.yml'
+      skip: true
+      paths:
+        - '{{ role_path }}/vars'
+
+- name: Check node and client versions if already installed
+  # TODO define block
+
+- name: Determine if node needs to be installed or updated from local files
+  # TODO define block
+
+- name: Stop the service if the service needs to be updated
+  # TODO define block
+
+- name: Deploy Cardano node by transferring the compiled binaries to the host
+  # TODO define block
+
+- name: Check cardano-node version
+  # TODO define block
+
+- name: Check cardano-cli version
+  # TODO define block
+
+- name: Synchronize the configuration of the node from the local files
+  # TODO define block
+
+- name: Deploy Cardano node using systemd
+  ansible.builtin.command: /opt/cardano/cnode/scripts/deploy-as-systemd.sh
+  # TODO check if script is idempotent
+
+- name: Copy a recent blocks database to save some synchronization time if don't exist
+  # TODO define block
+
+- name: Start Cardano node if it is stopped
+  # TODO define block
+
+- name: Check that user aliases are in place
+  # TODO define block

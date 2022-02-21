@@ -1,0 +1,125 @@
+---
+- name: resolve platform specific vars
+  include_vars: '{{ item }}'
+  with_first_found:
+    - files:
+        - '{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml'
+        - '{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml'
+        - '{{ ansible_distribution }}-{{ ansible_distribution_release }}.yml'
+        - '{{ ansible_distribution }}.yml'
+        - '{{ ansible_os_family }}.yml'
+      skip: true
+      paths:
+        - '{{ role_path }}/vars'
+
+- name: Create user for ssh tunneling
+  become: yes
+  become_user: root
+  ansible.builtin.user:
+    name: '{{ cndeploy_sshtunnel_user }}'
+    group: '{{ cndeploy_sshtunnel_user }}'
+    shell: /bin/false
+
+- name: Set up authorized keys for ssh tunneling user
+  become: yes
+  become_user: root
+  ansible.posix.authorized_key:
+    user: '{{ cndeploy_sshtunnel_user }}'
+    state: present
+    key: "{{ cndeploy_sshtunnel_sshpubkey }}"
+
+- name: Set SSH options for sshtunnel user
+  become: yes
+  become_user: root
+  ansible.builtin.blockinfile:
+    path: /etc/ssh/sshd_config
+    block: |
+      Match User {{ cndeploy_sshtunnel_user }}
+        X11Forwarding no
+        PermitTunnel no
+        GatewayPorts no
+        AllowAgentForwarding no
+        AllowTcpForwarding yes
+        PermitOpen 127.0.0.1:12798 127.0.0.1:9100
+        PermitListen 127.0.0.1:8100
+
+- name: Restart SSH service
+  become: yes
+  become_user: root
+  ansible.builtin.service:
+    name: ssh
+    state: restarted
+  # TODO only if needed
+
+- name: Update cache for Debian based systems
+  become: yes
+  become_user: root
+  ansible.builtin.apt:
+    update_cache: yes
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Upgrade all packages for Debian based Systems
+  become: yes
+  become_user: root
+  ansible.builtin.apt:
+    name: "*"
+    state: latest
+  when: (ansible_facts['os_family'] == "Debian" and cndeploy_upgrade_packages)
+
+- name: Update cache for RedHat based systems
+  become: yes
+  become_user: root
+  ansible.builtin.yum:
+    update_cache: yes
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Upgrade all packages for RedHat based Systems
+  become: yes
+  become_user: root
+  ansible.builtin.yum:
+    name: "*"
+    state: latest
+  when: (ansible_facts['os_family'] == "RedHat" and cndeploy_upgrade_packages)
+
+- name: Install dependencies for the OS
+  become: yes
+  become_user: root
+  package:
+    name: '{{ dep_pkgs|default([]) }}'
+    state: present
+
+- name: Install additional packages
+  become: yes
+  become_user: root
+  package:
+    name: '{{ additional_pkgs|default([]) }}'
+    state: present
+
+# TODO check other package managers
+
+- name: Modify cardano node config.json to forward traces to ssh forward port
+  become: yes
+  become_user: root
+  ansible.builtin.blockinfile:
+    path: /opt/cardano/cnode/files/config.json
+    block: |
+      "traceForwardTo": {
+        "tag": "RemoteSocket",
+        "contents": [
+          "127.0.0.1",
+          "8100"
+        ]
+      }
+  # TODO define the regex to exactly match the position in config
+
+- name: Stop Cardano node
+  become: yes
+  become_user: root
+  ansible.builtin.command: sudo systemctl stop cnode.service
+  # TODO only if needed
+
+- name: Start Cardano node
+  become: yes
+  become_user: root
+  ansible.builtin.command: sudo systemctl start cnode.service
+  # TODO only if needed

@@ -1,0 +1,28 @@
+---
+- name: resolve platform specific vars
+  include_vars: '{{ item }}'
+  with_first_found:
+    - files:
+        - '{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml'
+        - '{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml'
+        - '{{ ansible_distribution }}-{{ ansible_distribution_release }}.yml'
+        - '{{ ansible_distribution }}.yml'
+        - '{{ ansible_os_family }}.yml'
+      skip: true
+      paths:
+        - '{{ role_path }}/vars'
+
+- name: Install Guild Operators CNODE
+  block:
+    - name: Ensures $HOME/tmp exist
+      ansible.builtin.file:
+        path=$HOME/tmp
+        state=directory
+        recurse=yes
+    - name: Get Guild Operators prereqs.sh script
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/cardano-community/guild-operators/master/scripts/cnode-helper-scripts/prereqs.sh
+        dest: $HOME/tmp/
+        mode: '0755'
+    - name: Run prereqs.sh installer
+      ansible.builtin.command: $HOME/tmp/prereqs.sh

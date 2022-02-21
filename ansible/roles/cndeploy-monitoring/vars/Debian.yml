@@ -1,0 +1,5 @@
+---
+dep_pkgs:
+  - curl
+  - acl
+  - prometheus-node-exporter

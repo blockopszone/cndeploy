@@ -1,0 +1,12 @@
+---
+dep_pkgs:
+  - curl
+  - acl
+
+cndeploy_user: admin
+
+cndeploy_user_home: '/home/{{ cndeploy_user }}'
+
+cndeploy_admin_groups:
+  - sudo
+  - adm

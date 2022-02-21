@@ -1,0 +1,41 @@
+---
+- name: resolve platform specific vars
+  include_vars: '{{ item }}'
+  with_first_found:
+    - files:
+        - '{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml'
+        - '{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml'
+        - '{{ ansible_distribution }}-{{ ansible_distribution_release }}.yml'
+        - '{{ ansible_distribution }}.yml'
+        - '{{ ansible_os_family }}.yml'
+      skip: true
+      paths:
+        - '{{ role_path }}/vars'
+
+- name: create admin user
+  become: yes
+  become_user: root
+  ansible.builtin.user:
+    name: '{{ cndeploy_user }}'
+    home: '{{ cndeploy_user_home }}'
+    shell: /bin/bash
+    group: '{{ cndeploy_user }}'
+    groups: '{{ cndeploy_admin_groups }}'
+    append: yes
+
+- name: allow sudo without password
+  become: yes
+  become_user: root
+  ansible.builtin.copy:
+    content: '{{ cndeploy_user }} ALL=(ALL) NOPASSWD:ALL'
+    dest: '/etc/sudoers.d/{{ cndeploy_user }}_nopasswd'
+    mode: 0440
+
+- name: set up authorized keys
+  become: yes
+  become_user: root
+  ansible.posix.authorized_key:
+    user: '{{ cndeploy_user }}'
+    state: present
+    key: "{{ lookup('file', item) }}"
+  with_fileglob: 'public_keys/*.pub'

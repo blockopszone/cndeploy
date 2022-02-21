@@ -1,0 +1,21 @@
+# set to yes to change hostname
+cndeploy_change_hostname: yes
+# set to the desired hostname
+cndeploy_hostname: cn
+# restirct ssh access by not allowing root login neither password auth
+cndeploy_restrict_ssh: yes
+# enable the firewall to allow connections to only the necessary ports
+cndeploy_firewall_enabled: yes
+# enable the use of allow-hostname to grant access to a dynamic dns hostname
+cndeploy_allowhostname_enabled: yes
+# specify the hostname to always allow connections from
+cndeploy_allowhostname: set_your_dyn_hostname_here.something
+# set to yes to upgrade packages present in the system
+cndeploy_upgrade_packages: yes
+# set to the user to be used for installation, it'll be created if don't exist
+# set to '{{ ansible_user_id }}' to use the user that Ansible connects with
+cndeploy_user: '{{ ansible_user_id }}'
+# set to the desired/existent home for the user, init scripts will be placed
+cndeploy_user_home: '/home/{{ cndeploy_user }}'
+# set the install directory
+cndeploy_cnode_dir: '/opt/cardano/cnode'

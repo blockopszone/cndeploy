@@ -1,0 +1,6 @@
+# Define the user to run the ssh tunnels
+cndeploy_sshtunnel_user: sshtunnel
+# Define the public key to allow access with sshtunnel user
+# cndeploy_sshtunnel_sshpubkey:
+# set to yes to upgrade packages present in the system
+cndeploy_upgrade_packages: yes

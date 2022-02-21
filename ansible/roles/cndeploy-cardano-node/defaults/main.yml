@@ -1,0 +1,9 @@
+# Set to yes to add the defined aliases to user's bash
+cndeploy_add_aliases: yes
+# Define the aliases to be added
+cndeploy_aliases: |
+  alias g='/opt/cardano/cnode/scripts/gLiveView.sh'
+  alias nstart='sudo systemctl start cnode.service'
+  alias nstop='sudo systemctl stop cnode.service'
+  alias nstatus='sudo systemctl status cnode.service'
+  alias nlog='sudo journalctl -f -u cnode.service'

@@ -1,0 +1,91 @@
+---
+- name: resolve platform specific vars
+  include_vars: '{{ item }}'
+  with_first_found:
+    - files:
+        - '{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml'
+        - '{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml'
+        - '{{ ansible_distribution }}-{{ ansible_distribution_release }}.yml'
+        - '{{ ansible_distribution }}.yml'
+        - '{{ ansible_os_family }}.yml'
+      skip: true
+      paths:
+        - '{{ role_path }}/vars'
+
+- name: Set hostname
+  when: cndeploy_change_hostname
+  become: yes
+  become_user: root
+  ansible.builtin.hostname:
+    name: '{{ cndeploy_hostname }}'
+
+- name: Add entries to hosts file
+  when: cndeploy_change_hosts
+  become: yes
+  become_user: root
+  # TODO finish block
+
+- name: Secure SSH access if not connected as root
+  when: cndeploy_restrict_ssh and '{{ ansible_user_id }}' != "root"
+  become: yes
+  become_user: root
+  # TODO finish block
+
+- name: Update cache for Debian based systems
+  become: yes
+  become_user: root
+  ansible.builtin.apt:
+    update_cache: yes
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Upgrade all packages for Debian based Systems
+  become: yes
+  become_user: root
+  ansible.builtin.apt:
+    name: "*"
+    state: latest
+  when: (ansible_facts['os_family'] == "Debian" and upgrade_packages)
+
+- name: Update cache for RedHat based systems
+  become: yes
+  become_user: root
+  ansible.builtin.yum:
+    update_cache: yes
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Upgrade all packages for RedHat based Systems
+  become: yes
+  become_user: root
+  ansible.builtin.yum:
+    name: "*"
+    state: latest
+  when: (ansible_facts['os_family'] == "RedHat" and upgrade_packages)
+
+# TODO: Upgrade packages for other distributions
+
+- name: install dependencies for the os
+  become: yes
+  become_user: root
+  package:
+    name: '{{ dep_pkgs|default([]) }}'
+    state: present
+
+- name: install additional packages
+  become: yes
+  become_user: root
+  package:
+    name: '{{ additional_pkgs|default([]) }}'
+    state: present
+
+- name: Setup firewall
+  when: cndeploy_firewall_enabled
+  block:
+    - name: Manage dynamic ip hosts access with allow-hostname (ubuntu only atm)
+      when: (ansible_facts['os_distribution'] == "Ubuntu" and cndeploy_allowhostname_enabled)
+    - name: Set the firewall rules
+      # TODO finish block
+
+- name: Setup an additional Swap file
+  when: cndeploy_additional_swap
+  block:
+    # TODO finish block
