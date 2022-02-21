@@ -13,23 +13,44 @@
         - '{{ role_path }}/vars'
 
 - name: Set hostname
-  when: cndeploy_change_hostname
+  when:
+    - cndeploy_change_hostname
+    - cndeploy_hostname is defined
   become: yes
   become_user: root
   ansible.builtin.hostname:
     name: '{{ cndeploy_hostname }}'
 
 - name: Add entries to hosts file
-  when: cndeploy_change_hosts
+  when:
+    - cndeploy_change_hosts
+    - cndeploy_hosts is defined
   become: yes
   become_user: root
-  # TODO finish block
+  ansible.builtin.blockinfile:
+    path: /etc/hosts
+    block: '{{ cndeploy_hosts }}'
 
 - name: Secure SSH access if not connected as root
-  when: cndeploy_restrict_ssh and '{{ ansible_user_id }}' != "root"
+  when:
+    - cndeploy_restrict_ssh
+    - ansible_user_id != "root"
   become: yes
   become_user: root
-  # TODO finish block
+  ansible.builtin.copy:
+    dest: '/etc/ssh/sshd_config.d/05-ssh-secured.conf'
+    owner: root
+    group: root
+    mode: 0644
+    content: |
+      PermitRootLogin prohibit-password
+      PubkeyAuthentication yes
+      PasswordAuthentication no
+      PermitEmptyPasswords no
+      ChallengeResponseAuthentication no
+      UsePAM yes
+      X11Forwarding yes
+  notify: Restart SSH service
 
 - name: Update cache for Debian based systems
   become: yes
@@ -63,27 +84,68 @@
 
 # TODO: Upgrade packages for other distributions
 
-- name: install dependencies for the os
+- name: Install dependencies for the os
   become: yes
   become_user: root
   package:
     name: '{{ dep_pkgs|default([]) }}'
     state: present
 
-- name: install additional packages
+- name: Install additional packages
+  when: cndeploy_install_additional
   become: yes
   become_user: root
   package:
-    name: '{{ additional_pkgs|default([]) }}'
+    name: '{{ cndeploy_additional_pkgs|default([]) }}'
     state: present
 
 - name: Setup firewall
   when: cndeploy_firewall_enabled
   block:
-    - name: Manage dynamic ip hosts access with allow-hostname (ubuntu only atm)
-      when: (ansible_facts['os_distribution'] == "Ubuntu" and cndeploy_allowhostname_enabled)
-    - name: Set the firewall rules
+    - name: Use ufw if available
       # TODO finish block
+    - name: Use firewald if available when ufw is not
+      # TODO finish block
+    - name: Use iptables if available when ufw and firewalld are not
+      # TODO finish block
+
+- name: Setup allow-hostname (ubuntu only atm)
+  when:
+    - cndeploy_allowhostname_enabled
+    - cndeploy_allowhostname is defined
+    - ansible_facts['os_distribution'] == "Ubuntu"
+  block:
+    - name: Download allow-hostname script
+      become: yes
+      become_user: root
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/jmhoms/allow-hostname/master/allow-hostname.bash
+        dest: /usr/local/bin/
+        mode: '0700'
+    - name: Configure defined hostname in the script
+      become: yes
+      become_user: root
+      lineinfile:
+        dest: /usr/local/bin/allow-hostname.bash
+        state: present
+        regexp: '^HOSTNAME='
+        line: 'HOSTNAME={{ cndeploy_allowhostname }}'
+    - name: Configure ufw mode in the script
+      become: yes
+      become_user: root
+      lineinfile:
+        dest: /usr/local/bin/allow-hostname.bash
+        state: present
+        regexp: '^UFWMODE='
+        line: 'UFWMODE=yes'
+    - name: Configure cron to run the script every 5 minutes
+      ansible.builtin.copy:
+        dest: '/etc/cron.d/allow-hostname'
+        owner: root
+        group: root
+        mode: 0644
+        content: |
+          */5 * * * * root /usr/local/bin/allow-hostname.bash
 
 - name: Setup an additional Swap file
   when: cndeploy_additional_swap

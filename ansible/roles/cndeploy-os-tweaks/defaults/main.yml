@@ -2,16 +2,28 @@
 cndeploy_change_hostname: yes
 # set to the desired hostname
 cndeploy_hostname: cn
+# set to yes to add entries to the hosts file
+cndeploy_change_hosts: yes
+# uncomment to define the additional entries for the hosts file
+#cndeploy_hosts: |
+#  1.1.1.1 some_host.some_domain.com some_host
+#  1.1.1.2 other_host.some_domain.com other_host
 # restirct ssh access by not allowing root login neither password auth
 cndeploy_restrict_ssh: yes
+# set to yes to upgrade packages present in the system
+cndeploy_upgrade_packages: yes
+# set to yes to install additional packages
+cndeploy_install_additional: yes
+# Uncomment to define additional packages to be installed
+#cndeploy_additional_pkgs:
+#  - some_package
+#  - other_package
 # enable the firewall to allow connections to only the necessary ports
 cndeploy_firewall_enabled: yes
 # enable the use of allow-hostname to grant access to a dynamic dns hostname
 cndeploy_allowhostname_enabled: yes
 # specify the hostname to always allow connections from
-cndeploy_allowhostname: set_your_dyn_hostname_here.something
-# set to yes to upgrade packages present in the system
-cndeploy_upgrade_packages: yes
+#cndeploy_allowhostname: set_your_dyn_hostname_here.something
 # set to the user to be used for installation, it'll be created if don't exist
 # set to '{{ ansible_user_id }}' to use the user that Ansible connects with
 cndeploy_user: '{{ ansible_user_id }}'
