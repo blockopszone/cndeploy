@@ -2,3 +2,4 @@
 dep_pkgs:
   - curl
   - acl
+  - ufw

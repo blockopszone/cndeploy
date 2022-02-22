@@ -1,5 +1,5 @@
 ---
-- name: resolve platform specific vars
+- name: Resolve platform specific vars
   include_vars: '{{ item }}'
   with_first_found:
     - files:
@@ -11,6 +11,14 @@
       skip: true
       paths:
         - '{{ role_path }}/vars'
+
+- name: Resolve other vars
+  ansible.builtin.set_fact:
+    master_ip: '{{ ansible_env["SSH_CLIENT"].split() | first }}'
+
+- name: Show Master IP (origin of current connection)
+  ansible.builtin.debug:
+    msg: {{ master_ip }}
 
 - name: Set hostname
   when:
@@ -102,18 +110,92 @@
 - name: Setup firewall
   when: cndeploy_firewall_enabled
   block:
+    - name: Check if ufw is available
+      become: yes
+      become_user: root
+      ansible.builtin.stat:
+        path: /usr/sbin/ufw
+      register: ufw
+    - name: Check if firewalld is available
+      become: yes
+      become_user: root
+      ansible.builtin.stat:
+        path: /usr/sbin/firewalld
+      register: firewalld
+    - name: Check if iptables is available
+      become: yes
+      become_user: root
+      ansible.builtin.stat:
+        path: /usr/sbin/iptables
+      register: iptables
     - name: Use ufw if available
-      # TODO finish block
+      when: ufw.stat.exists
+      block:
+        - name: Allow SSH from defined management hosts
+          community.general.ufw:
+            rule: allow
+            port: 22
+            proto: tcp
+            src: "{{ item }}"
+          with_items: '{{ cndeploy_management_ip }}'
+        - name: Allow everywhere access to Relay-Node port
+          when: cndeploy_node_type == 'relay'
+          community.general.ufw:
+            rule: allow
+            port: '{{ cndeploy_node_port }}'
+            proto: tcp
+        - name: Allow relay nodes access to BP-Node port
+          when: cndeploy_node_type == 'bp'
+          community.general.ufw:
+            rule: allow
+            port: '{{ cndeploy_node_port }}'
+            proto: tcp
+            src: '{{ item.split(":")[0] }}'
+          with_items: '{{ cndeploy_relay_nodes }}'
+        - name: Enable UFW with deny as default policy
+          community.general.ufw:
+            state: "enabled"
+            policy: "deny"
+            logging: "on"
     - name: Use firewald if available when ufw is not
-      # TODO finish block
+      # TODO testing needed
+      when:
+        - not ufw.stat.exists
+        - firewalld.stat.exists
+      block:
+        - name: Allow SSH from defined management hosts
+          ansible.posix.firewalld:
+            permanent: yes
+            state: enabled
+            port: 22/tcp
+            source: "{{ item }}"
+          with_items: '{{ cndeploy_management_ip }}'
+        - name: Allow everywhere access to Relay-Node port
+          when: cndeploy_node_type == 'relay'
+          ansible.posix.firewalld:
+            permanent: yes
+            state: enabled
+            port: '{{ cndeploy_node_port }}/tcp'
+        - name: Allow relay nodes access to BP-Node port
+          when: cndeploy_node_type == 'bp'
+          ansible.posix.firewalld:
+            permanent: yes
+            state: enabled
+            port: '{{ cndeploy_node_port }}/tcp'
+            source: '{{ item.split(":")[0] }}'
+          with_items: '{{ cndeploy_relay_nodes }}'
     - name: Use iptables if available when ufw and firewalld are not
-      # TODO finish block
+      when:
+        - not ufw.stat.exists
+        - not firewalld.stat.exists
+        - iptables.stat.exists
+      # TODO finish block with iptables module + permanent changes
 
-- name: Setup allow-hostname (ubuntu only atm)
+- name: Setup allow-hostname (Ubuntu/Debian only atm)
   when:
     - cndeploy_allowhostname_enabled
     - cndeploy_allowhostname is defined
-    - ansible_facts['os_distribution'] == "Ubuntu"
+    - ansible_facts['os_family'] == "Debian"
   block:
     - name: Download allow-hostname script
       become: yes
@@ -148,6 +230,88 @@
           */5 * * * * root /usr/local/bin/allow-hostname.bash
 
 - name: Setup an additional Swap file
-  when: cndeploy_additional_swap
+  # based on Greg Dubicki's code
+  when: cndeploy_swap_configure
   block:
-    # TODO finish block
+    - name: Check if swap file exists
+      stat:
+        path: "{{cndeploy_swap_file_path}}"
+        get_checksum: false
+        get_md5: false
+      register: swap_file_check
+      changed_when: false
+    - name: Set variable for existing swap file size
+      set_fact:
+        swap_file_existing_size_mb: "{{ (swap_file_check.stat.size / 1024 / 1024) | int }}"
+      when: swap_file_check.stat.exists
+    - name: Check if swap is on
+      shell: swapon --show | grep {{cndeploy_swap_file_path}}
+      register: swap_is_enabled
+      changed_when: false
+      failed_when: false
+    - name: Disable swap
+      command: swapoff {{cndeploy_swap_file_path}}
+      register: swap_disabled
+      when: >
+        swap_file_check.stat.exists
+        and 'rc' in swap_is_enabled and swap_is_enabled.rc == 0
+        and (not cndeploy_swap_enable or (cndeploy_swap_enable and swap_file_existing_size_mb != cndeploy_swap_file_size_mb))
+    - name: Delete the swap file
+      file:
+        path: "{{cndeploy_swap_file_path}}"
+        state: absent
+      when: not cndeploy_swap_enable
+    - name: Remove swap entry from fstab
+      mount:
+        name: none
+        src: "{{cndeploy_swap_file_path}}"
+        fstype: swap
+        opts: sw
+        passno: '0'
+        dump: '0'
+        state: present
+      when: not cndeploy_swap_enable
+    - name: Configure swap
+      when: cndeploy_swap_enable | bool
+      block:
+        - name: Create or change the size of swap file
+          command: dd if=/dev/zero of={{cndeploy_swap_file_path}} count={{cndeploy_swap_file_size_mb}} bs=1MiB
+          register: swap_file_created
+          when: >
+            not swap_file_check.stat.exists
+            or swap_file_existing_size_mb != cndeploy_swap_file_size_mb
+        - name: Change swap file permissions
+          file:
+            path: "{{cndeploy_swap_file_path}}"
+            mode: 0600
+        - name: Check if swap is formatted
+          shell: file {{cndeploy_swap_file_path}} | grep 'swap file'
+          register: swap_file_is_formatted
+          changed_when: false
+          failed_when: false
+        - name: Format swap file if it's not formatted
+          command: mkswap {{cndeploy_swap_file_path}}
+          when: >
+            ('rc' in swap_file_is_formatted and swap_file_is_formatted.rc > 0)
+            or swap_file_created.changed
+        - name: Add swap entry to fstab
+          mount:
+            name: none
+            src: "{{cndeploy_swap_file_path}}"
+            fstype: swap
+            opts: sw
+            passno: '0'
+            dump: '0'
+            state: present
+        - name: Turn on swap
+          shell: swapon -a
+          # if swap was disabled from the start
+          # or has been disabled to change its params
+          when: >
+            ('rc' in swap_is_enabled and swap_is_enabled.rc != 0)
+            or swap_disabled.changed
+        - name: Configure swappiness
+          sysctl:
+            name: vm.swappiness
+            value: "{{ cndeploy_swappiness|string }}"
+            state: present

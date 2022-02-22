@@ -15,15 +15,49 @@ cndeploy_upgrade_packages: yes
 # set to yes to install additional packages
 cndeploy_install_additional: yes
 # Uncomment to define additional packages to be installed
-#cndeploy_additional_pkgs:
-#  - some_package
-#  - other_package
+cndeploy_additional_pkgs:
+  - htop
+  - net-tools
 # enable the firewall to allow connections to only the necessary ports
+# define cndeploy_block_producers, cndeploy_relay_nodes
+# to determine the necessary ports
 cndeploy_firewall_enabled: yes
-# enable the use of allow-hostname to grant access to a dynamic dns hostname
+# Enable the use of allow-hostname to grant all ports access to a dynamic dns hostname.
 cndeploy_allowhostname_enabled: yes
-# specify the hostname to always allow connections from
+# Specify the hostname to always allow connections from
 #cndeploy_allowhostname: set_your_dyn_hostname_here.something
+# set to "bp" for block producers, or "relay" for relay nodes
+cndeploy_node_type: relay
+# set to the tcp port of the node
+cndeploy_node_port: 3000
+# define the list of block producers and their node tcp port using the format ip:port
+# block producer nodes will allow connections to the specified port only from relay nodes
+cndeploy_block_producers:
+  - 1.1.1.1:3001
+  - 1.1.1.2:3002
+# define the list of relay nodes and their node tcp port using the format ip:port
+# relay nodes will allow connections to the specified port from everywhere
+cndeploy_relay_nodes:
+  - 2.2.2.2:3000
+  - 2.2.2.3:3000
+# Define the list of management or monitoring IP that will need access to port 22 on nodes.
+# '{{ master_ip }}' is included by default to allow connections from the Ansible master,
+# in order to avoid accidental lockdowns. Remove only if you know what you are doing.
+# To allow connections to the SSH port from everywhere (not recommended) add 0.0.0.0/0 to the list.
+cndeploy_management_ip:
+  - '{{ master_ip }}'
+  - 0.0.0.0/0
+  - 4.4.4.4
+# Swap
+cndeploy_swap_configure: true # or false
+cndeploy_swap_enable: true # or false
+cndeploy_swap_file_path: /swapfile
+cndeploy_swap_file_size_mb: 4096
+# Set swapiness value, default is 60.
+# For a full explanation see https://lwn.net/Articles/83588/
+cndeploy_swappiness: 60
+
+
 # set to the user to be used for installation, it'll be created if don't exist
 # set to '{{ ansible_user_id }}' to use the user that Ansible connects with
 cndeploy_user: '{{ ansible_user_id }}'
