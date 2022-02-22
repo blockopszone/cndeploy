@@ -16,26 +16,26 @@
   become: yes
   become_user: root
   ansible.builtin.user:
-    name: '{{ cndeploy_user }}'
-    home: '{{ cndeploy_user_home }}'
+    name: '{{ cndeploy_user|default(cndeploy_user_default) }}'
+    home: '{{ cndeploy_user_home|default(cndeploy_user_home_default) }}'
     shell: /bin/bash
-    group: '{{ cndeploy_user }}'
-    groups: '{{ cndeploy_admin_groups }}'
+    group: '{{ cndeploy_user|default(cndeploy_user_default) }}'
+    groups: '{{ cndeploy_admin_groups|default(cndeploy_admin_groups_default) }}'
     append: yes
 
 - name: allow sudo without password
   become: yes
   become_user: root
   ansible.builtin.copy:
-    content: '{{ cndeploy_user }} ALL=(ALL) NOPASSWD:ALL'
-    dest: '/etc/sudoers.d/{{ cndeploy_user }}_nopasswd'
+    content: '{{ cndeploy_user|default(cndeploy_user_default) }} ALL=(ALL) NOPASSWD:ALL'
+    dest: '/etc/sudoers.d/{{ cndeploy_user|default(cndeploy_user_default) }}_nopasswd'
     mode: 0440
 
 - name: set up authorized keys
   become: yes
   become_user: root
   ansible.posix.authorized_key:
-    user: '{{ cndeploy_user }}'
+    user: '{{ cndeploy_user|default(cndeploy_user_default) }}'
     state: present
     key: "{{ lookup('file', item) }}"
   with_fileglob: 'public_keys/*.pub'

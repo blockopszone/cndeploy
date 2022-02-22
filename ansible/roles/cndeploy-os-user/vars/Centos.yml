@@ -2,9 +2,9 @@
 dep_pkgs:
   - curl
 
-cndeploy_user: centos
+cndeploy_user_default: centos
 
-cndeploy_user_home: '/home/{{ cndeploy_user }}'
+cndeploy_user_home_default: '/home/{{ cndeploy_user }}'
 
-cndeploy_admin_groups:
+cndeploy_admin_groups_default:
   - wheel

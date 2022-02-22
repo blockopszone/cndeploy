@@ -95,7 +95,7 @@
 - name: Install dependencies for the os
   become: yes
   become_user: root
-  package:
+  ansible.builtin.package:
     name: '{{ dep_pkgs|default([]) }}'
     state: present
 
@@ -103,28 +103,24 @@
   when: cndeploy_install_additional
   become: yes
   become_user: root
-  package:
+  ansible.builtin.package:
     name: '{{ cndeploy_additional_pkgs|default([]) }}'
     state: present
 
 - name: Setup firewall
   when: cndeploy_firewall_enabled
+  become: yes
+  become_user: root
   block:
     - name: Check if ufw is available
-      become: yes
-      become_user: root
       ansible.builtin.stat:
         path: /usr/sbin/ufw
       register: ufw
     - name: Check if firewalld is available
-      become: yes
-      become_user: root
       ansible.builtin.stat:
         path: /usr/sbin/firewalld
       register: firewalld
     - name: Check if iptables is available
-      become: yes
-      become_user: root
       ansible.builtin.stat:
         path: /usr/sbin/iptables
       register: iptables
@@ -196,26 +192,22 @@
     - cndeploy_allowhostname_enabled
     - cndeploy_allowhostname is defined
     - ansible_facts['os_family'] == "Debian"
+  become: yes
+  become_user: root
   block:
     - name: Download allow-hostname script
-      become: yes
-      become_user: root
       ansible.builtin.get_url:
         url: https://raw.githubusercontent.com/jmhoms/allow-hostname/master/allow-hostname.bash
         dest: /usr/local/bin/
         mode: '0700'
     - name: Configure defined hostname in the script
-      become: yes
-      become_user: root
-      lineinfile:
+      ansible.builtin.lineinfile:
         dest: /usr/local/bin/allow-hostname.bash
         state: present
         regexp: '^HOSTNAME='
         line: 'HOSTNAME={{ cndeploy_allowhostname }}'
     - name: Configure ufw mode in the script
-      become: yes
-      become_user: root
-      lineinfile:
+      ansible.builtin.lineinfile:
         dest: /usr/local/bin/allow-hostname.bash
         state: present
         regexp: '^UFWMODE='
@@ -232,70 +224,72 @@
 - name: Setup an additional Swap file
   # based on Greg Dubicki's code
   when: cndeploy_swap_configure
+  become: yes
+  become_user: root
   block:
     - name: Check if swap file exists
-      stat:
+      ansible.builtin.stat:
         path: "{{cndeploy_swap_file_path}}"
         get_checksum: false
         get_md5: false
       register: swap_file_check
       changed_when: false
     - name: Set variable for existing swap file size
-      set_fact:
+      ansible.builtin.set_fact:
         swap_file_existing_size_mb: "{{ (swap_file_check.stat.size / 1024 / 1024) | int }}"
       when: swap_file_check.stat.exists
     - name: Check if swap is on
-      shell: swapon --show | grep {{cndeploy_swap_file_path}}
+      ansible.builtin.shell: swapon --show | grep {{cndeploy_swap_file_path}}
       register: swap_is_enabled
       changed_when: false
       failed_when: false
     - name: Disable swap
-      command: swapoff {{cndeploy_swap_file_path}}
+      ansible.builtin.command: swapoff {{cndeploy_swap_file_path}}
       register: swap_disabled
       when: >
         swap_file_check.stat.exists
         and 'rc' in swap_is_enabled and swap_is_enabled.rc == 0
         and (not cndeploy_swap_enable or (cndeploy_swap_enable and swap_file_existing_size_mb != cndeploy_swap_file_size_mb))
     - name: Delete the swap file
-      file:
+      ansible.builtin.file:
         path: "{{cndeploy_swap_file_path}}"
         state: absent
       when: not cndeploy_swap_enable
     - name: Remove swap entry from fstab
-      mount:
+      ansible.posix.mount:
         name: none
         src: "{{cndeploy_swap_file_path}}"
         fstype: swap
         opts: sw
         passno: '0'
         dump: '0'
-        state: present
+        state: absent
       when: not cndeploy_swap_enable
     - name: Configure swap
       when: cndeploy_swap_enable | bool
       block:
         - name: Create or change the size of swap file
-          command: dd if=/dev/zero of={{cndeploy_swap_file_path}} count={{cndeploy_swap_file_size_mb}} bs=1MiB
+          ansible.builtin.command: dd if=/dev/zero of={{cndeploy_swap_file_path}} count={{cndeploy_swap_file_size_mb}} bs=1MiB
           register: swap_file_created
           when: >
             not swap_file_check.stat.exists
             or swap_file_existing_size_mb != cndeploy_swap_file_size_mb
         - name: Change swap file permissions
-          file:
+          ansible.builtin.file:
             path: "{{cndeploy_swap_file_path}}"
             mode: 0600
         - name: Check if swap is formatted
-          shell: file {{cndeploy_swap_file_path}} | grep 'swap file'
+          ansible.builtin.shell: file {{cndeploy_swap_file_path}} | grep 'swap file'
           register: swap_file_is_formatted
           changed_when: false
           failed_when: false
         - name: Format swap file if it's not formatted
-          command: mkswap {{cndeploy_swap_file_path}}
+          ansible.builtin.command: mkswap {{cndeploy_swap_file_path}}
           when: >
             ('rc' in swap_file_is_formatted and swap_file_is_formatted.rc > 0)
             or swap_file_created.changed
         - name: Add swap entry to fstab
-          mount:
+          ansible.posix.mount:
             name: none
             src: "{{cndeploy_swap_file_path}}"
             fstype: swap
@@ -304,14 +298,14 @@
             dump: '0'
             state: present
         - name: Turn on swap
-          shell: swapon -a
+          ansible.builtin.shell: swapon -a
           # if swap was disabled from the start
           # or has been disabled to change its params
           when: >
             ('rc' in swap_is_enabled and swap_is_enabled.rc != 0)
             or swap_disabled.changed
         - name: Configure swappiness
-          sysctl:
+          ansible.posix.sysctl:
             name: vm.swappiness
             value: "{{ cndeploy_swappiness|string }}"
             state: present

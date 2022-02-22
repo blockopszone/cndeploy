@@ -1,5 +1,5 @@
 ---
-- name: resolve platform specific vars
+- name: Resolve platform specific vars
   include_vars: '{{ item }}'
   with_first_found:
     - files:
@@ -42,14 +42,7 @@
         AllowTcpForwarding yes
         PermitOpen 127.0.0.1:12798 127.0.0.1:9100
         PermitListen 127.0.0.1:8100
-
-- name: Restart SSH service
-  become: yes
-  become_user: root
-  ansible.builtin.service:
-    name: ssh
-    state: restarted
-  # TODO only if needed
+  notify: Restart SSH service
 
 - name: Update cache for Debian based systems
   become: yes
@@ -110,16 +103,6 @@
           "8100"
         ]
       }
+  notify: Restart Cardano node
   # TODO define the regex to exactly match the position in config
-
-- name: Stop Cardano node
-  become: yes
-  become_user: root
-  ansible.builtin.command: sudo systemctl stop cnode.service
-  # TODO only if needed
-
-- name: Start Cardano node
-  become: yes
-  become_user: root
-  ansible.builtin.command: sudo systemctl start cnode.service
-  # TODO only if needed
+  # TODO decide become user
