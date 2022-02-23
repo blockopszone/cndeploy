@@ -1,5 +1,6 @@
 ---
 dep_pkgs:
   - curl
+  - jq
   - prometheus-node-exporter
   # TODO check the package name for RedHat OS family

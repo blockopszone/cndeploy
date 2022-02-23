@@ -77,32 +77,27 @@
 - name: Install dependencies for the OS
   become: yes
   become_user: root
-  package:
+  ansible.builtin.package:
     name: '{{ dep_pkgs|default([]) }}'
     state: present
 
 - name: Install additional packages
   become: yes
   become_user: root
-  package:
+  ansible.builtin.package:
     name: '{{ additional_pkgs|default([]) }}'
     state: present
 
 # TODO check other package managers
 
+- name: Check if node's config.json contains the traceForwardTo clause
 - name: Modify cardano node config.json to forward traces to ssh forward port
+  when: not cndeploy_config_clause_present
   become: yes
   become_user: root
-  ansible.builtin.blockinfile:
-    path: /opt/cardano/cnode/files/config.json
-    block: |
-      "traceForwardTo": {
-        "tag": "RemoteSocket",
-        "contents": [
-          "127.0.0.1",
-          "8100"
-        ]
-      }
+  ansible.builtin.shell: |
+    jq '.traceForwardTo += {"tag": "RemoteSocket", "contents": ["127.0.0.1", "8100"]}' /opt/cardano/cnode/files/config.json > /tmp/config.json
+    mv /tmp/config.json /opt/cardano/cnode/files/config.json
   notify: Restart Cardano node
-  # TODO define the regex to exactly match the position in config
   # TODO decide become user
+  # TODO decide block check + modify + notify
