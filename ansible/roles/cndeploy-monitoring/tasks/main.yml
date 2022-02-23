@@ -90,14 +90,30 @@
 
 # TODO check other package managers
 
-- name: Check if node's config.json contains the traceForwardTo clause
-- name: Modify cardano node config.json to forward traces to ssh forward port
-  when: not cndeploy_config_clause_present
+- name: Get stats of /opt/cardano/cnode/files/config.json
   become: yes
   become_user: root
-  ansible.builtin.shell: |
-    jq '.traceForwardTo += {"tag": "RemoteSocket", "contents": ["127.0.0.1", "8100"]}' /opt/cardano/cnode/files/config.json > /tmp/config.json
-    mv /tmp/config.json /opt/cardano/cnode/files/config.json
-  notify: Restart Cardano node
-  # TODO decide become user
-  # TODO decide block check + modify + notify
+  ansible.builtin.stat:
+    path: /opt/cardano/cnode/files/config.json
+  register: cndeploy_node_config
+
+- name: Add traceForwardTo clause to config.json
+  when: cndeploy_node_config.stat.exists
+  become: yes
+  become_user: root
+  block:
+    - name: Check if node's config.json contains the traceForwardTo clause
+      ansible.builtin.command: grep -q "traceForwardTo" /opt/cardano/cnode/files/config.json
+      register: cndeploy_trace_grep
+      check_mode: no
+      ignore_errors: yes
+      changed_when: no
+      failed_when: no
+    - name: Modify cardano node config.json if writeable and not contains the clause
+      when:
+        - cndeploy_node_config.stat.writeable
+        - cndeploy_trace_grep.rc != 0
+      ansible.builtin.shell: |
+        jq '.traceForwardTo += {"tag": "RemoteSocket", "contents": ["127.0.0.1", "8100"]}' /opt/cardano/cnode/files/config.json > /tmp/config.json
+        mv /tmp/config.json /opt/cardano/cnode/files/config.json
+      notify: Restart Cardano node
