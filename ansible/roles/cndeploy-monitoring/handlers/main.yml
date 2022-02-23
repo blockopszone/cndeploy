@@ -11,6 +11,6 @@
   become_user: root
   block:
     - name: Stop Cardano node
-      ansible.builtin.command: sudo systemctl stop cnode.service
+      ansible.builtin.command: systemctl stop cnode.service
     - name: Start Cardano node
-      ansible.builtin.command: sudo systemctl start cnode.service
+      ansible.builtin.command: systemctl start cnode.service
