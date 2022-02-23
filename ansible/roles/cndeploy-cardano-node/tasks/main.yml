@@ -19,36 +19,78 @@
     name: '{{ cndeploy_pkgs_dep|default([]) }}'
     state: present
 
-- name: Check node and client versions if already installed
-  # TODO define block
+- name: Check local Cardano versions
+  delegate_to: localhost
+  check_mode: no
+  ignore_errors: yes
+  changed_when: no
+  failed_when: no
+  block:
+    - name: Check local Cardano node version
+      ansible.builtin.command: cardano-node version
+      register: cndeploy_node_version_local
+    - name: Check local Cardano client version
+      ansible.builtin.command: cardano-cli version
+      register: cndeploy_cli_version_local
+    - name: Show local Cardano node version
+      ansible.builtin.debug:
+        msg: {{ cndeploy_node_version_local.stdout }}
+    - name: Show local Cardano client version
+      ansible.builtin.debug:
+        msg: {{ cndeploy_cli_version_local.stdout }}
 
-- name: Determine if node needs to be installed or updated from local files
-  # TODO define block
-
-- name: Stop the service if the service needs to be updated
-  # TODO define block
-
-- name: Deploy Cardano node by transferring the compiled binaries to the host
-  # TODO define block
-
-- name: Check cardano-node version
-  # TODO define block
-
-- name: Check cardano-cli version
-  # TODO define block
-
-- name: Synchronize the configuration of the node from the local files
-  # TODO define block
-
-- name: Deploy Cardano node using systemd
-  ansible.builtin.command: /opt/cardano/cnode/scripts/deploy-as-systemd.sh
-  # TODO check if script is idempotent
-
-- name: Copy a recent blocks database to save some synchronization time if don't exist
-  # TODO define block
-
-- name: Start Cardano node if it is stopped
-  # TODO define block
+- name: If Cardano node is locally installed
+  when:
+    - cndeploy_node_version_local.rc == 0
+    - cndeploy_cli_version_local.rc == 0
+  block:
+    - name: Check remote cardano versions
+      check_mode: no
+      ignore_errors: yes
+      changed_when: no
+      failed_when: no
+      block:
+        - name: Check remote Cardano node version
+          ansible.builtin.command: cardano-node version
+          register: cndeploy_node_version
+        - name: Check remote Cardano client version
+          ansible.builtin.command: cardano-cli version
+          register: cndeploy_cli_version
+        - name: Show remote Cardano node version
+          ansible.builtin.debug:
+            msg: {{ cndeploy_node_version.stdout }}
+        - name: Show remote Cardano client version
+          ansible.builtin.debug:
+            msg: {{ cndeploy_cli_version.stdout }}
+    - name: If local and remote versions are not equal proceed to install
+      when: ((cndeploy_node_version_local != cndeploy_node_version) or
+             (cndeploy_cli_version_local != cndeploy_cli_version))
+      block:
+        - name: Stop the local service
+          # TODO define block
+          # TODO wait 60 seconds
+        - name: Stop the remote service if needed
+          # TODO define block
+          # TODO wait 60 seconds
+        - name: Deploy Cardano node by transferring the compiled binaries to the host
+          # TODO define block
+        - name: Check again remote Cardano node version
+          # TODO define block
+        - name: Check again remote Cardano client version
+          # TODO define block
+        - name: Synchronize the configuration of the node from the local files
+          # TODO define block
+        - name: Deploy Cardano node using systemd
+          ansible.builtin.command: /opt/cardano/cnode/scripts/deploy-as-systemd.sh
+          # TODO check if script is idempotent
+        - name: Copy a recent blocks database to save some synchronization time if don't exist
+          # TODO define block
 
 - name: Check that user aliases are in place
+  # TODO define block
+
+# HANDLERS
+- name: Start local Cardano node if it is stopped
+  # TODO define block
+- name: Start remote Cardano node if it is stopped
   # TODO define block
