@@ -1,7 +1,9 @@
 # Define default user to override os defaults defined in ../vars
 #cndeploy_user: admin
+
 # Define default user's home to override os defaults defined in ../vars
 #cndeploy_user_home: '/home/{{ cndeploy_user }}'
+
 # Define default user's group to override os defaults defined in ../vars
 #cndeploy_admin_groups:
 #  - sudo

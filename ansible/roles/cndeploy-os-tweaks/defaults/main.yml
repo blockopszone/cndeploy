@@ -1,61 +1,70 @@
 # set to yes to change hostname
-cndeploy_change_hostname: yes
+cndeploy_hostname_change: yes
+
 # set to the desired hostname
 cndeploy_hostname: cn
+
 # set to yes to add entries to the hosts file
-cndeploy_change_hosts: yes
+cndeploy_hosts_change: yes
+
 # uncomment to define the additional entries for the hosts file
 #cndeploy_hosts: |
 #  1.1.1.1 some_host.some_domain.com some_host
 #  1.1.1.2 other_host.some_domain.com other_host
+
 # restirct ssh access by not allowing root login neither password auth
-cndeploy_restrict_ssh: yes
-# set to yes to upgrade packages present in the system
-cndeploy_upgrade_packages: yes
-# set to yes to install additional packages
-cndeploy_install_additional: yes
-# Uncomment to define additional packages to be installed
-cndeploy_additional_pkgs:
-  - htop
-  - net-tools
+cndeploy_ssh_restrict: yes
+
 # enable the firewall to allow connections to only the necessary ports
 # define cndeploy_block_producers, cndeploy_relay_nodes
 # to determine the necessary ports
 cndeploy_firewall_enabled: yes
+
 # Enable the use of allow-hostname to grant all ports access to a dynamic dns hostname.
 cndeploy_allowhostname_enabled: yes
+
 # Specify the hostname to always allow connections from
 #cndeploy_allowhostname: set_your_dyn_hostname_here.something
+
 # set to "bp" for block producers, or "relay" for relay nodes
 cndeploy_node_type: relay
+
 # set to the tcp port of the node
 cndeploy_node_port: 3000
+
 # define the list of block producers and their node tcp port using the format ip:port
 # block producer nodes will allow connections to the specified port only from relay nodes
 cndeploy_block_producers:
-  - 1.1.1.1:3001
-  - 1.1.1.2:3002
+#  - 1.1.1.1:3001
+#  - 1.1.1.2:3002
+
 # define the list of relay nodes and their node tcp port using the format ip:port
 # relay nodes will allow connections to the specified port from everywhere
 cndeploy_relay_nodes:
-  - 2.2.2.2:3000
-  - 2.2.2.3:3000
+#  - 2.2.2.2:3000
+#  - 2.2.2.3:3000
+
 # Define the list of management or monitoring IP that will need access to port 22 on nodes.
 # '{{ master_ip }}' is included by default to allow connections from the Ansible master,
 # in order to avoid accidental lockdowns. Remove only if you know what you are doing.
 # To allow connections to the SSH port from everywhere (not recommended) add 0.0.0.0/0 to the list.
 cndeploy_management_ip:
   - '{{ master_ip }}'
-  - 0.0.0.0/0
-  - 4.4.4.4
+#  - 0.0.0.0/0
+#  - 4.4.4.4
+
 # Set to true to configure a swapfile, or to false to delete it
 cndeploy_swap_configure: true
+
 # Set to true to enable an already configured swapfile, or to false to disable it
 cndeploy_swap_enable: true
+
 # Define the path for the swapfile to use
 cndeploy_swap_file_path: /swapfile
+
 # Define the size of the swapfile
 cndeploy_swap_file_size_mb: 8192
+
 # Set swapiness value, default is 60.
 # For a full explanation see https://lwn.net/Articles/83588/
 cndeploy_swappiness: 60

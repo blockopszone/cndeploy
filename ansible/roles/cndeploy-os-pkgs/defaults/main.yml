@@ -1,0 +1,10 @@
+# Set to yes to update package list from repository
+cndeploy_pkgs_update: yes
+
+# Set to yes to upgrade installed packages
+cndeploy_pkgs_upgrade: yes
+
+# Define a list of additional packages to install
+cndeploy_pkgs_add:
+  - htop
+  - net-tools

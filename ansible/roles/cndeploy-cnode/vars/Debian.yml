@@ -1,4 +1,4 @@
 ---
-dep_pkgs:
+cndeploy_pkgs_dep:
   - curl
   - acl

@@ -16,7 +16,7 @@
   become: yes
   become_user: root
   ansible.builtin.package:
-    name: '{{ dep_pkgs|default([]) }}'
+    name: '{{ cndeploy_pkgs_dep|default([]) }}'
     state: present
 
 - name: Create user for ssh tunneling

@@ -20,9 +20,16 @@
   ansible.builtin.debug:
     msg: {{ master_ip }}
 
+- name: Install dependencies for the OS
+  become: yes
+  become_user: root
+  ansible.builtin.package:
+    name: '{{ cndeploy_pkgs_dep|default([]) }}'
+    state: present
+
 - name: Set hostname
   when:
-    - cndeploy_change_hostname
+    - cndeploy_hostname_change
     - cndeploy_hostname is defined
   become: yes
   become_user: root
@@ -31,7 +38,7 @@
 
 - name: Add entries to hosts file
   when:
-    - cndeploy_change_hosts
+    - cndeploy_hosts_change
     - cndeploy_hosts is defined
   become: yes
   become_user: root
@@ -41,7 +48,7 @@
 
 - name: Secure SSH access if not connected as root
   when:
-    - cndeploy_restrict_ssh
+    - cndeploy_ssh_restrict
     - ansible_user_id != "root"
   become: yes
   become_user: root
@@ -59,53 +66,6 @@
       UsePAM yes
       X11Forwarding yes
   notify: Restart SSH service
-
-- name: Update cache for Debian based systems
-  become: yes
-  become_user: root
-  ansible.builtin.apt:
-    update_cache: yes
-  when: ansible_facts['os_family'] == "Debian"
-
-- name: Upgrade all packages for Debian based Systems
-  become: yes
-  become_user: root
-  ansible.builtin.apt:
-    name: "*"
-    state: latest
-  when: (ansible_facts['os_family'] == "Debian" and upgrade_packages)
-
-- name: Update cache for RedHat based systems
-  become: yes
-  become_user: root
-  ansible.builtin.yum:
-    update_cache: yes
-  when: ansible_facts['os_family'] == "RedHat"
-
-- name: Upgrade all packages for RedHat based Systems
-  become: yes
-  become_user: root
-  ansible.builtin.yum:
-    name: "*"
-    state: latest
-  when: (ansible_facts['os_family'] == "RedHat" and upgrade_packages)
-
-# TODO: Upgrade packages for other distributions
-
-- name: Install dependencies for the os
-  become: yes
-  become_user: root
-  ansible.builtin.package:
-    name: '{{ dep_pkgs|default([]) }}'
-    state: present
-
-- name: Install additional packages
-  when: cndeploy_install_additional
-  become: yes
-  become_user: root
-  ansible.builtin.package:
-    name: '{{ cndeploy_additional_pkgs|default([]) }}'
-    state: present
 
 - name: Setup firewall
   when: cndeploy_firewall_enabled

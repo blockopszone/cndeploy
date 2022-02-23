@@ -1,0 +1,68 @@
+---
+- name: resolve platform specific vars
+  include_vars: '{{ item }}'
+  with_first_found:
+    - files:
+        - '{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml'
+        - '{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml'
+        - '{{ ansible_distribution }}-{{ ansible_distribution_release }}.yml'
+        - '{{ ansible_distribution }}.yml'
+        - '{{ ansible_os_family }}.yml'
+      skip: true
+      paths:
+        - '{{ role_path }}/vars'
+
+- name: Install dependencies for the OS
+  become: yes
+  become_user: root
+  ansible.builtin.package:
+    name: '{{ cndeploy_pkgs_dep|default([]) }}'
+    state: present
+
+- name: Update cache for Debian based systems
+  become: yes
+  become_user: root
+  ansible.builtin.apt:
+    update_cache: yes
+  when:
+    - cndeploy_pkgs_update
+    - ansible_facts['os_family'] == "Debian"
+
+- name: Upgrade all packages for Debian based Systems
+  become: yes
+  become_user: root
+  ansible.builtin.apt:
+    name: "*"
+    state: latest
+  when:
+    - cndeploy_pkgs_upgrade
+    - ansible_facts['os_family'] == "Debian"
+
+- name: Update cache for RedHat based systems
+  become: yes
+  become_user: root
+  ansible.builtin.yum:
+    update_cache: yes
+  when:
+    - cndeploy_pkgs_update
+    - ansible_facts['os_family'] == "RedHat"
+
+- name: Upgrade all packages for RedHat based Systems
+  become: yes
+  become_user: root
+  ansible.builtin.yum:
+    name: "*"
+    state: latest
+  when:
+    - cndeploy_pkgs_upgrade
+    - ansible_facts['os_family'] == "RedHat"
+
+- name: Install additional packages
+  when: cndeploy_install_additional
+  become: yes
+  become_user: root
+  ansible.builtin.package:
+    name: '{{ cndeploy_pkgs_add|default([]) }}'
+    state: present
+
+# TODO: Upgrade packages for other distributions

@@ -12,6 +12,13 @@
       paths:
         - '{{ role_path }}/vars'
 
+- name: Install dependencies for the OS
+  become: yes
+  become_user: root
+  ansible.builtin.package:
+    name: '{{ cndeploy_pkgs_dep|default([]) }}'
+    state: present
+
 - name: Install Guild Operators CNODE
   block:
     - name: Ensures $HOME/tmp exist
