@@ -1,0 +1,11 @@
+---
+- name: Start Cardano node
+  become: yes
+  become_user: root
+  ansible.builtin.command: systemctl start cnode.service
+
+- name: Start Cardano node Local
+  delegate_to: localhost
+  become: yes
+  become_user: root
+  ansible.builtin.command: systemctl start cnode.service

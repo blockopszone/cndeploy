@@ -67,30 +67,112 @@
              (cndeploy_cli_version_local != cndeploy_cli_version))
       block:
         - name: Stop the local service
-          # TODO define block
-          # TODO wait 60 seconds
+          delegate_to: localhost
+          become: yes
+          become_user: root
+          ansible.builtin.command: systemctl stop cnode.service
+          notify: Start Cardano node Local
+        - name: Wait 30 seconds to make sure the local service is stopped
+          pause:
+            seconds: 30
         - name: Stop the remote service if needed
-          # TODO define block
-          # TODO wait 60 seconds
+          when: cndeploy_node_version.rc == 0
+          become: yes
+          become_user: root
+          ansible.builtin.command: systemctl stop cnode.service
+          notify: Start Cardano node
+        - name: Wait 30 seconds to make sure the remote service is stopped
+          when: cndeploy_node_version.rc == 0
+          pause:
+            seconds: 30
         - name: Deploy Cardano node by transferring the compiled binaries to the host
-          # TODO define block
-        - name: Check again remote Cardano node version
-          # TODO define block
-        - name: Check again remote Cardano client version
-          # TODO define block
-        - name: Synchronize the configuration of the node from the local files
-          # TODO define block
+          async: 86400
+          poll: 60
+          ansible.builtin.copy:
+            src: ~/.cabal
+            dest: ~
+        - name: Check again for remote cardano versions
+          check_mode: no
+          ignore_errors: yes
+          changed_when: no
+          failed_when: no
+          block:
+            - name: Check new remote Cardano node version
+              ansible.builtin.command: cardano-node version
+              register: cndeploy_node_version_new
+            - name: Check new remote Cardano client version
+              ansible.builtin.command: cardano-cli version
+              register: cndeploy_cli_version_new
+            - name: Show new remote Cardano node version
+              ansible.builtin.debug:
+                msg: {{ cndeploy_node_version_new.stdout }}
+            - name: Show new remote Cardano client version
+              ansible.builtin.debug:
+                msg: {{ cndeploy_cli_version_new.stdout }}
+        - name: End execution for host if install was not successful
+          meta: end_host
+          when: ((cndeploy_node_version_local != cndeploy_node_version_new) or
+                 (cndeploy_cli_version_local != cndeploy_cli_version_new))
+        - name: Copy db if not already present
+          block:
+            - name: Check if db directory is empty
+              ansible.builtin.find:
+                paths: /opt/cardano/cnode/db/
+                file_type: any
+                patterns: "*.*"
+              register: cndeploy_db_dir_files
+            - name: If db directory is empty copy the database to save some time
+              when: cndeploy_db_dir_files.matched|int = 0
+              async: 86400
+              poll: 60
+              ansible.builtin.copy:
+                src: /opt/cardano/cnode/db
+                dest: /opt/cardano/cnode/
+        - name: Synchronize the common configuration for nodes
+          block:
+            - name: Set POOL_NAME in /opt/cardano/cnode/scripts/env
+              ansible.builtin.lineinfile:
+                path: /opt/cardano/cnode/scripts/env
+                regexp: '^POOL_NAME='
+                insertafter: '^#POOL_NAME='
+                line: 'POOL_NAME="{{ cndeploy_node_ticker|default() }}"'
+                state: present
+            - name: Set CNODE_PORT in /opt/cardano/cnode/scripts/env
+              ansible.builtin.lineinfile:
+                path: /opt/cardano/cnode/scripts/env
+                regexp: '^CNODE_PORT='
+                insertafter: '^#CNODE_PORT='
+                line: 'CNODE_PORT="{{ cndeploy_node_port|default(3000) }}"'
+                state: present
+            - name: Set CPU_CORES in /opt/cardano/cnode/scripts/cnode.sh
+              ansible.builtin.lineinfile:
+                path: /opt/cardano/cnode/scripts/env
+                regexp: '^CPU_CORES='
+                insertafter: '^#CPU_CORES='
+                line: 'CPU_CORES={{ cndeploy_node_cores|default(2) }}'
+                state: present
+
+
+        - name: Synchronize the configuration for Relays
+          when: cndeploy_node_type == "relay"
+          block:
+            - name: For Relays make sure priv directory is empty
+            - name: For Relays empty /opt/cardano/cnode/files/topology.json
+            - name: For Relays set CUSTOM_PEERS in /opt/cardano/cnode/scripts/topologyUpdater.sh
+            - name: For Relays activate topology updater or p2p topology
+
+        - name: Synchronize the configuration for Block Producers
+          when: cndeploy_node_type == "bp"
+          block:
+            - name: For BP Nodes copy priv directory without cold.skey
+            - name: For BP Nodes define topology in /opt/cardano/cnode/files/topology.json
+            - name: For BP Nodes unset CUSTOM_PEERS in /opt/cardano/cnode/scripts/topologyUpdater.sh
+            - name: For BP Nodes deactivate topology updater or p2p topology
+
+
         - name: Deploy Cardano node using systemd
           ansible.builtin.command: /opt/cardano/cnode/scripts/deploy-as-systemd.sh
           # TODO check if script is idempotent
-        - name: Copy a recent blocks database to save some synchronization time if don't exist
-          # TODO define block
 
 - name: Check that user aliases are in place
-  # TODO define block
-
-# HANDLERS
-- name: Start local Cardano node if it is stopped
-  # TODO define block
-- name: Start remote Cardano node if it is stopped
   # TODO define block
