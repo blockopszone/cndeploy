@@ -14,3 +14,6 @@ cndeploy_aliases: |
   alias nstop='sudo systemctl stop cnode.service'
   alias nstatus='sudo systemctl status cnode.service'
   alias nlog='sudo journalctl -f -u cnode.service'
+# Custom peers field for topology following (IP,port[,valency]) format
+# for example: 10.0.0.1,3001|10.0.0.2,3002|relays.mydomain.com,3003,3
+cndeploy_node_custom_peers:

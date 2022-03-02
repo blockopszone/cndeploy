@@ -1,0 +1,11 @@
+[Unit]
+Description=Cardano Node - Wake Topology Updater node aline push service once an hour
+BindsTo=cnode.service
+
+[Timer]
+OnActiveSec=1h
+OnUnitInactiveSec=1h
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target cnode.service

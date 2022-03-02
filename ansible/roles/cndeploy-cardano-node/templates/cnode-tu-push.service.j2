@@ -1,0 +1,11 @@
+[Unit]
+Description=Cardano Node - Topology Updater - node alive push
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/opt/cardano/cnode/scripts
+ExecStart=/bin/bash -l -c "exec /opt/cardano/cnode/scripts/topologyUpdater.sh -f"
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=cnode-tu-push
