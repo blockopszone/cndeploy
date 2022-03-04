@@ -1,31 +1,41 @@
 # set to the user to be used for installation, it'll be created if don't exist
 # set to '{{ ansible_user_id }}' to use the user that Ansible connects with
+# Required
 cndeploy_user: '{{ ansible_user_id }}'
 # set to the desired/existent home for the user, init scripts will be placed
+# Required
 cndeploy_user_home: '/home/{{ cndeploy_user }}'
-# set the install directory
-cndeploy_cnode_dir: '/opt/cardano/cnode'
 # set the local cnode directory
+# Required
 cndeploy_cnode_dir_local: '/opt/cardano/cnode'
-#
-cndeploy_node_ticker:
-# Set to yes to add the defined aliases to user's bash
-cndeploy_add_aliases: yes
-# Define the aliases to be added
-cndeploy_aliases: |
-  alias g='/opt/cardano/cnode/scripts/gLiveView.sh'
-  alias nstart='sudo systemctl start cnode.service'
-  alias nstop='sudo systemctl stop cnode.service'
-  alias nstatus='sudo systemctl status cnode.service'
-  alias nlog='sudo journalctl -f -u cnode.service'
+# set the install directory
+# Required
+cndeploy_cnode_dir: '/opt/cardano/cnode'
+# Define stake pool ticker (between 3 and 5 characters)
+# Used in configuration files and for filesystem paths
+# Required
+cndeploy_node_ticker: TICKR
 # Custom peers field for topology following (IP,port[,valency]) format
 # for example: 10.0.0.1,3001|10.0.0.2,3002|relays.mydomain.com,3003,3
+# Used by Relay Nodes to generate topology.json via topologyUpdater script
 cndeploy_node_custom_peers:
-# define the list of relay nodes 
+# define the list of relay nodes, used by a template for topology.json generation
+# Used by BP Nodes to generate topology.json via template
 cndeploy_relay_nodes:
-#  - addr: 2.2.2.2
+#  - addr: some.host.dom
 #    port: 3000
 #    valency: 1
 #  - addr: 3.3.3.3
 #    port: 3000
 #    valency: 1
+# Set to yes to add the defined aliases to user's bash
+cndeploy_add_aliases: yes
+# Define the aliases to be added
+cndeploy_aliases: |
+  alias g='{{ cndeploy_cnode_dir }}/scripts/gLiveView.sh'
+  alias nstart='sudo systemctl start cnode.service'
+  alias nstop='sudo systemctl stop cnode.service'
+  alias nstatus='sudo systemctl status cnode.service'
+  alias nlog='sudo journalctl -f -u cnode.service'
+  alias h='htop'
+  alias c='clear'

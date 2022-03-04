@@ -3,7 +3,7 @@ Description=Cardano Node - Topology Updater - restart cnode.service for topology
 
 [Service]
 Type=oneshot
-WorkingDirectory=/opt/cardano/cnode/scripts
+WorkingDirectory={{ cndeploy_cnode_dir }}/scripts
 ExecStart=/bin/bash -c "/bin/systemctl try-restart cnode.service 2>/dev/null || /usr/bin/systemctl try-restart cnode.service 2>/dev/null"
 StandardOutput=syslog
 StandardError=syslog

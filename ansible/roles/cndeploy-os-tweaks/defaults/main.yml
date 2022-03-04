@@ -16,8 +16,6 @@ cndeploy_hosts_change: yes
 cndeploy_ssh_restrict: yes
 
 # enable the firewall to allow connections to only the necessary ports
-# define cndeploy_block_producers, cndeploy_relay_nodes
-# to determine the necessary ports
 cndeploy_firewall_enabled: yes
 
 # Enable the use of allow-hostname to grant all ports access to a dynamic dns hostname.
@@ -30,27 +28,14 @@ cndeploy_allowhostname_enabled: yes
 cndeploy_node_type: relay
 
 # set to the tcp port of the node
+# It will be used to generate the firewall rules
 cndeploy_node_port: 3000
 
-# define the list of block producers and their node tcp port using the format ip:port
-# block producer nodes will allow connections to the specified port only from relay nodes
-cndeploy_block_producers:
-#  - 1.1.1.1:3001
-#  - 1.1.1.2:3002
-
-# define the list of relay nodes and their node tcp port
-# relay nodes will allow connections to the specified port from everywhere
-cndeploy_relay_nodes:
-#  - 2.2.2.2:3000
-#  - 2.2.2.3:3000
-cndeploy_relay_nodes:
-#  - addr: 2.2.2.2
-#    port: 3000
-#    valency: 1
-#  - addr: 3.3.3.3
-#    port: 3000
-#    valency: 1
-
+# define the IP address of each relay node
+# this IP addresses will be allowed to connect to the BP node port
+cndeploy_relay_nodes_ip:
+#  - 2.2.2.2
+#  - 3.3.3.3
 
 # Define the list of management or monitoring IP that will need access to port 22 on nodes.
 # '{{ master_ip }}' is included by default to allow connections from the Ansible master,

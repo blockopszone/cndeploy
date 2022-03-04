@@ -106,8 +106,8 @@
             rule: allow
             port: '{{ cndeploy_node_port }}'
             proto: tcp
-            src: '{{ item.split(":")[0] }}'
-          with_items: '{{ cndeploy_relay_nodes }}'
+            src: '{{ item }}'
+          with_items: '{{ cndeploy_relay_nodes_ip }}'
         - name: Enable UFW with deny as default policy
           community.general.ufw:
             state: "enabled"
@@ -138,8 +138,8 @@
             permanent: yes
             state: enabled
             port: '{{ cndeploy_node_port }}/tcp'
-            source: '{{ item.split(":")[0] }}'
-          with_items: '{{ cndeploy_relay_nodes }}'
+            source: '{{ item }}'
+          with_items: '{{ cndeploy_relay_nodes_ip }}'
     - name: Use iptables if available when ufw and firewalld are not
       when:
         - not ufw.stat.exists

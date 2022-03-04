@@ -68,8 +68,8 @@
           ansible.builtin.debug:
             msg: {{ cndeploy_cli_version.stdout }}
     - name: If local and remote versions are not equal proceed to install
-      when: ((cndeploy_node_version_local != cndeploy_node_version) or
-             (cndeploy_cli_version_local != cndeploy_cli_version))
+      when: ((cndeploy_node_version_local.stdout != cndeploy_node_version.stdout) or
+             (cndeploy_cli_version_local.stdout != cndeploy_cli_version.stdout))
       block:
         - name: Stop the local service
           delegate_to: localhost
@@ -116,12 +116,12 @@
                 msg: {{ cndeploy_cli_version_new.stdout }}
         - name: End execution for host if install was not successful
           meta: end_host
-          when: ((cndeploy_node_version_local != cndeploy_node_version_new) or
-                 (cndeploy_cli_version_local != cndeploy_cli_version_new))
+          when: ((cndeploy_node_version_local.stdout != cndeploy_node_version_new.stdout) or
+                 (cndeploy_cli_version_local.stdout != cndeploy_cli_version_new.stdout))
         - name: Copy systemd unit files for all operation modes using templates
           become: yes
           become_user: root
-          # We use diferent tasks (instead of with_items item.src item.dst)
+          # Implemented using diferent tasks (instead of a with_items item.src item.dst loop)
           # in order to get a separated task status for each unit file
           block:
             - name: Deploy from template the systemd unit file cnode-cncli-leaderlog.service
@@ -188,36 +188,36 @@
           block:
             - name: Check if db directory is empty
               ansible.builtin.find:
-                paths: /opt/cardano/cnode/db/
+                paths: '{{ cndeploy_cnode_dir }}/db/'
                 file_type: any
-                patterns: "*.*"
+                patterns: '*.*'
               register: cndeploy_db_dir_files
             - name: If db directory is empty copy the database to save some time
               when: cndeploy_db_dir_files.matched|int = 0
               async: 86400
               poll: 60
               ansible.builtin.copy:
-                src: /opt/cardano/cnode/db
-                dest: /opt/cardano/cnode/
+                src: '{{ cndeploy_cnode_dir_local }}/db'
+                dest: '{{ cndeploy_cnode_dir }}/'
         - name: Synchronize the common configuration for nodes
           block:
-            - name: Set POOL_NAME in /opt/cardano/cnode/scripts/env
+            - name: 'Set POOL_NAME in {{ cndeploy_cnode_dir }}/scripts/env'
               ansible.builtin.lineinfile:
-                path: /opt/cardano/cnode/scripts/env
+                path: '{{ cndeploy_cnode_dir }}/scripts/env'
                 regexp: '^POOL_NAME='
                 insertafter: '^#POOL_NAME='
                 line: 'POOL_NAME="{{ cndeploy_node_ticker|default() }}"'
                 state: present
-            - name: Set CNODE_PORT in /opt/cardano/cnode/scripts/env
+            - name: 'Set CNODE_PORT in {{ cndeploy_cnode_dir }}/scripts/env'
               ansible.builtin.lineinfile:
-                path: /opt/cardano/cnode/scripts/env
+                path: '{{ cndeploy_cnode_dir }}/scripts/env'
                 regexp: '^CNODE_PORT='
                 insertafter: '^#CNODE_PORT='
                 line: 'CNODE_PORT="{{ cndeploy_node_port|default(3000) }}"'
                 state: present
-            - name: Set CPU_CORES in /opt/cardano/cnode/scripts/cnode.sh
+            - name: 'Set CPU_CORES in {{ cndeploy_cnode_dir }}/scripts/cnode.sh'
               ansible.builtin.lineinfile:
-                path: /opt/cardano/cnode/scripts/env
+                path: '{{ cndeploy_cnode_dir }}/scripts/cnode.sh'
                 regexp: '^CPU_CORES='
                 insertafter: '^#CPU_CORES='
                 line: 'CPU_CORES={{ cndeploy_node_cores|default(2) }}'
@@ -227,12 +227,12 @@
           block:
             - name: For Relays make sure priv directory is empty
               ansible.builtin.shell:
-                cmd: srm -rfz /opt/cardano/cnode/priv/*
+                cmd: srm -rfz {{ cndeploy_cnode_dir|quote }}/priv/*
               args:
-                removes: /opt/cardano/cnode/priv/*
-            - name: For Relays set CUSTOM_PEERS in /opt/cardano/cnode/scripts/topologyUpdater.sh
+                removes: {{ cndeploy_cnode_dir }}/priv/*
+            - name: 'For Relays set CUSTOM_PEERS in {{ cndeploy_cnode_dir }}/scripts/topologyUpdater.sh'
               ansible.builtin.lineinfile:
-                path: /opt/cardano/cnode/scripts/topologyUpdater.sh
+                path: '{{ cndeploy_cnode_dir }}/scripts/topologyUpdater.sh'
                 regexp: '^CUSTOM_PEERS='
                 insertafter: '^#CUSTOM_PEERS='
                 line: 'CUSTOM_PEERS="{{ cndeploy_node_custom_peers|default() }}"'
@@ -315,10 +315,10 @@
               block:
                 - name: For BP Nodes create directory for private keys
                   # TODO check if mode is changed for already existent parent directories
-                  file:
+                  ansible.builtin.file:
                     path: '{{ cndeploy_cnode_dir }}/priv/pool/{{ cndeploy_node_ticker }}'
                     state: directory
-                    owner: '{{ ansible_env["USER"] }}'
+                    owner: '{{ ansible_user_id }}'
                     mode: 0700
                     recurse: yes
                 - name: For BP Nodes create a list of private files (excluding cold.key)
@@ -326,23 +326,23 @@
                   ansible.builtin.find:
                     paths: '{{ cndeploy_cnode_dir_local }}/priv/pool/{{ cndeploy_node_ticker }}'
                     file_type: file
-                    excludes: "cold.key"
+                    excludes: 'cold.key'
                     register: cndeploy_cnode_priv
                 - name: For BP Nodes copy private files in list
                   ansible.builtin.copy:
                     src: '{{ item.path }}'
                     dest: '{{ cndeploy_cnode_dir }}/priv/pool/{{ cndeploy_node_ticker }}/'
-                    owner: '{{ ansible_env["USER"] }}'
+                    owner: '{{ ansible_user_id }}'
                     mode: 0600
                   loop: '{{ cndeploy_cnode_priv.files }}'
-            - name: For BP Nodes define topology in /opt/cardano/cnode/files/topology.json
+            - name: 'For BP Nodes define topology in {{ cndeploy_cnode_dir }}/files/topology.json'
               ansible.builtin.template:
-                src: topology.json.j2
+                src: 'topology.json.j2'
                 dest: '{{ cndeploy_cnode_dir }}/files/topology.json'
                 mode: 0664
-            - name: For BP Nodes unset CUSTOM_PEERS in /opt/cardano/cnode/scripts/topologyUpdater.sh
+            - name: 'For BP Nodes unset CUSTOM_PEERS in {{ cndeploy_cnode_dir }}/scripts/topologyUpdater.sh'
               ansible.builtin.lineinfile:
-                path: /opt/cardano/cnode/scripts/topologyUpdater.sh
+                path: '{{ cndeploy_cnode_dir }}/scripts/topologyUpdater.sh'
                 regexp: '^CUSTOM_PEERS='
                 state: absent
             - name: For BP Nodes ensure proper service status (enabled/disabled)
@@ -413,13 +413,7 @@
             enabled: yes
             masked: no
 - name: Check that user bash aliases are in place
+  when: cndeploy_add_aliases
   ansible.builtin.blockinfile:
-    path: ~/.bash_aliases
-    block: |
-      alias g='{{ cndeploy_cnode_dir }}/scripts/gLiveView.sh'
-      alias nstart='sudo systemctl start cnode.service'
-      alias nstop='sudo systemctl stop cnode.service'
-      alias nstatus='sudo systemctl status cnode.service'
-      alias nlog='sudo journalctl -f -u cnode.service'
-      alias h='htop'
-      alias c='clear'
+    path: '~/.bash_aliases'
+    block: '{{ cndeploy_aliases }}'
