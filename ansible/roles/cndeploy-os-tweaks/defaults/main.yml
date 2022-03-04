@@ -38,11 +38,19 @@ cndeploy_block_producers:
 #  - 1.1.1.1:3001
 #  - 1.1.1.2:3002
 
-# define the list of relay nodes and their node tcp port using the format ip:port
+# define the list of relay nodes and their node tcp port
 # relay nodes will allow connections to the specified port from everywhere
 cndeploy_relay_nodes:
 #  - 2.2.2.2:3000
 #  - 2.2.2.3:3000
+cndeploy_relay_nodes:
+#  - addr: 2.2.2.2
+#    port: 3000
+#    valency: 1
+#  - addr: 3.3.3.3
+#    port: 3000
+#    valency: 1
+
 
 # Define the list of management or monitoring IP that will need access to port 22 on nodes.
 # '{{ master_ip }}' is included by default to allow connections from the Ansible master,

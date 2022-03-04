@@ -1,4 +1,6 @@
 ---
+# TODO: Variables checks for the role
+
 - name: resolve platform specific vars
   include_vars: '{{ item }}'
   with_first_found:
@@ -300,18 +302,49 @@
         - name: Synchronize the configuration for Block Producers
           when: cndeploy_node_type == "bp"
           block:
-            - name: For BP Nodes copy priv directory without cold.skey
-
-
-
+            # Simpler and quicker option but it requires rsync,
+            # by default we'll use the builtin file and copy modules
+            #- name: For BP Nodes copy priv directory without cold.skey using synchronize
+            #  ansible.posix.synchronize:
+            #    src: '{{ cndeploy_cnode_dir_local }}/priv/pool/{{ cndeploy_node_ticker }}'
+            #    dest: '{{ cndeploy_cnode_dir }}/priv/pool/{{ cndeploy_node_ticker }}'
+            #    rsync_opts:
+            #      - "--no-motd"
+            #      - "--exclude=.git"
+            - name: For BP Nodes copy priv directory without cold.skey using file/copy
+              block:
+                - name: For BP Nodes create directory for private keys
+                  # TODO check if mode is changed for already existent parent directories
+                  file:
+                    path: '{{ cndeploy_cnode_dir }}/priv/pool/{{ cndeploy_node_ticker }}'
+                    state: directory
+                    owner: '{{ ansible_env["USER"] }}'
+                    mode: 0700
+                    recurse: yes
+                - name: For BP Nodes create a list of private files (excluding cold.key)
+                  delegate_to: localhost
+                  ansible.builtin.find:
+                    paths: '{{ cndeploy_cnode_dir_local }}/priv/pool/{{ cndeploy_node_ticker }}'
+                    file_type: file
+                    excludes: "cold.key"
+                    register: cndeploy_cnode_priv
+                - name: For BP Nodes copy private files in list
+                  ansible.builtin.copy:
+                    src: '{{ item.path }}'
+                    dest: '{{ cndeploy_cnode_dir }}/priv/pool/{{ cndeploy_node_ticker }}/'
+                    owner: '{{ ansible_env["USER"] }}'
+                    mode: 0600
+                  loop: '{{ cndeploy_cnode_priv.files }}'
             - name: For BP Nodes define topology in /opt/cardano/cnode/files/topology.json
-              # TODO template vs jq
-
-
+              ansible.builtin.template:
+                src: topology.json.j2
+                dest: '{{ cndeploy_cnode_dir }}/files/topology.json'
+                mode: 0664
             - name: For BP Nodes unset CUSTOM_PEERS in /opt/cardano/cnode/scripts/topologyUpdater.sh
-
-
-
+              ansible.builtin.lineinfile:
+                path: /opt/cardano/cnode/scripts/topologyUpdater.sh
+                regexp: '^CUSTOM_PEERS='
+                state: absent
             - name: For BP Nodes ensure proper service status (enabled/disabled)
               # TODO check if all required setup is in place for every service
               block:
@@ -380,4 +413,13 @@
             enabled: yes
             masked: no
 - name: Check that user bash aliases are in place
-  # TODO define block
+  ansible.builtin.blockinfile:
+    path: ~/.bash_aliases
+    block: |
+      alias g='{{ cndeploy_cnode_dir }}/scripts/gLiveView.sh'
+      alias nstart='sudo systemctl start cnode.service'
+      alias nstop='sudo systemctl stop cnode.service'
+      alias nstatus='sudo systemctl status cnode.service'
+      alias nlog='sudo journalctl -f -u cnode.service'
+      alias h='htop'
+      alias c='clear'

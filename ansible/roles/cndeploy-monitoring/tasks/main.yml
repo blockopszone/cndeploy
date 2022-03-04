@@ -56,10 +56,10 @@
   become_user: root
   ansible.builtin.stat:
     path: '{{ cndeploy_node_config }}'
-  register: cndeploy_node_config
+  register: cndeploy_node_config_info
 
 - name: Add traceForwardTo clause to config.json
-  when: cndeploy_node_config.stat.exists
+  when: cndeploy_node_config_info.stat.exists
   become: yes
   become_user: root
   block:
@@ -72,7 +72,7 @@
       failed_when: no
     - name: Modify cardano node's config.json if writeable and not contains the clause
       when:
-        - cndeploy_node_config.stat.writeable
+        - cndeploy_node_config_info.stat.writeable
         - cndeploy_trace_grep.rc != 0
       ansible.builtin.shell: |
         jq '.traceForwardTo += {"tag": "RemoteSocket", "contents": ["127.0.0.1", "8100"]}' '{{ cndeploy_node_config }}' > /tmp/config.json

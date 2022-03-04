@@ -1,0 +1,11 @@
+{
+  "Producers": [
+    {% for item in cndeploy_relay_nodes %}
+    {
+      "addr": "{{item.addr}}",
+      "port": {{item.port}},
+      "valency": {{item.valency}}
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}

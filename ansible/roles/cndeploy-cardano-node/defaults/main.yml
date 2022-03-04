@@ -5,6 +5,10 @@ cndeploy_user: '{{ ansible_user_id }}'
 cndeploy_user_home: '/home/{{ cndeploy_user }}'
 # set the install directory
 cndeploy_cnode_dir: '/opt/cardano/cnode'
+# set the local cnode directory
+cndeploy_cnode_dir_local: '/opt/cardano/cnode'
+#
+cndeploy_node_ticker:
 # Set to yes to add the defined aliases to user's bash
 cndeploy_add_aliases: yes
 # Define the aliases to be added
@@ -17,3 +21,11 @@ cndeploy_aliases: |
 # Custom peers field for topology following (IP,port[,valency]) format
 # for example: 10.0.0.1,3001|10.0.0.2,3002|relays.mydomain.com,3003,3
 cndeploy_node_custom_peers:
+# define the list of relay nodes 
+cndeploy_relay_nodes:
+#  - addr: 2.2.2.2
+#    port: 3000
+#    valency: 1
+#  - addr: 3.3.3.3
+#    port: 3000
+#    valency: 1
