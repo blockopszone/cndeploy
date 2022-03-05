@@ -1,5 +1,51 @@
 ---
-# TODO: Variables checks for the role
+- name: Check variables: cndeploy_cnode_dir_local
+  delegate_to: localhost
+  ansible.builtin.assert:
+    that:
+      - cndeploy_cnode_dir_local == lookup('env', 'CNODE_HOME')
+        or cndeploy_cnode_dir_local_check_override
+    quiet: true
+    fail_msg: >
+      Invalid value -> Local cnode directory must be also defined
+      in CNODE_HOME environment variable.
+
+- name: Check variables: cndeploy_node_type
+  assert:
+    that:
+      - (cndeploy_node_type|lower == 'relay' or cndeploy_node_type|lower == 'bp')
+    quiet: true
+    fail_msg: Invalid value -> Valid type values are "relay" and "bp".
+
+- name: Check variables: cndeploy_node_ticker
+  ansible.builtin.assert:
+    that:
+      - cndeploy_node_ticker is match('^[A-Z0-9]{3,5}$')
+    quiet: true
+    fail_msg: >
+      Invalid value -> String must contain between 3 and 5 characters,
+      allowed characters are A to Z and 0 to 9.
+
+- name: Check variables: cndeploy_node_port
+  ansible.builtin.assert:
+    that:
+      - cndeploy_node_port is integer
+      - cndeploy_node_port >= 1
+      - cndeploy_node_port <= 65535
+    quiet: true
+    fail_msg: >
+      Invalid value -> port must be an integer between 1 and 65535.
+
+- name: Check variables: cndeploy_node_cores
+  ansible.builtin.assert:
+    that:
+      - cndeploy_node_cores is integer
+      - cndeploy_node_cores >= 1
+      - cndeploy_node_cores <= 64
+    quiet: true
+    fail_msg: >
+      Invalid value -> value must be an integer between 1 and 64.
+
 - name: Check variables: cndeploy_relay_nodes
   ansible.builtin.assert:
     that:
@@ -10,7 +56,7 @@
     quiet: true
     fail_msg: >
       Invalid value -> addr must be an IPv4 address or a resolvable host,
-      and port must be an integer between 1 and 65535'
+      and port must be an integer between 1 and 65535
   loop: '{{ cndeploy_relay_nodes }}'
 
 - name: Resolve platform specific vars
@@ -52,9 +98,6 @@
     - name: Show local Cardano client version
       ansible.builtin.debug:
         msg: {{ cndeploy_cli_version_local.stdout }}
-
-# TODO Check local cnode dir setting to avoid misconfigurations side effects
-# TODO Check env var CNODE_HOME with printenv or ansible mod
 
 - name: If Cardano node is locally installed
   when:
@@ -424,6 +467,7 @@
             state: started
             enabled: yes
             masked: no
+
 - name: Check that user bash aliases are in place
   when: cndeploy_add_aliases
   ansible.builtin.blockinfile:

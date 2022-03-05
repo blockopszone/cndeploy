@@ -8,13 +8,27 @@ cndeploy_user_home: '/home/{{ cndeploy_user }}'
 # set the local cnode directory
 # Required
 cndeploy_cnode_dir_local: '/opt/cardano/cnode'
-# set the install directory
+# Set to yes to override the checks for cndeploy_cnode_dir_local
+# Required
+cndeploy_cnode_dir_local_check_override: no
+# set the install directory, by default /opt/cardano/cnode
+# IMPORTANT for now only the default value is supported, don't change it.
 # Required
 cndeploy_cnode_dir: '/opt/cardano/cnode'
+# Define the type of node, valid values are "relay" or "bp"
+# Required
+cndeploy_node_type: relay
 # Define stake pool ticker (between 3 and 5 characters)
 # Used in configuration files and for filesystem paths
 # Required
 cndeploy_node_ticker: TICKR
+# Define the TCP port where the node will listen
+# Required
+cndeploy_node_port: 3000
+# Define the number of cores to use by the node at the target system
+# Do not specify more cores than the ones available
+# Required
+cndeploy_node_cores: 2
 # Custom peers field for topology following (IP,port[,valency]) format
 # for example: 10.0.0.1,3001|10.0.0.2,3002|relays.mydomain.com,3003,3
 # Used by Relay Nodes to generate topology.json via topologyUpdater script
