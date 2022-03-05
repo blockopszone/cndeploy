@@ -1,14 +1,19 @@
 ---
 # TODO: Variables checks for the role
-- name: "Check variables: cndeploy_relay_nodes"
-  fail:
-    msg='Invalid configuration value.'
-  when:
-    - lookup("dig", item.addr) == "NXDOMAIN"
-    - not item.addr|ipv4
-  loop: '{{ cndeploy_relay_nodes_old }}'
+- name: Check variables: cndeploy_relay_nodes
+  ansible.builtin.assert:
+    that:
+      - (item.addr|ipv4 or lookup("dig", item.addr) != "NXDOMAIN")
+      - item.port is integer
+      - item.port >= 1
+      - item.port <= 65535
+    quiet: true
+    fail_msg: >
+      Invalid value -> addr must be an IPv4 address or a resolvable host,
+      and port must be an integer between 1 and 65535'
+  loop: '{{ cndeploy_relay_nodes }}'
 
-- name: resolve platform specific vars
+- name: Resolve platform specific vars
   include_vars: '{{ item }}'
   with_first_found:
     - files:
