@@ -1,4 +1,14 @@
 ---
+# TODO: checks for variables
+# cndeploy_hostname -> regex if activated -_.a-zA-Z0-9
+# cndeploy_allowhostname -> must resolve if defined and activated
+# type
+# port
+# cndeploy_relay_nodes_ip
+# managementip
+# cndeploy_swap_file_size_mb
+# cndeploy_swappiness
+
 - name: Resolve platform specific vars
   include_vars: '{{ item }}'
   with_first_found:
@@ -29,7 +39,7 @@
 
 - name: Set hostname
   when:
-    - cndeploy_hostname_change
+    - cndeploy_hostname_change|default(false)|bool
     - cndeploy_hostname is defined
   become: yes
   become_user: root
@@ -38,7 +48,7 @@
 
 - name: Add entries to hosts file
   when:
-    - cndeploy_hosts_change
+    - cndeploy_hosts_change|default(false)|bool
     - cndeploy_hosts is defined
   become: yes
   become_user: root
@@ -48,7 +58,7 @@
 
 - name: Secure SSH access if not connected as root
   when:
-    - cndeploy_ssh_restrict
+    - cndeploy_ssh_restrict|default(false)|bool
     - ansible_user_id != "root"
   become: yes
   become_user: root
@@ -68,7 +78,7 @@
   notify: Restart SSH service
 
 - name: Setup firewall
-  when: cndeploy_firewall_enabled
+  when: cndeploy_firewall_enabled|default(false)|bool
   become: yes
   become_user: root
   block:
@@ -149,7 +159,7 @@
 
 - name: Setup allow-hostname (Ubuntu/Debian only atm)
   when:
-    - cndeploy_allowhostname_enabled
+    - cndeploy_allowhostname_enabled|default(false)|bool
     - cndeploy_allowhostname is defined
     - ansible_facts['os_family'] == "Debian"
   become: yes
@@ -183,7 +193,7 @@
 
 - name: Setup an additional Swap file
   # based on Greg Dubicki's code
-  when: cndeploy_swap_configure
+  when: cndeploy_swap_configure|default(false)|bool
   become: yes
   become_user: root
   block:
@@ -209,12 +219,16 @@
       when: >
         swap_file_check.stat.exists
         and 'rc' in swap_is_enabled and swap_is_enabled.rc == 0
-        and (not cndeploy_swap_enable or (cndeploy_swap_enable and swap_file_existing_size_mb != cndeploy_swap_file_size_mb))
+        and (not cndeploy_swap_enable|default(false)|bool
+             or (cndeploy_swap_enable|default(false)|bool
+                 and swap_file_existing_size_mb != cndeploy_swap_file_size_mb
+                )
+            )
     - name: Delete the swap file
       ansible.builtin.file:
         path: "{{cndeploy_swap_file_path}}"
         state: absent
-      when: not cndeploy_swap_enable
+      when: not cndeploy_swap_enable|default(false)|bool
     - name: Remove swap entry from fstab
       ansible.posix.mount:
         name: none
@@ -224,9 +238,9 @@
         passno: '0'
         dump: '0'
         state: absent
-      when: not cndeploy_swap_enable
+      when: not cndeploy_swap_enable|default(false)|bool
     - name: Configure swap
-      when: cndeploy_swap_enable | bool
+      when: cndeploy_swap_enable|default(false)|bool
       block:
         - name: Create or change the size of swap file
           ansible.builtin.command: dd if=/dev/zero of={{cndeploy_swap_file_path}} count={{cndeploy_swap_file_size_mb}} bs=1MiB
