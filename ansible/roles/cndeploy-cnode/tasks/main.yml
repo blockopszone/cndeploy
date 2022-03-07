@@ -1,5 +1,8 @@
+# Ansible role containing tasks to install Guild's operator cnode.
+
 ---
-- name: resolve platform specific vars
+
+- name: 'Resolve platform specific vars'
   include_vars: '{{ item }}'
   with_first_found:
     - files:
@@ -8,28 +11,29 @@
         - '{{ ansible_distribution }}-{{ ansible_distribution_release }}.yml'
         - '{{ ansible_distribution }}.yml'
         - '{{ ansible_os_family }}.yml'
-      skip: true
       paths:
         - '{{ role_path }}/vars'
+      skip: true
 
-- name: Install dependencies for the OS
-  become: yes
-  become_user: root
+- name: 'Install dependencies for the OS'
   ansible.builtin.package:
     name: '{{ cndeploy_pkgs_dep|default([]) }}'
-    state: present
+    state: 'present'
+  become: true
+  become_user: 'root'
 
-- name: Install Guild Operators CNODE
+- name: 'Install Guild Operators CNODE'
   block:
-    - name: Ensures $HOME/tmp exist
+    - name: 'Ensures $HOME/tmp exist'
       ansible.builtin.file:
-        path=$HOME/tmp
-        state=directory
-        recurse=yes
-    - name: Get Guild Operators prereqs.sh script
+        path: '~/tmp'
+        recurse: true
+        state: 'directory'
+    - name: 'Get Guild Operators prereqs.sh script'
       ansible.builtin.get_url:
-        url: https://raw.githubusercontent.com/cardano-community/guild-operators/master/scripts/cnode-helper-scripts/prereqs.sh
-        dest: $HOME/tmp/
+        dest: '~/tmp/'
         mode: '0755'
-    - name: Run prereqs.sh installer
-      ansible.builtin.command: $HOME/tmp/prereqs.sh
+        url: 'https://raw.githubusercontent.com/cardano-community/guild-operators/master/scripts/cnode-helper-scripts/prereqs.sh'
+    - name: 'Run prereqs.sh installer'
+      ansible.builtin.command:
+        cmd: '~/tmp/prereqs.sh'
