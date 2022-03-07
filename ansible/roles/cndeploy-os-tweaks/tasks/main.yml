@@ -1,15 +1,97 @@
----
-# TODO: checks for variables
-# cndeploy_hostname -> regex if activated -_.a-zA-Z0-9
-# cndeploy_allowhostname -> must resolve if defined and activated
-# type
-# port
-# cndeploy_relay_nodes_ip
-# managementip
-# cndeploy_swap_file_size_mb
-# cndeploy_swappiness
+# Ansible role that prepares the OS before installing the cardano node
+# For now it can:
+# - Change the hostname
+# - Add hosts
+# - Enforce secure options for the SSH service
+# - Setup firewall 
+# - Setup swap
 
-- name: Resolve platform specific vars
+---
+
+- name: 'Check variables: cndeploy_hostname'
+  ansible.builtin.assert:
+    that:
+      - cndeploy_hostname is defined
+      - cndeploy_hostnam is match('^[a-zA-Z0-9-_.]{1,253}$')
+    quiet: true
+    fail_msg: >
+      Invalid value -> hostname must be a string formed by up to 253 characters,
+      (a to z, A to Z, 0 to 9, _, -, .)
+  when: cndeploy_hostname_change|default(false)|bool
+
+- name: 'Check variables: cndeploy_allowhostname'
+  ansible.builtin.assert:
+    that:
+      - cndeploy_allowhostname is defined
+      - (lookup("dig", cndeploy_allowhostname) != "NXDOMAIN")
+    quiet: true
+    fail_msg: >
+      Invalid value -> allowhostname must be defined and resolve to an IPv4 address.
+  when: cndeploy_allowhostname_enabled|default(false)|bool
+
+- name: 'Check variables: cndeploy_node_type'
+  assert:
+    that:
+      - (cndeploy_node_type|lower == 'relay' or cndeploy_node_type|lower == 'bp')
+    quiet: true
+    fail_msg: Invalid value -> Valid type values are "relay" and "bp".
+
+- name: 'Check variables: cndeploy_node_port'
+  ansible.builtin.assert:
+    that:
+      - cndeploy_node_port is integer
+      - cndeploy_node_port >= 1
+      - cndeploy_node_port <= 65535
+    quiet: true
+    fail_msg: >
+      Invalid value -> port must be an integer between 1 and 65535.
+
+- name: 'Check variables: cndeploy_relay_nodes_ip'
+  ansible.builtin.assert:
+    that:
+      - item.addr|ipv4
+    quiet: true
+    fail_msg: >
+      Invalid value -> relay_nodes_ip must contain valid IPv4 addresses.
+  loop: '{{ cndeploy_relay_nodes_ip }}'
+  when: cndeploy_relay_nodes_ip is defined
+
+- name: 'Check variables: cndeploy_management_ip'
+  ansible.builtin.assert:
+    that:
+      - item.addr|ipv4
+    quiet: true
+    fail_msg: >
+      Invalid value -> management_ip must contain valid IPv4 addresses.
+  loop: '{{ cndeploy_management_ip }}'
+  when: cndeploy_management_ip is defined
+
+- name: 'Check variables: cndeploy_swap_file_size_mb'
+  ansible.builtin.assert:
+    that:
+      - cndeploy_swap_file_size_mb is integer
+      - cndeploy_swap_file_size_mb >= 1
+    quiet: true
+    fail_msg: >
+      Invalid value -> swap_file_size_mb must be an integer greater than 1.
+  when:
+    - cndeploy_swap_configure|default(false)|bool
+    - cndeploy_swap_enable|default(false)|bool
+
+- name: 'Check variables: cndeploy_swappiness'
+  ansible.builtin.assert:
+    that:
+      - cndeploy_swappiness is integer
+      - cndeploy_swappiness >= 0
+      - cndeploy_swappiness <= 100
+    quiet: true
+    fail_msg: >
+      Invalid value -> swappiness must be a number between 0 and 100.
+  when:
+    - cndeploy_swap_configure|default(false)|bool
+    - cndeploy_swap_enable|default(false)|bool
+
+- name: 'Resolve platform specific vars'
   include_vars: '{{ item }}'
   with_first_found:
     - files:
@@ -28,7 +110,7 @@
 
 - name: Show Master IP (origin of current connection)
   ansible.builtin.debug:
-    msg: {{ master_ip }}
+    msg: '{{ master_ip }}'
 
 - name: Install dependencies for the OS
   become: yes
