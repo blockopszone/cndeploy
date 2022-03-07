@@ -1,5 +1,9 @@
+# Ansible role containing tasks to prepare hosts to be monitored.
+# TODO: Setup of the monitoring server.
+
 ---
-- name: Resolve platform specific vars
+
+- name: 'Resolve platform specific vars'
   include_vars: '{{ item }}'
   with_first_found:
     - files:
@@ -8,38 +12,36 @@
         - '{{ ansible_distribution }}-{{ ansible_distribution_release }}.yml'
         - '{{ ansible_distribution }}.yml'
         - '{{ ansible_os_family }}.yml'
-      skip: true
       paths:
         - '{{ role_path }}/vars'
+      skip: true
 
-- name: Install dependencies for the OS
-  become: yes
-  become_user: root
+- name: 'Install dependencies for the OS'
   ansible.builtin.package:
     name: '{{ cndeploy_pkgs_dep|default([]) }}'
-    state: present
+    state: 'present'
+  become: true
+  become_user: 'root'
 
-- name: Create user for ssh tunneling
-  become: yes
-  become_user: root
+- name: 'Create user for ssh tunneling'
   ansible.builtin.user:
-    name: '{{ cndeploy_sshtunnel_user }}'
     group: '{{ cndeploy_sshtunnel_user }}'
+    name: '{{ cndeploy_sshtunnel_user }}'
     shell: /bin/false
+  become: true
+  become_user: 'root'
 
-- name: Set up authorized keys for ssh tunneling user
-  become: yes
-  become_user: root
+- name: 'Set up authorized keys for ssh tunneling user'
   ansible.posix.authorized_key:
+    key: '{{ cndeploy_sshtunnel_sshpubkey }}'
+    state: 'present'
     user: '{{ cndeploy_sshtunnel_user }}'
-    state: present
-    key: "{{ cndeploy_sshtunnel_sshpubkey }}"
+  become: true
+  become_user: 'root'
 
-- name: Set SSH options for sshtunnel user
-  become: yes
-  become_user: root
+- name: 'Set SSH options for sshtunnel user'
   ansible.builtin.blockinfile:
-    path: /etc/ssh/sshd_config
+    path: '/etc/ssh/sshd_config'
     block: |
       Match User {{ cndeploy_sshtunnel_user }}
         X11Forwarding no
@@ -49,32 +51,35 @@
         AllowTcpForwarding yes
         PermitOpen 127.0.0.1:12798 127.0.0.1:9100
         PermitListen 127.0.0.1:8100
-  notify: Restart SSH service
+  become: true
+  become_user: 'root'
+  notify: 'Restart SSH service'
 
-- name: Get stats of '{{ cndeploy_node_config }}'
-  become: yes
-  become_user: root
+- name: 'Get stats of {{ cndeploy_node_config }}'
   ansible.builtin.stat:
     path: '{{ cndeploy_node_config }}'
+  become: true
+  become_user: 'root'
   register: cndeploy_node_config_info
 
-- name: Add traceForwardTo clause to config.json
+- name: 'Add traceForwardTo clause to config.json'
+  become: true
+  become_user: 'root'
   when: cndeploy_node_config_info.stat.exists
-  become: yes
-  become_user: root
   block:
-    - name: Check if node's config.json contains the traceForwardTo clause
-      ansible.builtin.command: grep -q "traceForwardTo" '{{ cndeploy_node_config }}'
+    - name: 'Check if config.json contains the traceForwardTo clause'
+      ansible.builtin.command:
+        cmd: 'grep -q "traceForwardTo" {{ cndeploy_node_config }}'
+      changed_when: false
+      check_mode: false
+      failed_when: false
+      ignore_errors: true
       register: cndeploy_trace_grep
-      check_mode: no
-      ignore_errors: yes
-      changed_when: no
-      failed_when: no
-    - name: Modify cardano node's config.json if writeable and not contains the clause
-      when:
-        - cndeploy_node_config_info.stat.writeable
-        - cndeploy_trace_grep.rc != 0
+    - name: 'Modify config.json if writeable and not contains the clause'
       ansible.builtin.shell: |
         jq '.traceForwardTo += {"tag": "RemoteSocket", "contents": ["127.0.0.1", "8100"]}' '{{ cndeploy_node_config }}' > /tmp/config.json
         mv /tmp/config.json '{{ cndeploy_node_config }}'
-      notify: Restart Cardano node
+      notify: 'Restart Cardano node'
+      when:
+        - cndeploy_node_config_info.stat.writeable
+        - cndeploy_trace_grep.rc != 0

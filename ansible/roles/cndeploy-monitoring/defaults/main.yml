@@ -1,8 +1,8 @@
 # Define a user to run the ssh tunnels
-cndeploy_sshtunnel_user: sshtunnel
+cndeploy_sshtunnel_user: 'sshtunnel'
 
 # Define the public key to allow access with sshtunnel user
 cndeploy_sshtunnel_sshpubkey:
 
 # Set to path of the config file for Cardano node
-cndeploy_node_config: /opt/cardano/cnode/files/config.json
+cndeploy_node_config: '/opt/cardano/cnode/files/config.json'
