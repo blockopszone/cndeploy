@@ -1,9 +1,10 @@
 ---
+
 dep_pkgs:
   - curl
   - acl
 
-cndeploy_user_default: admin
+cndeploy_user_default: 'admin'
 
 cndeploy_user_home_default: '/home/{{ cndeploy_user }}'
 

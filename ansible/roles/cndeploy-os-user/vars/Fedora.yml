@@ -1,8 +1,9 @@
 ---
+
 dep_pkgs:
   - curl
 
-cndeploy_user_default: fedora
+cndeploy_user_default: 'fedora'
 
 cndeploy_user_home_default: '/home/{{ cndeploy_user }}'
 

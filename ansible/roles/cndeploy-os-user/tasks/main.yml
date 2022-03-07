@@ -1,5 +1,10 @@
+# Ansible role that expects a root connection to the host, in order to
+# create an admin user (with sudo privileges), that can be used afterwards
+# by other roles to connect to the host using a pubkey.
+
 ---
-- name: resolve platform specific vars
+
+- name: 'Resolve platform specific vars'
   include_vars: '{{ item }}'
   with_first_found:
     - files:
@@ -8,34 +13,34 @@
         - '{{ ansible_distribution }}-{{ ansible_distribution_release }}.yml'
         - '{{ ansible_distribution }}.yml'
         - '{{ ansible_os_family }}.yml'
-      skip: true
       paths:
         - '{{ role_path }}/vars'
+      skip: true
 
-- name: create admin user
-  become: yes
-  become_user: root
+- name: 'Create admin user'
   ansible.builtin.user:
-    name: '{{ cndeploy_user|default(cndeploy_user_default) }}'
-    home: '{{ cndeploy_user_home|default(cndeploy_user_home_default) }}'
-    shell: /bin/bash
+    append: true
     group: '{{ cndeploy_user|default(cndeploy_user_default) }}'
     groups: '{{ cndeploy_admin_groups|default(cndeploy_admin_groups_default) }}'
-    append: yes
+    home: '{{ cndeploy_user_home|default(cndeploy_user_home_default) }}'
+    name: '{{ cndeploy_user|default(cndeploy_user_default) }}'
+    shell: '/bin/bash'
+  become: true
+  become_user: 'root'
 
-- name: allow sudo without password
-  become: yes
-  become_user: root
+- name: 'Allow sudo without password'
   ansible.builtin.copy:
     content: '{{ cndeploy_user|default(cndeploy_user_default) }} ALL=(ALL) NOPASSWD:ALL'
     dest: '/etc/sudoers.d/{{ cndeploy_user|default(cndeploy_user_default) }}_nopasswd'
-    mode: 0440
+    mode: '0440'
+  become: true
+  become_user: 'root'
 
-- name: set up authorized keys
-  become: yes
-  become_user: root
+- name: 'Set up authorized keys'
   ansible.posix.authorized_key:
+    key: '{{ lookup("file", item) }}'
+    state: 'present'
     user: '{{ cndeploy_user|default(cndeploy_user_default) }}'
-    state: present
-    key: "{{ lookup('file', item) }}"
   with_fileglob: 'public_keys/*.pub'
+  become: true
+  become_user: 'root'
