@@ -1,37 +1,38 @@
-# set to yes to change hostname
+# set to true to change hostname
 # Required
-cndeploy_hostname_change: no
+cndeploy_hostname_change: false
 
 # set to the desired hostname
 #cndeploy_hostname: cn
 
-# set to yes to add entries to the hosts file
+# set to true to add entries to the hosts file
 # Required
-cndeploy_hosts_change: no
+cndeploy_hosts_change: false
 
 # uncomment to define the additional entries for the hosts file
 #cndeploy_hosts: |
 #  1.1.1.1 some_host.some_domain.com some_host
 #  1.1.1.2 other_host.some_domain.com other_host
 
-# restirct ssh access by not allowing root login neither password auth
+# set to true to restrict ssh access by not allowing root login neither password auth
 # Required
-cndeploy_ssh_restrict: no
+cndeploy_ssh_restrict: false
 
-# enable the firewall to allow connections to only the necessary ports
+# set to true to enable the firewall to allow connections to only the necessary ports
 # Required
-cndeploy_firewall_enabled: no
+cndeploy_firewall_enabled: false
 
-# Enable the use of allow-hostname to grant all ports access to a dynamic dns hostname.
+# set to true to enable the use of allow-hostname to grant all ports access
+# to a dynamic dns hostname.
 # Required
-cndeploy_allowhostname_enabled: no
+cndeploy_allowhostname_enabled: false
 
 # Specify the hostname to always allow connections from
 #cndeploy_allowhostname: set_your_dyn_hostname_here.something
 
-# set to "bp" for block producers, or "relay" for relay nodes
+# set to 'bp' for block producers, or 'relay' for relay nodes
 # Required
-cndeploy_node_type: relay
+cndeploy_node_type: 'relay'
 
 # set to the tcp port of the node
 # It will be used to generate the firewall rules
@@ -53,17 +54,17 @@ cndeploy_management_ip:
 #  - 0.0.0.0/0
 #  - 4.4.4.4
 
-# Set to yes to configure a swapfile, or to false to delete it
+# Set to true to configure the swapfile, or to false to not make changes
 # Required
-cndeploy_swap_configure: no
+cndeploy_swap_configure: false
 
-# Set to yes to enable an already configured swapfile, or to false to disable it
+# Set to true to create a swapfile, or to false to delete it
 # Required
-cndeploy_swap_enable: no
+cndeploy_swap_enable: false
 
 # Define the path for the swapfile to use
 # Required
-cndeploy_swap_file_path: /swapfile
+cndeploy_swap_file_path: '/swapfile'
 
 # Define the size of the swapfile
 # Required

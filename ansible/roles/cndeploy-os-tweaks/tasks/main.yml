@@ -3,90 +3,90 @@
 # - Change the hostname
 # - Add hosts
 # - Enforce secure options for the SSH service
-# - Setup firewall 
+# - Setup firewall
 # - Setup swap
 
 ---
 
 - name: 'Check variables: cndeploy_hostname'
   ansible.builtin.assert:
-    that:
-      - cndeploy_hostname is defined
-      - cndeploy_hostnam is match('^[a-zA-Z0-9-_.]{1,253}$')
-    quiet: true
     fail_msg: >
       Invalid value -> hostname must be a string formed by up to 253 characters,
       (a to z, A to Z, 0 to 9, _, -, .)
+    quiet: true
+    that:
+      - cndeploy_hostname is defined
+      - cndeploy_hostnam is match('^[a-zA-Z0-9-_.]{1,253}$')
   when: cndeploy_hostname_change|default(false)|bool
 
 - name: 'Check variables: cndeploy_allowhostname'
   ansible.builtin.assert:
-    that:
-      - cndeploy_allowhostname is defined
-      - (lookup("dig", cndeploy_allowhostname) != "NXDOMAIN")
-    quiet: true
     fail_msg: >
       Invalid value -> allowhostname must be defined and resolve to an IPv4 address.
+    quiet: true
+    that:
+      - cndeploy_allowhostname is defined
+      - (lookup("dig", cndeploy_allowhostname) != 'NXDOMAIN')
   when: cndeploy_allowhostname_enabled|default(false)|bool
 
 - name: 'Check variables: cndeploy_node_type'
   assert:
+    fail_msg: Invalid value -> Valid type values are "relay" and "bp".
+    quiet: true
     that:
       - (cndeploy_node_type|lower == 'relay' or cndeploy_node_type|lower == 'bp')
-    quiet: true
-    fail_msg: Invalid value -> Valid type values are "relay" and "bp".
 
 - name: 'Check variables: cndeploy_node_port'
   ansible.builtin.assert:
+    fail_msg: >
+      Invalid value -> port must be an integer between 1 and 65535.
+    quiet: true
     that:
       - cndeploy_node_port is integer
       - cndeploy_node_port >= 1
       - cndeploy_node_port <= 65535
-    quiet: true
-    fail_msg: >
-      Invalid value -> port must be an integer between 1 and 65535.
 
 - name: 'Check variables: cndeploy_relay_nodes_ip'
   ansible.builtin.assert:
-    that:
-      - item.addr|ipv4
-    quiet: true
     fail_msg: >
       Invalid value -> relay_nodes_ip must contain valid IPv4 addresses.
+    quiet: true
+    that:
+      - item.addr|ipv4
   loop: '{{ cndeploy_relay_nodes_ip }}'
   when: cndeploy_relay_nodes_ip is defined
 
 - name: 'Check variables: cndeploy_management_ip'
   ansible.builtin.assert:
-    that:
-      - item.addr|ipv4
-    quiet: true
     fail_msg: >
       Invalid value -> management_ip must contain valid IPv4 addresses.
+    quiet: true
+    that:
+      - item.addr|ipv4
   loop: '{{ cndeploy_management_ip }}'
   when: cndeploy_management_ip is defined
 
 - name: 'Check variables: cndeploy_swap_file_size_mb'
   ansible.builtin.assert:
+    fail_msg: >
+      Invalid value -> swap_file_size_mb must be an integer greater than 1.
+    quiet: true
     that:
       - cndeploy_swap_file_size_mb is integer
       - cndeploy_swap_file_size_mb >= 1
-    quiet: true
-    fail_msg: >
-      Invalid value -> swap_file_size_mb must be an integer greater than 1.
   when:
     - cndeploy_swap_configure|default(false)|bool
     - cndeploy_swap_enable|default(false)|bool
 
 - name: 'Check variables: cndeploy_swappiness'
   ansible.builtin.assert:
+    fail_msg: >
+      Invalid value -> swappiness must be a number between 0 and 100.
+    quiet: true
     that:
       - cndeploy_swappiness is integer
       - cndeploy_swappiness >= 0
       - cndeploy_swappiness <= 100
-    quiet: true
-    fail_msg: >
-      Invalid value -> swappiness must be a number between 0 and 100.
   when:
     - cndeploy_swap_configure|default(false)|bool
     - cndeploy_swap_enable|default(false)|bool
@@ -100,55 +100,50 @@
         - '{{ ansible_distribution }}-{{ ansible_distribution_release }}.yml'
         - '{{ ansible_distribution }}.yml'
         - '{{ ansible_os_family }}.yml'
-      skip: true
       paths:
         - '{{ role_path }}/vars'
+      skip: true
 
-- name: Resolve other vars
+- name: 'Resolve other vars'
   ansible.builtin.set_fact:
     master_ip: '{{ ansible_env["SSH_CLIENT"].split() | first }}'
 
-- name: Show Master IP (origin of current connection)
+- name: 'Show Master IP (origin of current connection)'
   ansible.builtin.debug:
     msg: '{{ master_ip }}'
 
-- name: Install dependencies for the OS
-  become: yes
-  become_user: root
+- name: 'Install dependencies for the OS'
   ansible.builtin.package:
     name: '{{ cndeploy_pkgs_dep|default([]) }}'
-    state: present
+    state: 'present'
+  become: true
+  become_user: 'root'
 
-- name: Set hostname
+- name: 'Set hostname'
+  ansible.builtin.hostname:
+    name: '{{ cndeploy_hostname }}'
+  become: true
+  become_user: 'root'
   when:
     - cndeploy_hostname_change|default(false)|bool
     - cndeploy_hostname is defined
-  become: yes
-  become_user: root
-  ansible.builtin.hostname:
-    name: '{{ cndeploy_hostname }}'
 
-- name: Add entries to hosts file
+- name: 'Add entries to hosts file'
+  ansible.builtin.blockinfile:
+    path: '/etc/hosts'
+    block: '{{ cndeploy_hosts }}'
+  become: true
+  become_user: 'root'
   when:
     - cndeploy_hosts_change|default(false)|bool
     - cndeploy_hosts is defined
-  become: yes
-  become_user: root
-  ansible.builtin.blockinfile:
-    path: /etc/hosts
-    block: '{{ cndeploy_hosts }}'
 
-- name: Secure SSH access if not connected as root
-  when:
-    - cndeploy_ssh_restrict|default(false)|bool
-    - ansible_user_id != "root"
-  become: yes
-  become_user: root
+- name: 'Secure SSH access if not connected as root'
   ansible.builtin.copy:
     dest: '/etc/ssh/sshd_config.d/05-ssh-secured.conf'
-    owner: root
-    group: root
-    mode: 0644
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
     content: |
       PermitRootLogin prohibit-password
       PubkeyAuthentication yes
@@ -157,146 +152,157 @@
       ChallengeResponseAuthentication no
       UsePAM yes
       X11Forwarding yes
-  notify: Restart SSH service
+  become: true
+  become_user: 'root'
+  notify: 'Restart SSH service'
+  when:
+    - cndeploy_ssh_restrict|default(false)|bool
+    - ansible_user_id != 'root'
 
-- name: Setup firewall
-  when: cndeploy_firewall_enabled|default(false)|bool
+- name: 'Setup firewall'
   become: yes
-  become_user: root
+  become_user: 'root'
+  when: cndeploy_firewall_enabled|default(false)|bool
   block:
-    - name: Check if ufw is available
+    - name: 'Check if ufw is available'
       ansible.builtin.stat:
-        path: /usr/sbin/ufw
+        path: '/usr/sbin/ufw'
       register: ufw
-    - name: Check if firewalld is available
+    - name: 'Check if firewalld is available'
       ansible.builtin.stat:
-        path: /usr/sbin/firewalld
+        path: '/usr/sbin/firewalld'
       register: firewalld
-    - name: Check if iptables is available
+    - name: 'Check if iptables is available'
       ansible.builtin.stat:
-        path: /usr/sbin/iptables
+        path: '/usr/sbin/iptables'
       register: iptables
-    - name: Use ufw if available
+    - name: 'Use ufw if available'
       when: ufw.stat.exists
       block:
-        - name: Allow SSH from defined management hosts
+        - name: 'Allow SSH from defined management hosts'
           community.general.ufw:
-            rule: allow
             port: 22
-            proto: tcp
-            src: "{{ item }}"
+            proto: 'tcp'
+            rule: 'allow'
+            src: '{{ item }}'
           with_items: '{{ cndeploy_management_ip }}'
-        - name: Allow everywhere access to Relay-Node port
+        - name: 'Allow everywhere access to Relay-Node port'
+          community.general.ufw:
+            port: '{{ cndeploy_node_port }}'
+            proto: 'tcp'
+            rule: 'allow'
           when: cndeploy_node_type == 'relay'
+        - name: 'Allow relay nodes access to BP-Node port'
           community.general.ufw:
-            rule: allow
             port: '{{ cndeploy_node_port }}'
-            proto: tcp
-        - name: Allow relay nodes access to BP-Node port
-          when: cndeploy_node_type == 'bp'
-          community.general.ufw:
-            rule: allow
-            port: '{{ cndeploy_node_port }}'
-            proto: tcp
+            proto: 'tcp'
+            rule: 'allow'
             src: '{{ item }}'
           with_items: '{{ cndeploy_relay_nodes_ip }}'
-        - name: Enable UFW with deny as default policy
+          when: cndeploy_node_type == 'bp'
+        - name: 'Enable UFW with deny as default policy'
           community.general.ufw:
-            state: "enabled"
-            policy: "deny"
-            logging: "on"
-    - name: Use firewald if available when ufw is not
+            logging: 'on'
+            policy: 'deny'
+            state: 'enabled'
+    - name: 'Use firewald if available when ufw is not'
       # TODO testing needed
       when:
         - not ufw.stat.exists
         - firewalld.stat.exists
       block:
-        - name: Allow SSH from defined management hosts
+        - name: 'Allow SSH from defined management hosts'
           ansible.posix.firewalld:
-            permanent: yes
-            state: enabled
-            port: 22/tcp
-            source: "{{ item }}"
+            permanent: 'yes'
+            port: '22/tcp'
+            source: '{{ item }}'
+            state: 'enabled'
           with_items: '{{ cndeploy_management_ip }}'
-        - name: Allow everywhere access to Relay-Node port
-          when: cndeploy_node_type == 'relay'
+        - name: 'Allow everywhere access to Relay-Node port'
           ansible.posix.firewalld:
-            permanent: yes
-            state: enabled
+            permanent: 'yes'
             port: '{{ cndeploy_node_port }}/tcp'
-        - name: Allow relay nodes access to BP-Node port
-          when: cndeploy_node_type == 'bp'
+            state: 'enabled'
+          when: cndeploy_node_type == 'relay'
+        - name: 'Allow relay nodes access to BP-Node port'
           ansible.posix.firewalld:
-            permanent: yes
-            state: enabled
+            permanent: 'yes'
             port: '{{ cndeploy_node_port }}/tcp'
             source: '{{ item }}'
+            state: 'enabled'
           with_items: '{{ cndeploy_relay_nodes_ip }}'
-    - name: Use iptables if available when ufw and firewalld are not
+          when: cndeploy_node_type == 'bp'
+    - name: 'Use iptables if available when ufw and firewalld are not'
+      # TODO finish block with iptables module + permanent changes
+      ansible.builtin.debug:
+        msg: >
+          Iptables is the only known firewall available on the host,
+          but it can't be setup as it is not yet supported by the script.
       when:
         - not ufw.stat.exists
         - not firewalld.stat.exists
         - iptables.stat.exists
-      # TODO finish block with iptables module + permanent changes
 
-- name: Setup allow-hostname (Ubuntu/Debian only atm)
+- name: 'Setup allow-hostname (Ubuntu/Debian only atm)'
+  become: true
+  become_user: 'root'
   when:
     - cndeploy_allowhostname_enabled|default(false)|bool
     - cndeploy_allowhostname is defined
-    - ansible_facts['os_family'] == "Debian"
-  become: yes
-  become_user: root
+    - ansible_facts['os_family'] == 'Debian'
   block:
-    - name: Download allow-hostname script
+    - name: 'Download allow-hostname script'
       ansible.builtin.get_url:
-        url: https://raw.githubusercontent.com/jmhoms/allow-hostname/master/allow-hostname.bash
-        dest: /usr/local/bin/
+        dest: '/usr/local/bin/'
         mode: '0700'
-    - name: Configure defined hostname in the script
+        url: 'https://raw.githubusercontent.com/jmhoms/allow-hostname/master/allow-hostname.bash'
+    - name: 'Configure defined hostname in the script'
       ansible.builtin.lineinfile:
-        dest: /usr/local/bin/allow-hostname.bash
-        state: present
-        regexp: '^HOSTNAME='
+        dest: '/usr/local/bin/allow-hostname.bash'
         line: 'HOSTNAME={{ cndeploy_allowhostname }}'
-    - name: Configure ufw mode in the script
+        regexp: '^HOSTNAME='
+        state: 'present'
+    - name: 'Configure ufw mode in the script'
       ansible.builtin.lineinfile:
-        dest: /usr/local/bin/allow-hostname.bash
-        state: present
-        regexp: '^UFWMODE='
+        dest: '/usr/local/bin/allow-hostname.bash'
         line: 'UFWMODE=yes'
-    - name: Configure cron to run the script every 5 minutes
+        regexp: '^UFWMODE='
+        state: 'present'
+    - name: 'Configure cron to run the script every 5 minutes'
       ansible.builtin.copy:
-        dest: '/etc/cron.d/allow-hostname'
-        owner: root
-        group: root
-        mode: 0644
         content: |
           */5 * * * * root /usr/local/bin/allow-hostname.bash
+        dest: '/etc/cron.d/allow-hostname'
+        group: 'root'
+        mode: '0644'
+        owner: 'root'
 
-- name: Setup an additional Swap file
+- name: 'Setup an additional Swap file'
   # based on Greg Dubicki's code
+  become: true
+  become_user: 'root'
   when: cndeploy_swap_configure|default(false)|bool
-  become: yes
-  become_user: root
   block:
-    - name: Check if swap file exists
+    - name: 'Check if swap file exists'
       ansible.builtin.stat:
-        path: "{{cndeploy_swap_file_path}}"
         get_checksum: false
         get_md5: false
-      register: swap_file_check
+        path: '{{ cndeploy_swap_file_path }}'
       changed_when: false
-    - name: Set variable for existing swap file size
+      register: swap_file_check
+    - name: 'Set variable for existing swap file size'
       ansible.builtin.set_fact:
-        swap_file_existing_size_mb: "{{ (swap_file_check.stat.size / 1024 / 1024) | int }}"
+        swap_file_existing_size_mb: '{{ (swap_file_check.stat.size / 1024 / 1024) | int }}'
       when: swap_file_check.stat.exists
-    - name: Check if swap is on
-      ansible.builtin.shell: swapon --show | grep {{cndeploy_swap_file_path}}
-      register: swap_is_enabled
+    - name: 'Check if swap is on'
+      ansible.builtin.shell:
+        cmd: 'swapon --show | grep {{ cndeploy_swap_file_path }}'
       changed_when: false
       failed_when: false
-    - name: Disable swap
-      ansible.builtin.command: swapoff {{cndeploy_swap_file_path}}
+      register: swap_is_enabled
+    - name: 'Disable swap'
+      ansible.builtin.command:
+        cmd: 'swapoff {{ cndeploy_swap_file_path }}'
       register: swap_disabled
       when: >
         swap_file_check.stat.exists
@@ -306,62 +312,66 @@
                  and swap_file_existing_size_mb != cndeploy_swap_file_size_mb
                 )
             )
-    - name: Delete the swap file
+    - name: 'Delete the swap file'
       ansible.builtin.file:
-        path: "{{cndeploy_swap_file_path}}"
-        state: absent
+        path: '{{ cndeploy_swap_file_path }}'
+        state: 'absent'
       when: not cndeploy_swap_enable|default(false)|bool
-    - name: Remove swap entry from fstab
+    - name: 'Remove swap entry from fstab'
       ansible.posix.mount:
-        name: none
-        src: "{{cndeploy_swap_file_path}}"
-        fstype: swap
-        opts: sw
-        passno: '0'
         dump: '0'
-        state: absent
+        fstype: 'swap'
+        name: 'none'
+        opts: 'sw'
+        passno: '0'
+        src: '{{ cndeploy_swap_file_path }}'
+        state: 'absent'
       when: not cndeploy_swap_enable|default(false)|bool
-    - name: Configure swap
+    - name: 'Configure swap'
       when: cndeploy_swap_enable|default(false)|bool
       block:
-        - name: Create or change the size of swap file
-          ansible.builtin.command: dd if=/dev/zero of={{cndeploy_swap_file_path}} count={{cndeploy_swap_file_size_mb}} bs=1MiB
+        - name: 'Create or change the size of swap file'
+          ansible.builtin.command:
+            cmd: 'dd if=/dev/zero of={{ cndeploy_swap_file_path }} count={{ cndeploy_swap_file_size_mb }} bs=1MiB'
           register: swap_file_created
           when: >
             not swap_file_check.stat.exists
             or swap_file_existing_size_mb != cndeploy_swap_file_size_mb
-        - name: Change swap file permissions
+        - name: 'Change swap file permissions'
           ansible.builtin.file:
-            path: "{{cndeploy_swap_file_path}}"
-            mode: 0600
-        - name: Check if swap is formatted
-          ansible.builtin.shell: file {{cndeploy_swap_file_path}} | grep 'swap file'
-          register: swap_file_is_formatted
+            mode: '0600'
+            path: '{{ cndeploy_swap_file_path }}'
+        - name: 'Check if swap is formatted'
+          ansible.builtin.shell:
+            cmd: 'file {{ cndeploy_swap_file_path }} | grep "swap file"'
           changed_when: false
           failed_when: false
-        - name: Format swap file if it's not formatted
-          ansible.builtin.command: mkswap {{cndeploy_swap_file_path}}
+          register: swap_file_is_formatted
+        - name: 'Format swap file if it is not formatted'
+          ansible.builtin.command:
+            cmd: 'mkswap {{ cndeploy_swap_file_path }}'
           when: >
             ('rc' in swap_file_is_formatted and swap_file_is_formatted.rc > 0)
             or swap_file_created.changed
-        - name: Add swap entry to fstab
+        - name: 'Add swap entry to fstab'
           ansible.posix.mount:
-            name: none
-            src: "{{cndeploy_swap_file_path}}"
-            fstype: swap
-            opts: sw
-            passno: '0'
             dump: '0'
-            state: present
-        - name: Turn on swap
-          ansible.builtin.shell: swapon -a
+            fstype: 'swap'
+            name: 'none'
+            opts: 'sw'
+            passno: '0'
+            src: '{{ cndeploy_swap_file_path }}'
+            state: 'present'
+        - name: 'Turn on swap'
+          ansible.builtin.shell:
+            cmd: 'swapon -a'
           # if swap was disabled from the start
           # or has been disabled to change its params
           when: >
             ('rc' in swap_is_enabled and swap_is_enabled.rc != 0)
             or swap_disabled.changed
-        - name: Configure swappiness
+        - name: 'Configure swappiness'
           ansible.posix.sysctl:
-            name: vm.swappiness
-            value: "{{ cndeploy_swappiness|string }}"
-            state: present
+            name: 'vm.swappiness'
+            state: 'present'
+            value: '{{ cndeploy_swappiness|string }}'
