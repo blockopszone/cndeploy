@@ -27,7 +27,7 @@
   ansible.builtin.user:
     group: '{{ cndeploy_sshtunnel_user }}'
     name: '{{ cndeploy_sshtunnel_user }}'
-    shell: /bin/false
+    shell: '/bin/false'
   become: true
   become_user: 'root'
 
@@ -69,7 +69,7 @@
   block:
     - name: 'Check if config.json contains the traceForwardTo clause'
       ansible.builtin.command:
-        cmd: 'grep -q "traceForwardTo" {{ cndeploy_node_config }}'
+        cmd: 'grep -q "traceForwardTo" {{ cndeploy_node_config|quote }}'
       changed_when: false
       check_mode: false
       failed_when: false
@@ -77,8 +77,8 @@
       register: cndeploy_trace_grep
     - name: 'Modify config.json if writeable and not contains the clause'
       ansible.builtin.shell: |
-        jq '.traceForwardTo += {"tag": "RemoteSocket", "contents": ["127.0.0.1", "8100"]}' '{{ cndeploy_node_config }}' > /tmp/config.json
-        mv /tmp/config.json '{{ cndeploy_node_config }}'
+        jq '.traceForwardTo += {"tag": "RemoteSocket", "contents": ["127.0.0.1", "8100"]}' '{{ cndeploy_node_config|quote }}' > /tmp/config.json
+        mv /tmp/config.json '{{ cndeploy_node_config|quote }}'
       notify: 'Restart Cardano node'
       when:
         - cndeploy_node_config_info.stat.writeable
