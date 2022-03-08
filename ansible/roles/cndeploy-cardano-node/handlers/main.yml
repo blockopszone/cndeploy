@@ -1,4 +1,5 @@
 ---
+
 - name: 'Start Cardano node'
   ansible.builtin.service:
     name: 'cnode.service'
