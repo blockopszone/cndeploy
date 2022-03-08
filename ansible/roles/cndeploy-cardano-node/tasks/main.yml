@@ -281,7 +281,7 @@
               #  dest: '{{ cndeploy_cnode_dir }}/'
               async: 86400
               poll: 60
-              when: cndeploy_db_dir_files.matched|int = 0
+              when: cndeploy_db_dir_files.matched|int == 0
         - name: 'Synchronize the common configuration for nodes'
           block:
             - name: 'Set POOL_NAME in {{ cndeploy_cnode_dir }}/scripts/env'
@@ -500,4 +500,4 @@
   ansible.builtin.blockinfile:
     block: '{{ cndeploy_aliases }}'
     path: '~/.bash_aliases'
-  when: cndeploy_add_aliases
+  when: cndeploy_add_aliases|default(false)|bool

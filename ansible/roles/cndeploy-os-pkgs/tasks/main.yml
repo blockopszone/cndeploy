@@ -29,7 +29,7 @@
   become: true
   become_user: 'root'
   when:
-    - cndeploy_pkgs_update
+    - cndeploy_pkgs_update|default(false)|bool
     - ansible_facts['os_family'] == 'Debian'
 
 - name: 'Upgrade all packages for Debian based Systems'
@@ -39,7 +39,7 @@
   become: true
   become_user: 'root'
   when:
-    - cndeploy_pkgs_upgrade
+    - cndeploy_pkgs_upgrade|default(false)|bool
     - ansible_facts['os_family'] == 'Debian'
 
 - name: 'Update cache for RedHat based systems'
@@ -48,7 +48,7 @@
   become: true
   become_user: 'root'
   when:
-    - cndeploy_pkgs_update
+    - cndeploy_pkgs_update|default(false)|bool
     - ansible_facts['os_family'] == 'RedHat'
 
 - name: 'Upgrade all packages for RedHat based Systems'
@@ -58,7 +58,7 @@
   become: true
   become_user: 'root'
   when:
-    - cndeploy_pkgs_upgrade
+    - cndeploy_pkgs_upgrade|default(false)|bool
     - ansible_facts['os_family'] == 'RedHat'
 
 - name: 'Install additional packages'
@@ -67,4 +67,4 @@
     state: 'present'
   become: true
   become_user: 'root'
-  when: cndeploy_install_additional
+  when: cndeploy_install_additional|default(false)|bool
