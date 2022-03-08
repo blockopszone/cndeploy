@@ -1,5 +1,7 @@
 ---
+
 cndeploy_pkgs_dep:
   - curl
   - secure-delete
   - jq
+  - rsync
