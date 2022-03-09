@@ -16,7 +16,8 @@ cndeploy_cnode_dir_local: '/opt/cardano/cnode'
 cndeploy_cnode_dir_local_check_override: false
 
 # Set the install directory, by default /opt/cardano/cnode
-# IMPORTANT for now only the default value is supported, don't change it.
+# IMPORTANT, for now, please use the default value to
+# keep the compatibility with other cndeploy roles.
 # Required
 cndeploy_cnode_dir: '/opt/cardano/cnode'
 

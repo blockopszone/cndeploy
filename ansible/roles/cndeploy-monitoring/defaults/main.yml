@@ -1,8 +1,17 @@
 # Define a user to run the ssh tunnels
+# Required
 cndeploy_sshtunnel_user: 'sshtunnel'
 
-# Define the public key to allow access with sshtunnel user
+# Paste the public key to allow access with sshtunnel user
+# or alternatively provide an URL to download the key
 cndeploy_sshtunnel_sshpubkey:
 
+# Set the install directory, by default /opt/cardano/cnode
+# IMPORTANT, for now, please use the default value to
+# keep the compatibility with other cndeploy roles.
+# Required
+cndeploy_cnode_dir: '/opt/cardano/cnode'
+
 # Set to path of the config file for Cardano node
-cndeploy_node_config: '/opt/cardano/cnode/files/config.json'
+# Required
+cndeploy_node_config: '{{ cndeploy_cnode_dir }}/files/config.json'

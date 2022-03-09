@@ -63,8 +63,8 @@
 
 - name: 'Install additional packages'
   ansible.builtin.package:
-    name: '{{ cndeploy_pkgs_add|default([]) }}'
+    name: '{{ cndeploy_pkgs_add_list|default([]) }}'
     state: 'present'
   become: true
   become_user: 'root'
-  when: cndeploy_install_additional|default(false)|bool
+  when: cndeploy_pkgs_add|default(false)|bool

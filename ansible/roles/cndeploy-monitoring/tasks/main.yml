@@ -38,6 +38,9 @@
     user: '{{ cndeploy_sshtunnel_user }}'
   become: true
   become_user: 'root'
+  when:
+    - cndeploy_sshtunnel_sshpubkey is defined
+    - cndeploy_sshtunnel_sshpubkey|length > 10
 
 - name: 'Set SSH options for sshtunnel user'
   ansible.builtin.blockinfile:

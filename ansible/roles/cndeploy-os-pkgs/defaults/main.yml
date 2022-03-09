@@ -4,7 +4,10 @@ cndeploy_pkgs_update: false
 # Set to true to upgrade installed packages
 cndeploy_pkgs_upgrade: false
 
+# Set to true to install the additional list of packages below
+cndeploy_pkgs_add: false
+
 # Define a list of additional packages to install
-cndeploy_pkgs_add:
+cndeploy_pkgs_add_list:
   - htop
   - net-tools
