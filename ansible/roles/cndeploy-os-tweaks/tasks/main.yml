@@ -298,6 +298,7 @@
       ansible.builtin.shell:
         cmd: 'swapon --show | grep {{ cndeploy_swap_file_path|quote }}'
       changed_when: false
+      check_mode: false
       failed_when: false
       register: swap_is_enabled
     - name: 'Disable swap'
@@ -345,6 +346,7 @@
           ansible.builtin.shell:
             cmd: 'file {{ cndeploy_swap_file_path|quote }} | grep "swap file"'
           changed_when: false
+          check_mode: false
           failed_when: false
           register: swap_file_is_formatted
         - name: 'Format swap file if it is not formatted'
