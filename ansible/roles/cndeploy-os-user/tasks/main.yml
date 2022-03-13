@@ -36,7 +36,7 @@
   become: true
   become_user: 'root'
 
-- name: 'Set up authorized keys'
+- name: 'Set up authorized keys from public_keys directory'
   ansible.posix.authorized_key:
     key: '{{ lookup("file", item) }}'
     state: 'present'
@@ -44,3 +44,14 @@
   with_fileglob: 'public_keys/*.pub'
   become: true
   become_user: 'root'
+
+- name: 'Set up authorized keys from a list of keys'
+  ansible.posix.authorized_key:
+    key: '{{ item }}'
+    state: 'present'
+    user: '{{ cndeploy_user|default(cndeploy_user_default) }}'
+  with_items: '{{ cndeploy_ssh_pubkeys|default([]) }}'
+  become: true
+  become_user: 'root'
+  when:
+    - item|length > 10
