@@ -6,7 +6,7 @@ dep_pkgs:
 
 cndeploy_user_default: 'ubuntu'
 
-cndeploy_user_home_default: '/home/{{ cndeploy_user }}'
+cndeploy_user_home_default: '/home/{{ cndeploy_user_default }}'
 
 cndeploy_admin_groups_default:
   - sudo
