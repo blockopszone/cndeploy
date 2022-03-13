@@ -1,0 +1,11 @@
+---
+
+- hosts: all
+
+  vars:
+    ansible_user: root
+
+  tasks:
+    - name: Include cndeploy-os-user
+      include_role:
+        name: cndeploy-os-user
