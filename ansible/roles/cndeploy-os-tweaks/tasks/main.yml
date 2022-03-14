@@ -52,7 +52,7 @@
       Invalid value -> relay_nodes_ip must contain valid IPv4 addresses.
     quiet: true
     that:
-      - item.addr|ipv4
+      - item|ipv4
   loop: '{{ cndeploy_relay_nodes_ip }}'
   when: cndeploy_relay_nodes_ip is defined
 
@@ -62,7 +62,7 @@
       Invalid value -> management_ip must contain valid IPv4 addresses.
     quiet: true
     that:
-      - item.addr|ipv4
+      - item|ipv4
   loop: '{{ cndeploy_management_ip }}'
   when: cndeploy_management_ip is defined
 
@@ -159,6 +159,51 @@
     - cndeploy_ssh_restrict|default(false)|bool
     - ansible_user_id != 'root'
 
+- name: 'Setup allow-hostname (Ubuntu/Debian only atm)'
+  become: true
+  become_user: 'root'
+  when:
+    - cndeploy_allowhostname_enabled|default(false)|bool
+    - cndeploy_allowhostname is defined
+    - ansible_facts['os_family'] == 'Debian'
+  block:
+    - name: 'Check if allow-hostname script already exists'
+      # required as get_url not always behaves like described in its documentation,
+      # overwriting the file when it exists, even with force:no and dest being the full file path
+      ansible.builtin.stat:
+        get_checksum: false
+        get_md5: false
+        path: '/usr/local/bin/allow-hostname.bash'
+      changed_when: false
+      register: allowhostname_file_check
+    - name: 'Download allow-hostname script'
+      ansible.builtin.get_url:
+        dest: '/usr/local/bin/allow-hostname.bash'
+        force: false
+        mode: '0700'
+        url: 'https://raw.githubusercontent.com/jmhoms/allow-hostname/master/allow-hostname.bash'
+      when: not allowhostname_file_check.stat.exists
+    - name: 'Configure defined hostname in the script'
+      ansible.builtin.lineinfile:
+        dest: '/usr/local/bin/allow-hostname.bash'
+        line: 'HOSTNAME={{ cndeploy_allowhostname }}'
+        regexp: '^HOSTNAME='
+        state: 'present'
+    - name: 'Configure ufw mode in the script'
+      ansible.builtin.lineinfile:
+        dest: '/usr/local/bin/allow-hostname.bash'
+        line: 'UFWMODE=yes'
+        regexp: '^UFWMODE='
+        state: 'present'
+    - name: 'Configure cron to run the script every 5 minutes'
+      ansible.builtin.copy:
+        content: |
+          */5 * * * * root /usr/local/bin/allow-hostname.bash 2>&1 | logger -t allow-hostname
+        dest: '/etc/cron.d/allow-hostname'
+        group: 'root'
+        mode: '0644'
+        owner: 'root'
+
 - name: 'Setup firewall'
   become: yes
   become_user: 'root'
@@ -179,20 +224,20 @@
     - name: 'Use ufw if available'
       when: ufw.stat.exists
       block:
-        - name: 'Allow SSH from defined management hosts'
+        - name: 'ufw: allow SSH from defined management hosts'
           community.general.ufw:
             port: 22
             proto: 'tcp'
             rule: 'allow'
             src: '{{ item }}'
           with_items: '{{ cndeploy_management_ip }}'
-        - name: 'Allow everywhere access to Relay-Node port'
+        - name: 'ufw: allow everywhere access to Relay-Node port'
           community.general.ufw:
             port: '{{ cndeploy_node_port }}'
             proto: 'tcp'
             rule: 'allow'
           when: cndeploy_node_type == 'relay'
-        - name: 'Allow relay nodes access to BP-Node port'
+        - name: 'ufw: allow relay nodes access to BP-Node port'
           community.general.ufw:
             port: '{{ cndeploy_node_port }}'
             proto: 'tcp'
@@ -200,7 +245,7 @@
             src: '{{ item }}'
           with_items: '{{ cndeploy_relay_nodes_ip }}'
           when: cndeploy_node_type == 'bp'
-        - name: 'Enable UFW with deny as default policy'
+        - name: 'ufw: enable UFW with deny as default policy'
           community.general.ufw:
             logging: 'on'
             policy: 'deny'
@@ -211,20 +256,20 @@
         - not ufw.stat.exists
         - firewalld.stat.exists
       block:
-        - name: 'Allow SSH from defined management hosts'
+        - name: 'firewalld: allow SSH from defined management hosts'
           ansible.posix.firewalld:
             permanent: 'yes'
             port: '22/tcp'
             source: '{{ item }}'
             state: 'enabled'
           with_items: '{{ cndeploy_management_ip }}'
-        - name: 'Allow everywhere access to Relay-Node port'
+        - name: 'firewalld: allow everywhere access to Relay-Node port'
           ansible.posix.firewalld:
             permanent: 'yes'
             port: '{{ cndeploy_node_port }}/tcp'
             state: 'enabled'
           when: cndeploy_node_type == 'relay'
-        - name: 'Allow relay nodes access to BP-Node port'
+        - name: 'firewalld: allow relay nodes access to BP-Node port'
           ansible.posix.firewalld:
             permanent: 'yes'
             port: '{{ cndeploy_node_port }}/tcp'
@@ -243,40 +288,6 @@
         - not firewalld.stat.exists
         - iptables.stat.exists
 
-- name: 'Setup allow-hostname (Ubuntu/Debian only atm)'
-  become: true
-  become_user: 'root'
-  when:
-    - cndeploy_allowhostname_enabled|default(false)|bool
-    - cndeploy_allowhostname is defined
-    - ansible_facts['os_family'] == 'Debian'
-  block:
-    - name: 'Download allow-hostname script'
-      ansible.builtin.get_url:
-        dest: '/usr/local/bin/'
-        mode: '0700'
-        url: 'https://raw.githubusercontent.com/jmhoms/allow-hostname/master/allow-hostname.bash'
-    - name: 'Configure defined hostname in the script'
-      ansible.builtin.lineinfile:
-        dest: '/usr/local/bin/allow-hostname.bash'
-        line: 'HOSTNAME={{ cndeploy_allowhostname }}'
-        regexp: '^HOSTNAME='
-        state: 'present'
-    - name: 'Configure ufw mode in the script'
-      ansible.builtin.lineinfile:
-        dest: '/usr/local/bin/allow-hostname.bash'
-        line: 'UFWMODE=yes'
-        regexp: '^UFWMODE='
-        state: 'present'
-    - name: 'Configure cron to run the script every 5 minutes'
-      ansible.builtin.copy:
-        content: |
-          */5 * * * * root /usr/local/bin/allow-hostname.bash
-        dest: '/etc/cron.d/allow-hostname'
-        group: 'root'
-        mode: '0644'
-        owner: 'root'
-
 - name: 'Setup an additional Swap file'
   # based on Greg Dubicki's code
   become: true
@@ -294,6 +305,10 @@
       ansible.builtin.set_fact:
         swap_file_existing_size_mb: '{{ (swap_file_check.stat.size / 1024 / 1024) | int }}'
       when: swap_file_check.stat.exists
+    - name: 'Show calculated value for swap_file_existing_size_mb'
+      ansible.builtin.debug:
+        msg: '{{ swap_file_existing_size_mb }}'
+      when: swap_file_check.stat.exists
     - name: 'Check if swap is on'
       ansible.builtin.shell:
         cmd: 'swapon --show | grep {{ cndeploy_swap_file_path|quote }}'
@@ -310,7 +325,7 @@
         and 'rc' in swap_is_enabled and swap_is_enabled.rc == 0
         and (not cndeploy_swap_enable|default(false)|bool
              or (cndeploy_swap_enable|default(false)|bool
-                 and swap_file_existing_size_mb != cndeploy_swap_file_size_mb
+                 and swap_file_existing_size_mb|int != cndeploy_swap_file_size_mb|int
                 )
             )
     - name: 'Delete the swap file'
@@ -337,7 +352,7 @@
           register: swap_file_created
           when: >
             not swap_file_check.stat.exists
-            or swap_file_existing_size_mb != cndeploy_swap_file_size_mb
+            or swap_file_existing_size_mb|int != cndeploy_swap_file_size_mb|int
         - name: 'Change swap file permissions'
           ansible.builtin.file:
             mode: '0600'
