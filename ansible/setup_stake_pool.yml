@@ -8,18 +8,18 @@
       include_role:
         name: cndeploy-os-tweaks
 
-    - name: Include cndeploy-os-pkgs
-      include_role:
-        name: cndeploy-os-pkgs
+#    - name: Include cndeploy-os-pkgs
+#      include_role:
+#        name: cndeploy-os-pkgs
 
-    - name: Include cndeploy-monitoring
-      include_role:
-        name: cndeploy-monitoring
+#    - name: Include cndeploy-monitoring
+#      include_role:
+#        name: cndeploy-monitoring
 
-    - name: Include cndeploy-cnode
-      include_role:
-        name: cndeploy-cnode
+#    - name: Include cndeploy-cnode
+#      include_role:
+#        name: cndeploy-cnode
 
-    - name: Include cndeploy-cardano-node
-      include_role:
-        name: cndeploy-cardano-node
+#    - name: Include cndeploy-cardano-node
+#      include_role:
+#        name: cndeploy-cardano-node

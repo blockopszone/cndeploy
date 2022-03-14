@@ -16,7 +16,7 @@
     quiet: true
     that:
       - cndeploy_hostname is defined
-      - cndeploy_hostnam is match('^[a-zA-Z0-9-_.]{1,253}$')
+      - cndeploy_hostname is match('^[a-zA-Z0-9-_.]{1,253}$')
   when: cndeploy_hostname_change|default(false)|bool
 
 - name: 'Check variables: cndeploy_allowhostname'
