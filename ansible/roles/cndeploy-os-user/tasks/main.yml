@@ -17,6 +17,11 @@
         - '{{ role_path }}/vars'
       skip: true
 
+- name: 'Create group for admin user'
+  ansible.builtin.group:
+    name: '{{ cndeploy_user|default(cndeploy_user_default) }}'
+    state: present
+
 - name: 'Create admin user'
   ansible.builtin.user:
     append: true
