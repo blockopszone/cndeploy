@@ -181,8 +181,8 @@
           #ansible.builtin.copy:
           #  src: '~/.cabal'
           #  dest: '~'
-          async: 86400
-          poll: 60
+          #async: 86400
+          #poll: 60
         - name: 'Check again for remote cardano versions'
           check_mode: false
           ignore_errors: true
