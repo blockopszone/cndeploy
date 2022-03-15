@@ -87,27 +87,30 @@
 - name: 'Check local Cardano versions'
   check_mode: false
   delegate_to: localhost
-  failed_when: false
   ignore_errors: true
   block:
     - name: 'Check local Cardano node version'
       ansible.builtin.command:
         cmd: 'cardano-node version'
       changed_when: false
+      failed_when: false
       register: cndeploy_node_version_local
     - name: 'Check local Cardano client version'
       ansible.builtin.command:
         cmd: 'cardano-cli version'
       changed_when: false
+      failed_when: false
       register: cndeploy_cli_version_local
     - name: 'Show local Cardano node version'
       ansible.builtin.debug:
         msg: '{{ cndeploy_node_version_local.stdout }}'
       changed_when: false
+      failed_when: false
     - name: 'Show local Cardano client version'
       ansible.builtin.debug:
         msg: '{{ cndeploy_cli_version_local.stdout }}'
       changed_when: false
+      failed_when: false
 
 - name: 'If Cardano node is locally installed'
   when:
@@ -116,27 +119,30 @@
   block:
     - name: 'Check remote cardano versions'
       check_mode: false
-      failed_when: false
       ignore_errors: true
       block:
         - name: 'Check remote Cardano node version'
           ansible.builtin.command:
             cmd: 'cardano-node version'
           changed_when: false
+          failed_when: false
           register: cndeploy_node_version
         - name: 'Check remote Cardano client version'
           ansible.builtin.command:
             cmd: 'cardano-cli version'
           changed_when: false
+          failed_when: false
           register: cndeploy_cli_version
         - name: 'Show remote Cardano node version'
           ansible.builtin.debug:
             msg: '{{ cndeploy_node_version.stdout }}'
           changed_when: false
+          failed_when: false
         - name: 'Show remote Cardano client version'
           ansible.builtin.debug:
             msg: '{{ cndeploy_cli_version.stdout }}'
           changed_when: false
+          failed_when: false
     - name: 'If local and remote versions are not equal proceed to install'
       when: ((cndeploy_node_version_local.stdout != cndeploy_node_version.stdout) or
              (cndeploy_cli_version_local.stdout != cndeploy_cli_version.stdout))
@@ -179,7 +185,6 @@
           poll: 60
         - name: 'Check again for remote cardano versions'
           check_mode: false
-          failed_when: false
           ignore_errors: true
           block:
             # TODO: Be sure bin is in path
@@ -187,20 +192,24 @@
               ansible.builtin.command:
                 cmd: 'cardano-node version'
               changed_when: false
+              failed_when: false
               register: cndeploy_node_version_new
             - name: 'Check new remote Cardano client version'
               ansible.builtin.command:
                 cmd: 'cardano-cli version'
               changed_when: false
+              failed_when: false
               register: cndeploy_cli_version_new
             - name: 'Show new remote Cardano node version'
               ansible.builtin.debug:
                 msg: '{{ cndeploy_node_version_new.stdout }}'
               changed_when: false
+              failed_when: false
             - name: 'Show new remote Cardano client version'
               ansible.builtin.debug:
                 msg: '{{ cndeploy_cli_version_new.stdout }}'
               changed_when: false
+              failed_when: false
         - name: 'End execution for host if install was not successful'
           meta: end_host
           when: ((cndeploy_node_version_local.stdout != cndeploy_node_version_new.stdout) or
