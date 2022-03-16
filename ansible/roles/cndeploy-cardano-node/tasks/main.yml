@@ -123,24 +123,19 @@
       block:
         - name: 'Check remote Cardano node version'
           ansible.builtin.command:
-            cmd: 'cardano-node version'
+            cmd: '~/.cabal/bin/cardano-node version'
           changed_when: false
-          environment:
-            PATH: '{{ ansible_env.PATH }}:~/.cabal/bin:~/.ghcup/bin:~/.cargo/bin'
           failed_when: false
           register: cndeploy_node_version
         - name: 'Check remote Cardano client version'
           ansible.builtin.command:
-            cmd: 'cardano-cli version'
+            cmd: '~/.cabal/bin/cardano-cli version'
           changed_when: false
-          environment:
-            PATH: '{{ ansible_env.PATH }}:~/.cabal/bin:~/.ghcup/bin:~/.cargo/bin'
           failed_when: false
           register: cndeploy_cli_version
         - name: 'Show remote Cardano node version'
           ansible.builtin.debug:
-            #msg: '{{ cndeploy_node_version.stdout }}'
-            msg: '{{ cndeploy_node_version }}'
+            msg: '{{ cndeploy_node_version.stdout }}'
           changed_when: false
           failed_when: false
         - name: 'Show remote Cardano client version'
@@ -195,24 +190,19 @@
             # TODO: Be sure bin is in path
             - name: 'Check new remote Cardano node version'
               ansible.builtin.command:
-                cmd: 'cardano-node version'
+                cmd: '~/.cabal/bin/cardano-node version'
               changed_when: false
-              environment:
-                PATH: '{{ ansible_env.PATH }}:~/.cabal/bin:~/.ghcup/bin:~/.cargo/bin'
               failed_when: false
               register: cndeploy_node_version_new
             - name: 'Check new remote Cardano client version'
               ansible.builtin.command:
-                cmd: 'cardano-cli version'
+                cmd: '~/.cabal/bin/cardano-cli version'
               changed_when: false
-              environment:
-                PATH: '{{ ansible_env.PATH }}:~/.cabal/bin:~/.ghcup/bin:~/.cargo/bin'
               failed_when: false
               register: cndeploy_cli_version_new
             - name: 'Show new remote Cardano node version'
               ansible.builtin.debug:
-                #msg: '{{ cndeploy_node_version_new.stdout }}'
-                msg: '{{ cndeploy_node_version_new }}'
+                msg: '{{ cndeploy_node_version_new.stdout }}'
               changed_when: false
               failed_when: false
             - name: 'Show new remote Cardano client version'
