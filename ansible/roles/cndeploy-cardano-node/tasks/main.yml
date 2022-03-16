@@ -143,7 +143,7 @@
             msg: '{{ cndeploy_cli_version.stdout }}'
           changed_when: false
           failed_when: false
-    - name: 'If local and remote versions are not equal proceed to install'
+    - name: 'Copy binaries if local and remote versions are not equal'
       when: ((cndeploy_node_version_local.stdout != cndeploy_node_version.stdout) or
              (cndeploy_cli_version_local.stdout != cndeploy_cli_version.stdout))
       block:
@@ -155,9 +155,11 @@
           become_user: 'root'
           delegate_to: localhost
           notify: 'Start Cardano node Local'
+          register: localservice
         - name: 'Wait 30 seconds to make sure the local service is stopped'
           ansible.builtin.pause:
             seconds: 30
+          when: localservice.changed
         - name: 'Stop the remote service if needed'
           ansible.builtin.service:
             name: 'cnode.service'
@@ -165,11 +167,12 @@
           become: true
           become_user: 'root'
           notify: 'Start Cardano node'
+          register: remoteservice
           when: cndeploy_node_version.rc == 0
         - name: 'Wait 30 seconds to make sure the remote service is stopped'
           ansible.builtin.pause:
             seconds: 30
-          when: cndeploy_node_version.rc == 0
+          when: remoteservice.changed
         - name: 'Deploy Cardano node by transferring the compiled binaries to the host'
           ansible.posix.synchronize:
             archive: true
@@ -214,308 +217,332 @@
           meta: end_host
           when: ((cndeploy_node_version_local.stdout != cndeploy_node_version_new.stdout) or
                  (cndeploy_cli_version_local.stdout != cndeploy_cli_version_new.stdout))
-        - name: 'Copy systemd unit files for all operation modes using templates'
-          become: true
-          become_user: 'root'
+    - name: 'Copy systemd unit files for all operation modes using templates'
+      become: true
+      become_user: 'root'
+      block:
+        - name: 'Deploy from template the systemd unit file cnode-cncli-leaderlog.service'
+          ansible.builtin.template:
+            dest: '/etc/systemd/system/cnode-cncli-leaderlog.service'
+            mode: '0644'
+            src: 'cnode-cncli-leaderlog.service.j2'
+        - name: 'Deploy from template the systemd unit file cnode-cncli-ptsendslots.service'
+          ansible.builtin.template:
+            dest: '/etc/systemd/system/cnode-cncli-ptsendslots.service'
+            mode: '0644'
+            src: 'cnode-cncli-ptsendslots.service.j2'
+        - name: 'Deploy from template the systemd unit file cnode-cncli-ptsendtip.service'
+          ansible.builtin.template:
+            dest: '/etc/systemd/system/cnode-cncli-ptsendtip.service'
+            mode: '0644'
+            src: 'cnode-cncli-ptsendtip.service.j2'
+        - name: 'Deploy from template the systemd unit file cnode-cncli-sync.service'
+          ansible.builtin.template:
+            dest: '/etc/systemd/system/cnode-cncli-sync.service'
+            mode: '0644'
+            src: 'cnode-cncli-sync.service.j2'
+        - name: 'Deploy from template the systemd unit file cnode-cncli-validate.service'
+          ansible.builtin.template:
+            dest: '/etc/systemd/system/cnode-cncli-validate.service'
+            mode: '0644'
+            src: 'cnode-cncli-validate.service.j2'
+        - name: 'Deploy from template the systemd unit file cnode-logmonitor.service'
+          ansible.builtin.template:
+            dest: '/etc/systemd/system/cnode-logmonitor.service'
+            mode: '0644'
+            src: 'cnode-logmonitor.service.j2'
+        - name: 'Deploy from template the systemd unit file cnode.service'
+          ansible.builtin.template:
+            dest: '/etc/systemd/system/cnode.service'
+            mode: '0644'
+            src: 'cnode.service.j2'
+        - name: 'Deploy from template the systemd unit file cnode-tu-fetch.service'
+          ansible.builtin.template:
+            dest: '/etc/systemd/system/cnode-tu-fetch.service'
+            mode: '0644'
+            src: 'cnode-tu-fetch.service.j2'
+        - name: 'Deploy from template the systemd unit file cnode-tu-push.service'
+          ansible.builtin.template:
+            dest: '/etc/systemd/system/cnode-tu-push.service'
+            mode: '0644'
+            src: 'cnode-tu-push.service.j2'
+        - name: 'Deploy from template the systemd unit file cnode-tu-push.timer'
+          ansible.builtin.template:
+            dest: '/etc/systemd/system/cnode-tu-push.timer'
+            mode: '0644'
+            src: 'cnode-tu-push.timer.j2'
+        - name: 'Deploy from template the systemd unit file cnode-tu-restart.service'
+          ansible.builtin.template:
+            dest: '/etc/systemd/system/cnode-tu-restart.service'
+            mode: '0644'
+            src: 'cnode-tu-restart.service.j2'
+        - name: 'Deploy from template the systemd unit file cnode-tu-restart.timer'
+          ansible.builtin.template:
+            dest: '/etc/systemd/system/cnode-tu-restart.timer'
+            mode: '0644'
+            src: 'cnode-tu-restart.timer.j2'
+    - name: 'Copy db to remote if not already present'
+      block:
+        - name: 'Check if db directory is empty'
+          ansible.builtin.find:
+            file_type: 'any'
+            paths: '{{ cndeploy_cnode_dir }}/db/'
+            patterns: '*.*'
+          register: cndeploy_db_dir_files
+        - name: 'If db directory is empty, stop the nodes and copy the database'
+          when: cndeploy_db_dir_files.matched|int == 0
           block:
-            - name: 'Deploy from template the systemd unit file cnode-cncli-leaderlog.service'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode-cncli-leaderlog.service'
-                mode: '0644'
-                src: 'cnode-cncli-leaderlog.service.j2'
-            - name: 'Deploy from template the systemd unit file cnode-cncli-ptsendslots.service'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode-cncli-ptsendslots.service'
-                mode: '0644'
-                src: 'cnode-cncli-ptsendslots.service.j2'
-            - name: 'Deploy from template the systemd unit file cnode-cncli-ptsendtip.service'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode-cncli-ptsendtip.service'
-                mode: '0644'
-                src: 'cnode-cncli-ptsendtip.service.j2'
-            - name: 'Deploy from template the systemd unit file cnode-cncli-sync.service'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode-cncli-sync.service'
-                mode: '0644'
-                src: 'cnode-cncli-sync.service.j2'
-            - name: 'Deploy from template the systemd unit file cnode-cncli-validate.service'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode-cncli-validate.service'
-                mode: '0644'
-                src: 'cnode-cncli-validate.service.j2'
-            - name: 'Deploy from template the systemd unit file cnode-logmonitor.service'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode-logmonitor.service'
-                mode: '0644'
-                src: 'cnode-logmonitor.service.j2'
-            - name: 'Deploy from template the systemd unit file cnode.service'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode.service'
-                mode: '0644'
-                src: 'cnode.service.j2'
-            - name: 'Deploy from template the systemd unit file cnode-tu-fetch.service'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode-tu-fetch.service'
-                mode: '0644'
-                src: 'cnode-tu-fetch.service.j2'
-            - name: 'Deploy from template the systemd unit file cnode-tu-push.service'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode-tu-push.service'
-                mode: '0644'
-                src: 'cnode-tu-push.service.j2'
-            - name: 'Deploy from template the systemd unit file cnode-tu-push.timer'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode-tu-push.timer'
-                mode: '0644'
-                src: 'cnode-tu-push.timer.j2'
-            - name: 'Deploy from template the systemd unit file cnode-tu-restart.service'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode-tu-restart.service'
-                mode: '0644'
-                src: 'cnode-tu-restart.service.j2'
-            - name: 'Deploy from template the systemd unit file cnode-tu-restart.timer'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode-tu-restart.timer'
-                mode: '0644'
-                src: 'cnode-tu-restart.timer.j2'
-        - name: 'Copy db if not already present'
-          block:
-            - name: 'Check if db directory is empty'
-              ansible.builtin.find:
-                file_type: 'any'
-                paths: '{{ cndeploy_cnode_dir }}/db/'
-                patterns: '*.*'
-              register: cndeploy_db_dir_files
-            - name: 'If db directory is empty copy the database to save some time'
+            - name: 'Stop the local service'
+              ansible.builtin.service:
+                name: 'cnode.service'
+                state: 'stopped'
+              become: true
+              become_user: 'root'
+              delegate_to: localhost
+              notify: 'Start Cardano node Local'
+              register: localservice
+            - name: 'Wait 30 seconds to make sure the local service is stopped'
+              ansible.builtin.pause:
+                seconds: 30
+              when: localservice.changed
+            - name: 'Stop the remote service if needed'
+              ansible.builtin.service:
+                name: 'cnode.service'
+                state: 'stopped'
+              become: true
+              become_user: 'root'
+              notify: 'Start Cardano node'
+              register: remoteservice
+              when: cndeploy_node_version.rc == 0
+            - name: 'Wait 30 seconds to make sure the remote service is stopped'
+              ansible.builtin.pause:
+                seconds: 30
+              when: remoteservice.changed
+            - name: Copy the local database to remote node
               ansible.posix.synchronize:
                 archive: true
                 delete: true
                 dest: '{{ cndeploy_cnode_dir }}/'
                 mode: 'push'
                 src: '{{ cndeploy_cnode_dir_local }}/db'
-              # synchronize works better for big transfers
-              #ansible.builtin.copy:
-              #  src: '{{ cndeploy_cnode_dir_local }}/db'
-              #  dest: '{{ cndeploy_cnode_dir }}/'
-              #async: 86400
-              #poll: 60
-              when: cndeploy_db_dir_files.matched|int == 0
-        - name: 'Synchronize the common configuration for nodes'
+    - name: 'Set the common configuration for nodes'
+      block:
+        - name: 'Set POOL_NAME in {{ cndeploy_cnode_dir }}/scripts/env'
+          ansible.builtin.lineinfile:
+            insertafter: '^#POOL_NAME='
+            line: 'POOL_NAME="{{ cndeploy_node_ticker|default() }}"'
+            path: '{{ cndeploy_cnode_dir }}/scripts/env'
+            regexp: '^POOL_NAME='
+            state: 'present'
+        - name: 'Set CNODE_PORT in {{ cndeploy_cnode_dir }}/scripts/env'
+          ansible.builtin.lineinfile:
+            insertafter: '^#CNODE_PORT='
+            line: 'CNODE_PORT="{{ cndeploy_node_port|default(3000) }}"'
+            path: '{{ cndeploy_cnode_dir }}/scripts/env'
+            regexp: '^CNODE_PORT='
+            state: 'present'
+        - name: 'Set CPU_CORES in {{ cndeploy_cnode_dir }}/scripts/cnode.sh'
+          ansible.builtin.lineinfile:
+            insertafter: '^#CPU_CORES='
+            line: 'CPU_CORES={{ cndeploy_node_cores|default(2) }}'
+            path: '{{ cndeploy_cnode_dir }}/scripts/cnode.sh'
+            regexp: '^CPU_CORES='
+            state: 'present'
+    - name: 'Set the configuration for Relays'
+      when: cndeploy_node_type == 'relay'
+      block:
+        - name: 'For Relays make sure priv directory is empty'
+          ansible.builtin.shell:
+            cmd: 'srm -rfz {{ cndeploy_cnode_dir|quote }}/priv/*'
+          args:
+            removes: '{{ cndeploy_cnode_dir }}/priv/*'
+        - name: 'For Relays set CUSTOM_PEERS in {{ cndeploy_cnode_dir }}/scripts/topologyUpdater.sh'
+          ansible.builtin.lineinfile:
+            insertafter: '^#CUSTOM_PEERS='
+            line: 'CUSTOM_PEERS="{{ cndeploy_node_custom_peers|default() }}"'
+            path: '{{ cndeploy_cnode_dir }}/scripts/topologyUpdater.sh'
+            regexp: '^CUSTOM_PEERS='
+            state: 'present'
+        - name: 'For Relays ensure proper service status (enabled/disabled)'
+          # TODO check if all the required setup is in place for every service
           block:
-            - name: 'Set POOL_NAME in {{ cndeploy_cnode_dir }}/scripts/env'
-              ansible.builtin.lineinfile:
-                insertafter: '^#POOL_NAME='
-                line: 'POOL_NAME="{{ cndeploy_node_ticker|default() }}"'
-                path: '{{ cndeploy_cnode_dir }}/scripts/env'
-                regexp: '^POOL_NAME='
-                state: 'present'
-            - name: 'Set CNODE_PORT in {{ cndeploy_cnode_dir }}/scripts/env'
-              ansible.builtin.lineinfile:
-                insertafter: '^#CNODE_PORT='
-                line: 'CNODE_PORT="{{ cndeploy_node_port|default(3000) }}"'
-                path: '{{ cndeploy_cnode_dir }}/scripts/env'
-                regexp: '^CNODE_PORT='
-                state: 'present'
-            - name: 'Set CPU_CORES in {{ cndeploy_cnode_dir }}/scripts/cnode.sh'
-              ansible.builtin.lineinfile:
-                insertafter: '^#CPU_CORES='
-                line: 'CPU_CORES={{ cndeploy_node_cores|default(2) }}'
-                path: '{{ cndeploy_cnode_dir }}/scripts/cnode.sh'
-                regexp: '^CPU_CORES='
-                state: 'present'
-        - name: 'Synchronize the configuration for Relays'
-          when: cndeploy_node_type == 'relay'
+            - name: 'For Relays disable cnode-cncli-leaderlog.service'
+              ansible.builtin.systemd:
+                enabled: false
+                masked: true
+                name: 'cnode-cncli-leaderlog.service'
+                state: 'stopped'
+            - name: 'For Relays disable cnode-cncli-ptsendslots.service'
+              ansible.builtin.systemd:
+                enabled: false
+                masked: true
+                name: 'cnode-cncli-ptsendslots.service'
+                state: 'stopped'
+            - name: 'For Relays disable cnode-cncli-validate.service'
+              ansible.builtin.systemd:
+                enabled: false
+                masked: true
+                name: 'cnode-cncli-validate.service'
+                state: 'stopped'
+            - name: 'For Relays disable cnode-cncli-sync.service'
+              ansible.builtin.systemd:
+                enabled: false
+                masked: true
+                name: 'cnode-cncli-sync.service'
+                state: 'stopped'
+            - name: 'For Relays disable cnode-cncli-ptsendtip.service'
+              ansible.builtin.systemd:
+                enabled: false
+                masked: true
+                name: 'cnode-cncli-ptsendtip.service'
+                state: 'stopped'
+            - name: 'For Relays disable cnode-logmonitor.service'
+              ansible.builtin.systemd:
+                enabled: false
+                masked: true
+                name: 'cnode-logmonitor.service'
+                state: 'stopped'
+            - name: 'For Relays enable cnode-tu-fetch.service'
+              ansible.builtin.systemd:
+                enabled: true
+                masked: false
+                name: 'cnode-tu-fetch.service'
+            - name: 'For Relays enable cnode-tu-push.service'
+              ansible.builtin.systemd:
+                masked: false
+                name: 'cnode-tu-push.service'
+            - name: 'For Relays enable cnode-tu-push.timer'
+              ansible.builtin.systemd:
+                enabled: true
+                masked: false
+                name: 'cnode-tu-push.timer'
+            - name: 'For Relays enable cnode-tu-restart.service'
+              ansible.builtin.systemd:
+                masked: false
+                name: 'cnode-tu-restart.service'
+            - name: 'For Relays enable cnode-tu-restart.timer'
+              ansible.builtin.systemd:
+                enabled: true
+                masked: false
+                name: 'cnode-tu-restart.timer'
+    - name: 'Set the configuration for Block Producers'
+      when: cndeploy_node_type == 'bp'
+      block:
+        # Simpler and quicker option but it requires rsync,
+        # by default we'll use the builtin file and copy modules
+        #- name: For BP Nodes copy priv directory without cold.skey using synchronize
+        #  ansible.posix.synchronize:
+        #    src: '{{ cndeploy_cnode_dir_local }}/priv/pool/{{ cndeploy_node_ticker }}'
+        #    dest: '{{ cndeploy_cnode_dir }}/priv/pool/{{ cndeploy_node_ticker }}'
+        #    rsync_opts:
+        #      - "--no-motd"
+        #      - "--exclude=.git"
+        - name: 'For BP Nodes copy priv directory without cold.skey using file/copy'
           block:
-            - name: 'For Relays make sure priv directory is empty'
-              ansible.builtin.shell:
-                cmd: 'srm -rfz {{ cndeploy_cnode_dir|quote }}/priv/*'
-              args:
-                removes: '{{ cndeploy_cnode_dir }}/priv/*'
-            - name: 'For Relays set CUSTOM_PEERS in {{ cndeploy_cnode_dir }}/scripts/topologyUpdater.sh'
-              ansible.builtin.lineinfile:
-                insertafter: '^#CUSTOM_PEERS='
-                line: 'CUSTOM_PEERS="{{ cndeploy_node_custom_peers|default() }}"'
-                path: '{{ cndeploy_cnode_dir }}/scripts/topologyUpdater.sh'
-                regexp: '^CUSTOM_PEERS='
-                state: 'present'
-            - name: 'For Relays ensure proper service status (enabled/disabled)'
-              # TODO check if all the required setup is in place for every service
-              block:
-                - name: 'For Relays disable cnode-cncli-leaderlog.service'
-                  ansible.builtin.systemd:
-                    enabled: false
-                    masked: true
-                    name: 'cnode-cncli-leaderlog.service'
-                    state: 'stopped'
-                - name: 'For Relays disable cnode-cncli-ptsendslots.service'
-                  ansible.builtin.systemd:
-                    enabled: false
-                    masked: true
-                    name: 'cnode-cncli-ptsendslots.service'
-                    state: 'stopped'
-                - name: 'For Relays disable cnode-cncli-validate.service'
-                  ansible.builtin.systemd:
-                    enabled: false
-                    masked: true
-                    name: 'cnode-cncli-validate.service'
-                    state: 'stopped'
-                - name: 'For Relays disable cnode-cncli-sync.service'
-                  ansible.builtin.systemd:
-                    enabled: false
-                    masked: true
-                    name: 'cnode-cncli-sync.service'
-                    state: 'stopped'
-                - name: 'For Relays disable cnode-cncli-ptsendtip.service'
-                  ansible.builtin.systemd:
-                    enabled: false
-                    masked: true
-                    name: 'cnode-cncli-ptsendtip.service'
-                    state: 'stopped'
-                - name: 'For Relays disable cnode-logmonitor.service'
-                  ansible.builtin.systemd:
-                    enabled: false
-                    masked: true
-                    name: 'cnode-logmonitor.service'
-                    state: 'stopped'
-                - name: 'For Relays enable cnode-tu-fetch.service'
-                  ansible.builtin.systemd:
-                    enabled: true
-                    masked: false
-                    name: 'cnode-tu-fetch.service'
-                - name: 'For Relays enable cnode-tu-push.service'
-                  ansible.builtin.systemd:
-                    masked: false
-                    name: 'cnode-tu-push.service'
-                - name: 'For Relays enable cnode-tu-push.timer'
-                  ansible.builtin.systemd:
-                    enabled: true
-                    masked: false
-                    name: 'cnode-tu-push.timer'
-                - name: 'For Relays enable cnode-tu-restart.service'
-                  ansible.builtin.systemd:
-                    masked: false
-                    name: 'cnode-tu-restart.service'
-                - name: 'For Relays enable cnode-tu-restart.timer'
-                  ansible.builtin.systemd:
-                    enabled: true
-                    masked: false
-                    name: 'cnode-tu-restart.timer'
-        - name: 'Synchronize the configuration for Block Producers'
-          when: cndeploy_node_type == 'bp'
+            - name: 'For BP Nodes create directory for private keys'
+              # TODO check if mode is changed for already existent parent directories
+              ansible.builtin.file:
+                mode: '0700'
+                owner: '{{ ansible_user_id }}'
+                path: '{{ cndeploy_cnode_dir }}/priv/pool/{{ cndeploy_node_ticker }}'
+                recurse: true
+                state: 'directory'
+            - name: 'For BP Nodes create a list of private files (excluding cold.key)'
+              ansible.builtin.find:
+                excludes: 'cold.key'
+                file_type: 'file'
+                paths: '{{ cndeploy_cnode_dir_local }}/priv/pool/{{ cndeploy_node_ticker }}'
+                register: cndeploy_cnode_priv
+              delegate_to: localhost
+            - name: 'For BP Nodes copy private files in list'
+              ansible.builtin.copy:
+                dest: '{{ cndeploy_cnode_dir }}/priv/pool/{{ cndeploy_node_ticker }}/'
+                mode: '0600'
+                owner: '{{ ansible_user_id }}'
+                src: '{{ item.path }}'
+              loop: '{{ cndeploy_cnode_priv.files }}'
+        - name: 'For BP Nodes define topology in {{ cndeploy_cnode_dir }}/files/topology.json'
+          ansible.builtin.template:
+            dest: '{{ cndeploy_cnode_dir }}/files/topology.json'
+            mode: '0664'
+            src: 'topology.json.j2'
+        - name: 'For BP Nodes unset CUSTOM_PEERS in {{ cndeploy_cnode_dir }}/scripts/topologyUpdater.sh'
+          ansible.builtin.lineinfile:
+            path: '{{ cndeploy_cnode_dir }}/scripts/topologyUpdater.sh'
+            regexp: '^CUSTOM_PEERS='
+            state: 'absent'
+        - name: 'For BP Nodes ensure proper service status (enabled/disabled)'
+          # TODO check if all the required setup is in place for every service
           block:
-            # Simpler and quicker option but it requires rsync,
-            # by default we'll use the builtin file and copy modules
-            #- name: For BP Nodes copy priv directory without cold.skey using synchronize
-            #  ansible.posix.synchronize:
-            #    src: '{{ cndeploy_cnode_dir_local }}/priv/pool/{{ cndeploy_node_ticker }}'
-            #    dest: '{{ cndeploy_cnode_dir }}/priv/pool/{{ cndeploy_node_ticker }}'
-            #    rsync_opts:
-            #      - "--no-motd"
-            #      - "--exclude=.git"
-            - name: 'For BP Nodes copy priv directory without cold.skey using file/copy'
-              block:
-                - name: 'For BP Nodes create directory for private keys'
-                  # TODO check if mode is changed for already existent parent directories
-                  ansible.builtin.file:
-                    mode: '0700'
-                    owner: '{{ ansible_user_id }}'
-                    path: '{{ cndeploy_cnode_dir }}/priv/pool/{{ cndeploy_node_ticker }}'
-                    recurse: true
-                    state: 'directory'
-                - name: 'For BP Nodes create a list of private files (excluding cold.key)'
-                  ansible.builtin.find:
-                    excludes: 'cold.key'
-                    file_type: 'file'
-                    paths: '{{ cndeploy_cnode_dir_local }}/priv/pool/{{ cndeploy_node_ticker }}'
-                    register: cndeploy_cnode_priv
-                  delegate_to: localhost
-                - name: 'For BP Nodes copy private files in list'
-                  ansible.builtin.copy:
-                    dest: '{{ cndeploy_cnode_dir }}/priv/pool/{{ cndeploy_node_ticker }}/'
-                    mode: '0600'
-                    owner: '{{ ansible_user_id }}'
-                    src: '{{ item.path }}'
-                  loop: '{{ cndeploy_cnode_priv.files }}'
-            - name: 'For BP Nodes define topology in {{ cndeploy_cnode_dir }}/files/topology.json'
-              ansible.builtin.template:
-                dest: '{{ cndeploy_cnode_dir }}/files/topology.json'
-                mode: '0664'
-                src: 'topology.json.j2'
-            - name: 'For BP Nodes unset CUSTOM_PEERS in {{ cndeploy_cnode_dir }}/scripts/topologyUpdater.sh'
-              ansible.builtin.lineinfile:
-                path: '{{ cndeploy_cnode_dir }}/scripts/topologyUpdater.sh'
-                regexp: '^CUSTOM_PEERS='
-                state: 'absent'
-            - name: 'For BP Nodes ensure proper service status (enabled/disabled)'
-              # TODO check if all the required setup is in place for every service
-              block:
-                - name: 'For BP Nodes disable cnode-tu-fetch.service'
-                  ansible.builtin.systemd:
-                    enabled: false
-                    masked: true
-                    name: 'cnode-tu-fetch.service'
-                    state: 'stopped'
-                - name: 'For BP Nodes disable cnode-tu-push.service'
-                  ansible.builtin.systemd:
-                    masked: true
-                    name: 'cnode-tu-push.service'
-                    state: 'stopped'
-                - name: 'For BP Nodes disable cnode-tu-push.timer'
-                  ansible.builtin.systemd:
-                    enabled: false
-                    masked: true
-                    name: 'cnode-tu-push.timer'
-                    state: 'stopped'
-                - name: 'For BP Nodes disable cnode-tu-restart.service'
-                  ansible.builtin.systemd:
-                    masked: true
-                    name: 'cnode-tu-restart.service'
-                    state: 'stopped'
-                - name: 'For BP Nodes disable cnode-tu-restart.timer'
-                  ansible.builtin.systemd:
-                    enabled: false
-                    masked: true
-                    name: 'cnode-tu-restart.timer'
-                    state: 'stopped'
-                - name: 'For BP Nodes enable cnode-cncli-leaderlog.service'
-                  ansible.builtin.systemd:
-                    enabled: true
-                    masked: false
-                    name: 'cnode-cncli-leaderlog.service'
-                - name: 'For BP Nodes enable cnode-cncli-ptsendslots.service'
-                  ansible.builtin.systemd:
-                    enabled: true
-                    masked: false
-                    name: 'cnode-cncli-ptsendslots.service'
-                - name: 'For BP Nodes enable cnode-cncli-validate.service'
-                  ansible.builtin.systemd:
-                    enabled: true
-                    masked: false
-                    name: 'cnode-cncli-validate.service'
-                - name: 'For BP Nodes enable cnode-cncli-sync.service'
-                  ansible.builtin.systemd:
-                    enabled: true
-                    masked: false
-                    name: 'cnode-cncli-sync.service'
-                - name: 'For BP Nodes enable cnode-cncli-ptsendtip.service'
-                  ansible.builtin.systemd:
-                    enabled: true
-                    masked: false
-                    name: 'cnode-cncli-ptsendtip.service'
-                - name: 'For BP Nodes enable cnode-logmonitor.service'
-                  ansible.builtin.systemd:
-                    enabled: true
-                    masked: false
-                    name: 'cnode-logmonitor.service'
-        - name: 'Enable and start cnode.service'
-          ansible.builtin.systemd:
-            enabled: true
-            masked: false
-            name: 'cnode.service'
-            state: 'started'
+            - name: 'For BP Nodes disable cnode-tu-fetch.service'
+              ansible.builtin.systemd:
+                enabled: false
+                masked: true
+                name: 'cnode-tu-fetch.service'
+                state: 'stopped'
+            - name: 'For BP Nodes disable cnode-tu-push.service'
+              ansible.builtin.systemd:
+                masked: true
+                name: 'cnode-tu-push.service'
+                state: 'stopped'
+            - name: 'For BP Nodes disable cnode-tu-push.timer'
+              ansible.builtin.systemd:
+                enabled: false
+                masked: true
+                name: 'cnode-tu-push.timer'
+                state: 'stopped'
+            - name: 'For BP Nodes disable cnode-tu-restart.service'
+              ansible.builtin.systemd:
+                masked: true
+                name: 'cnode-tu-restart.service'
+                state: 'stopped'
+            - name: 'For BP Nodes disable cnode-tu-restart.timer'
+              ansible.builtin.systemd:
+                enabled: false
+                masked: true
+                name: 'cnode-tu-restart.timer'
+                state: 'stopped'
+            - name: 'For BP Nodes enable cnode-cncli-leaderlog.service'
+              ansible.builtin.systemd:
+                enabled: true
+                masked: false
+                name: 'cnode-cncli-leaderlog.service'
+            - name: 'For BP Nodes enable cnode-cncli-ptsendslots.service'
+              ansible.builtin.systemd:
+                enabled: true
+                masked: false
+                name: 'cnode-cncli-ptsendslots.service'
+            - name: 'For BP Nodes enable cnode-cncli-validate.service'
+              ansible.builtin.systemd:
+                enabled: true
+                masked: false
+                name: 'cnode-cncli-validate.service'
+            - name: 'For BP Nodes enable cnode-cncli-sync.service'
+              ansible.builtin.systemd:
+                enabled: true
+                masked: false
+                name: 'cnode-cncli-sync.service'
+            - name: 'For BP Nodes enable cnode-cncli-ptsendtip.service'
+              ansible.builtin.systemd:
+                enabled: true
+                masked: false
+                name: 'cnode-cncli-ptsendtip.service'
+            - name: 'For BP Nodes enable cnode-logmonitor.service'
+              ansible.builtin.systemd:
+                enabled: true
+                masked: false
+                name: 'cnode-logmonitor.service'
+    - name: 'Enable and start cnode.service'
+      ansible.builtin.systemd:
+        enabled: true
+        masked: false
+        name: 'cnode.service'
+        state: 'started'
 
 - name: 'Check that user bash aliases are in place'
   ansible.builtin.blockinfile:
     block: '{{ cndeploy_aliases }}'
+    create: true
+    mode: '0600'
     path: '~/.bash_aliases'
   when: cndeploy_add_aliases|default(false)|bool
