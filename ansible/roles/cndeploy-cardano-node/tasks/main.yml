@@ -365,6 +365,8 @@
             state: 'present'
         - name: 'For Relays ensure proper service status (enabled/disabled)'
           # TODO check if all the required setup is in place for every service
+          become: true
+          become_user: 'root'
           block:
             - name: 'For Relays disable cnode-cncli-leaderlog.service'
               ansible.builtin.systemd:
@@ -452,8 +454,8 @@
                 excludes: 'cold.key'
                 file_type: 'file'
                 paths: '{{ cndeploy_cnode_dir_local }}/priv/pool/{{ cndeploy_node_ticker }}'
-                register: cndeploy_cnode_priv
               delegate_to: localhost
+              register: cndeploy_cnode_priv
             - name: 'For BP Nodes copy private files in list'
               ansible.builtin.copy:
                 dest: '{{ cndeploy_cnode_dir }}/priv/pool/{{ cndeploy_node_ticker }}/'
@@ -473,6 +475,8 @@
             state: 'absent'
         - name: 'For BP Nodes ensure proper service status (enabled/disabled)'
           # TODO check if all the required setup is in place for every service
+          become: true
+          become_user: 'root'
           block:
             - name: 'For BP Nodes disable cnode-tu-fetch.service'
               ansible.builtin.systemd:
@@ -538,6 +542,8 @@
         masked: false
         name: 'cnode.service'
         state: 'started'
+      become: true
+      become_user: 'root'
 
 - name: 'Check that user bash aliases are in place'
   ansible.builtin.blockinfile:
