@@ -135,7 +135,8 @@
           register: cndeploy_cli_version
         - name: 'Show remote Cardano node version'
           ansible.builtin.debug:
-            msg: '{{ cndeploy_node_version.stdout }}'
+            #msg: '{{ cndeploy_node_version.stdout }}'
+            msg: '{{ cndeploy_node_version }}'
           changed_when: false
           failed_when: false
         - name: 'Show remote Cardano client version'
@@ -202,7 +203,8 @@
               register: cndeploy_cli_version_new
             - name: 'Show new remote Cardano node version'
               ansible.builtin.debug:
-                msg: '{{ cndeploy_node_version_new.stdout }}'
+                #msg: '{{ cndeploy_node_version_new.stdout }}'
+                msg: '{{ cndeploy_node_version_new }}'
               changed_when: false
               failed_when: false
             - name: 'Show new remote Cardano client version'
@@ -290,15 +292,15 @@
               ansible.posix.synchronize:
                 archive: true
                 delete: true
-                dest: '{{ cndeploy_cnode_dir }}/db'
+                dest: '{{ cndeploy_cnode_dir }}/'
                 mode: 'push'
                 src: '{{ cndeploy_cnode_dir_local }}/db'
               # synchronize works better for big transfers
               #ansible.builtin.copy:
               #  src: '{{ cndeploy_cnode_dir_local }}/db'
               #  dest: '{{ cndeploy_cnode_dir }}/'
-              async: 86400
-              poll: 60
+              #async: 86400
+              #poll: 60
               when: cndeploy_db_dir_files.matched|int == 0
         - name: 'Synchronize the common configuration for nodes'
           block:
