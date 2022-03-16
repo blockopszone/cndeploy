@@ -125,12 +125,16 @@
           ansible.builtin.command:
             cmd: 'cardano-node version'
           changed_when: false
+          environment:
+            PATH: '{{ ansible_env.PATH }}:~/.cabal/bin:~/.ghcup/bin:~/.cargo/bin'
           failed_when: false
           register: cndeploy_node_version
         - name: 'Check remote Cardano client version'
           ansible.builtin.command:
             cmd: 'cardano-cli version'
           changed_when: false
+          environment:
+            PATH: '{{ ansible_env.PATH }}:~/.cabal/bin:~/.ghcup/bin:~/.cargo/bin'
           failed_when: false
           register: cndeploy_cli_version
         - name: 'Show remote Cardano node version'
@@ -193,12 +197,16 @@
               ansible.builtin.command:
                 cmd: 'cardano-node version'
               changed_when: false
+              environment:
+                PATH: '{{ ansible_env.PATH }}:~/.cabal/bin:~/.ghcup/bin:~/.cargo/bin'
               failed_when: false
               register: cndeploy_node_version_new
             - name: 'Check new remote Cardano client version'
               ansible.builtin.command:
                 cmd: 'cardano-cli version'
               changed_when: false
+              environment:
+                PATH: '{{ ansible_env.PATH }}:~/.cabal/bin:~/.ghcup/bin:~/.cargo/bin'
               failed_when: false
               register: cndeploy_cli_version_new
             - name: 'Show new remote Cardano node version'
