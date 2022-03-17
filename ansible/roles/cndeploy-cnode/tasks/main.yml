@@ -36,6 +36,11 @@
         dest: '~/tmp/'
         mode: '0755'
         url: 'https://raw.githubusercontent.com/cardano-community/guild-operators/master/scripts/cnode-helper-scripts/prereqs.sh'
-    - name: 'Run prereqs.sh installer'
+    - name: 'Run prereqs.sh installer without Rust and cncli'
       ansible.builtin.command:
         cmd: '~/tmp/prereqs.sh'
+      when: not cndeploy_cnode_cncli_install
+    - name: 'Run prereqs.sh installer with Rust and cncli'
+      ansible.builtin.command:
+        cmd: '~/tmp/prereqs.sh -c'
+      when: cndeploy_cnode_cncli_install

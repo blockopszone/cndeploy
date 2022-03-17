@@ -473,11 +473,32 @@
             path: '{{ cndeploy_cnode_dir }}/scripts/topologyUpdater.sh'
             regexp: '^CUSTOM_PEERS='
             state: 'absent'
+        - name: 'Set POOL_TICKER in {{ cndeploy_cnode_dir }}/scripts/cncli.sh'
+          ansible.builtin.lineinfile:
+            insertafter: '^#POOL_TICKER='
+            line: 'POOL_TICKER={{ cndeploy_node_ticker }}'
+            path: '{{ cndeploy_cnode_dir }}/scripts/cncli.sh'
+            regexp: '^POOL_TICKER='
+            state: 'present'
+        - name: 'Set PT_API_KEY in {{ cndeploy_cnode_dir }}/scripts/cncli.sh'
+          ansible.builtin.lineinfile:
+            insertafter: '^#PT_API_KEY='
+            line: 'PT_API_KEY={{ cndeploy_cnode_cncli_ptapikey }}'
+            path: '{{ cndeploy_cnode_dir }}/scripts/cncli.sh'
+            regexp: '^PT_API_KEY='
+            state: 'present'
+          when:
+            - cndeploy_cnode_cncli_ptapikey is defined
+            - cndeploy_cnode_cncli_ptapikey|length > 10 
         - name: 'For BP Nodes ensure proper service status (enabled/disabled)'
           # TODO check if all the required setup is in place for every service
           become: true
           become_user: 'root'
           block:
+            - name: 'Get stats of ~/.cargo/bin/cncli'
+              ansible.builtin.stat:
+                path: '~/.cargo/bin/cncli'
+              register: cndeploy_cncli_info
             - name: 'For BP Nodes disable cnode-tu-fetch.service'
               ansible.builtin.systemd:
                 enabled: false
@@ -506,36 +527,57 @@
                 masked: true
                 name: 'cnode-tu-restart.timer'
                 state: 'stopped'
-            - name: 'For BP Nodes enable cnode-cncli-leaderlog.service'
+            - name: 'For BP Nodes, if set, enable cnode-cncli-leaderlog.service'
               ansible.builtin.systemd:
                 enabled: true
                 masked: false
                 name: 'cnode-cncli-leaderlog.service'
-            - name: 'For BP Nodes enable cnode-cncli-ptsendslots.service'
+              when:
+                - cndeploy_cncli_info.stat.exists
+                - cndeploy_cnode_cncli_leaderlog_enabled
+            - name: 'For BP Nodes, if set, enable cnode-cncli-ptsendslots.service'
               ansible.builtin.systemd:
                 enabled: true
                 masked: false
                 name: 'cnode-cncli-ptsendslots.service'
-            - name: 'For BP Nodes enable cnode-cncli-validate.service'
+              when:
+                - cndeploy_cncli_info.stat.exists
+                - cndeploy_cnode_cncli_ptsendslots_enabled
+                - cndeploy_cnode_cncli_ptapikey is defined
+                - cndeploy_cnode_cncli_ptapikey|length > 10
+            - name: 'For BP Nodes, if set, enable cnode-cncli-validate.service'
               ansible.builtin.systemd:
                 enabled: true
                 masked: false
                 name: 'cnode-cncli-validate.service'
-            - name: 'For BP Nodes enable cnode-cncli-sync.service'
+              when:
+                - cndeploy_cncli_info.stat.exists
+                - cndeploy_cnode_cncli_validate_enabled
+            - name: 'For BP Nodes, if set, enable cnode-cncli-sync.service'
               ansible.builtin.systemd:
                 enabled: true
                 masked: false
                 name: 'cnode-cncli-sync.service'
-            - name: 'For BP Nodes enable cnode-cncli-ptsendtip.service'
+              when:
+                - cndeploy_cncli_info.stat.exists
+                - cndeploy_cnode_cncli_sync_enabled
+            - name: 'For BP Nodes, if set, enable cnode-cncli-ptsendtip.service'
               ansible.builtin.systemd:
                 enabled: true
                 masked: false
                 name: 'cnode-cncli-ptsendtip.service'
-            - name: 'For BP Nodes enable cnode-logmonitor.service'
+              when:
+                - cndeploy_cncli_info.stat.exists
+                - cndeploy_cnode_cncli_ptsendtip_enabled
+                - cndeploy_cnode_cncli_ptapikey is defined
+                - cndeploy_cnode_cncli_ptapikey|length > 10
+            - name: 'For BP Nodes, if set, enable cnode-logmonitor.service'
               ansible.builtin.systemd:
                 enabled: true
                 masked: false
                 name: 'cnode-logmonitor.service'
+              when:
+                - cndeploy_cnode_logmonitor_enabled
     - name: 'Enable and start cnode.service'
       ansible.builtin.systemd:
         enabled: true
