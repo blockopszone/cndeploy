@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 ###############################################################################
-## next_epoch_slots.sh is a wrapper script that uses cardano-cli and cncli   ##
-## to calculate if the specified stake pool is going to be leader for any    ##
-## slot during the next epoch from 36h before its start.                     ##
+## prev_epoch_slots.sh is a wrapper script that uses cardano-cli and cncli   ##
+## to calculate if the specified stake pool was leader for any slot during   ##
+## the previous epoch.                                                       ##
 ##                                                                           ##
 ## Documentation and the latest version can be found at:                     ##
 ## https://www.github.com/jmhoms/cndeploy                                    ##
@@ -15,11 +15,11 @@
 ## This program is free software: you can redistribute it and/or modify it   ##
 ## under the terms of the GNU General Public License as published by the     ##
 ## Free Software Foundation, either version 3 of the License, or any later   ##
-## version.                                                                  ##
+## version.                                                                  ##
 ##                                                                           ##
 ## This program is distributed in the hope that it will be useful, but       ##
-## WITHOUT ANY WARRANTY; without even the implied warranty of                ##
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                      ##
+## WITHOUT ANY WARRANTY; without even the implied warranty of                ##
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                      ##
 ## See the GNU General Public License for more details.                      ##
 ##                                                                           ##
 ## You should have received a copy of the GNU General Public License along   ##
@@ -54,12 +54,12 @@ ES_CARDANOCLI_BIN="${HOME}/.cabal/bin/cardano-cli"
 export CARDANO_NODE_SOCKET_PATH=$ES_POOL_SOCKET
 echo "## Querying stake snapshot for ${ES_POOL_NAME} pool..."
 ES_SNAPSHOT=`$ES_CARDANOCLI_BIN query stake-snapshot --stake-pool-id $ES_POOL_ID --mainnet`
-ES_POOL_STAKE=$(echo "$ES_SNAPSHOT" | grep -oP '(?<=    "poolStakeMark": )\d+(?=,?)')
-ES_ACTIVE_STAKE=$(echo "$ES_SNAPSHOT" | grep -oP '(?<=    "activeStakeMark": )\d+(?=,?)')
+ES_POOL_STAKE=$(echo "$ES_SNAPSHOT" | grep -oP '(?<=    "poolStakeGo": )\d+(?=,?)')
+ES_ACTIVE_STAKE=$(echo "$ES_SNAPSHOT" | grep -oP '(?<=    "activeStakeGo": )\d+(?=,?)')
 echo "## Executing cncli leaderlog for ${ES_POOL_NAME} pool..."
 ES_POOL_PARMS="--pool-id $ES_POOL_ID --pool-vrf-skey $ES_POOL_VRF --db $ES_CNCLI_DB "
 ES_POOL_PARMS+="--byron-genesis $ES_POOL_BYRON_GEN --shelley-genesis $ES_POOL_SHELLEY_GEN "
-ES_POOL_PARMS+="--pool-stake $ES_POOL_STAKE --active-stake $ES_ACTIVE_STAKE --ledger-set next"
+ES_POOL_PARMS+="--pool-stake $ES_POOL_STAKE --active-stake $ES_ACTIVE_STAKE --ledger-set prev"
 ES_POOL=`$ES_CNCLI_BIN leaderlog $ES_POOL_PARMS`
 EPOCH=`jq .epoch <<< $ES_POOL`
 SLOTS=`jq .epochSlots <<< $ES_POOL`
