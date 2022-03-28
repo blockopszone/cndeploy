@@ -1,0 +1,158 @@
+# Ansible role containing tasks to synchronize the Cardano node db
+# from an origin host.
+
+---
+
+- name: 'Check variables: cndeploy_cnode_origin_dir'
+  ansible.builtin.assert:
+    fail_msg: >
+      Invalid value -> Local cnode directory must be also defined
+      in CNODE_HOME environment variable.
+    quiet: true
+    that:
+      - cndeploy_cnode_origin_dir == lookup('env', 'CNODE_HOME')
+        or cndeploy_cnode_origin_dir_check_override
+  delegate_to: '{{ cndeploy_cnode_origin_host }}'
+
+- name: 'Resolve platform specific vars'
+  include_vars: '{{ item }}'
+  with_first_found:
+    - files:
+        - '{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml'
+        - '{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml'
+        - '{{ ansible_distribution }}-{{ ansible_distribution_release }}.yml'
+        - '{{ ansible_distribution }}.yml'
+        - '{{ ansible_os_family }}.yml'
+      paths:
+        - '{{ role_path }}/vars'
+      skip: true
+
+- name: 'Install dependencies for the OS'
+  ansible.builtin.package:
+    name: '{{ cndeploy_pkgs_dep|default([]) }}'
+    state: 'present'
+  become: true
+  become_user: 'root'
+
+- name: 'Synchronize the blocks database if needed'
+  block:
+    - name: 'Calculate the size of the db directory in origin'
+      ansible.builtin.command: '/usr/bin/du -sk {{ cndeploy_cnode_origin_dir|quote }}/db'
+      become: true
+      become_user: 'root'
+      changed_when: false
+      check_mode: false
+      delegate_to: '{{ cndeploy_cnode_origin_host }}'
+      register: origindbdir
+    - name: 'Calculate the size of the db directory'
+      ansible.builtin.command: '/usr/bin/du -sk {{ cndeploy_cnode_dir|quote }}/db'
+      become: true
+      become_user: 'root'
+      changed_when: false
+      check_mode: false
+      register: dbdir
+    - name: 'If db directory in remote is smaller synchronize the files'
+      when: dbdir.stdout.split()[0]|int < origindbdir.stdout.split()[0]|int
+      block:
+        - name: 'Stop the service in origin'
+          ansible.builtin.service:
+            name: 'cnode.service'
+            state: 'stopped'
+          become: true
+          become_user: 'root'
+          delegate_to: '{{ cndeploy_cnode_origin_host }}'
+          notify: 'Start Cardano node in origin'
+          register: originservice
+        - name: 'Wait 30 seconds to make sure the service in origin is stopped'
+          ansible.builtin.pause:
+            seconds: 30
+          when: originservice.changed
+        - name: 'Stop the remote service if needed'
+          ansible.builtin.service:
+            name: 'cnode.service'
+            state: 'stopped'
+          become: true
+          become_user: 'root'
+          notify: 'Start Cardano node'
+          register: remoteservice
+        - name: 'Wait 30 seconds to make sure the remote service is stopped'
+          ansible.builtin.pause:
+            seconds: 30
+          when: remoteservice.changed
+        - name: 'Temporarily allow ssh from non-master origin to remote'
+          become: yes
+          become_user: 'root'
+          when:
+            - cndeploy_firewall_enabled|default(false)|bool
+            - cndeploy_cnode_origin_host != 'localhost'
+            - cndeploy_cnode_origin_host != '127.0.0.1'
+          block:
+            - name: 'Check if ufw is available'
+              ansible.builtin.stat:
+                path: '/usr/sbin/ufw'
+              register: ufw
+            - name: 'Check if firewalld is available'
+              ansible.builtin.stat:
+                path: '/usr/sbin/firewalld'
+              register: firewalld
+            - name: 'Check if iptables is available'
+              ansible.builtin.stat:
+                path: '/usr/sbin/iptables'
+              register: iptables
+            - name: 'Use ufw if available'
+              when: ufw.stat.exists
+              block:
+                - name: 'ufw Allow SSH from origin'
+                  community.general.ufw:
+                    port: 22
+                    proto: 'tcp'
+                    rule: 'allow'
+                    src: '{{ cndeploy_cnode_origin_host }}'
+                  notify: 'ufw Disallow SSH from origin'
+            - name: 'Use firewald if available when ufw is not'
+              # TODO testing needed
+              when:
+                - not ufw.stat.exists
+                - firewalld.stat.exists
+              block:
+                - name: 'firewalld Allow SSH from origin'
+                  ansible.posix.firewalld:
+                    permanent: 'yes'
+                    port: '22/tcp'
+                    source: '{{ cndeploy_cnode_origin_host }}'
+                    state: 'enabled'
+                  notify: 'firewalld Disallow SSH from origin'
+            - name: 'Use iptables if available when ufw and firewalld are not'
+              # TODO finish block with iptables module + permanent changes
+              ansible.builtin.debug:
+                msg: >
+                  Iptables is the only known firewall available on the host,
+                  but it can't be setup as it is not yet supported by the script.
+              when:
+                - not ufw.stat.exists
+                - not firewalld.stat.exists
+                - iptables.stat.exists
+        - name: 'Create a keypair in origin if it does not already exist'
+          ansible.builtin.command: 'ssh-keygen -q -b 2048 -t rsa -N "" -C "creating SSH" -f ~/.ssh/id_rsa'
+            creates: '~/.ssh/id_rsa.pub'
+          delegate_to: '{{ cndeploy_cnode_origin_host }}'
+        - name: 'Get the pub key into a variable'
+          ansible.builtin.command: '/usr/bin/cat ~/.ssh/id_rsa.pub'
+          changed_when: false
+          check_mode: false
+          delegate_to: '{{ cndeploy_cnode_origin_host }}'
+          register: originpubkey
+        - name: 'Temporarily allow origin public key in remote if not already allowed'
+          ansible.posix.authorized_key:
+            key: '{{ originpubkey.stdout }}'
+            state: 'present'
+            user: '{{ cndeploy_user }}'
+          notify: 'Disallow origin public key in remote'
+        - name: 'Copy the database from origin to remote node'
+          ansible.posix.synchronize:
+            archive: true
+            delete: true
+            dest: '{{ cndeploy_cnode_dir }}/'
+            mode: 'push'
+            src: '{{ cndeploy_cnode_origin_dir }}/db'
+          delegate_to: '{{ cndeploy_cnode_origin_host }}'

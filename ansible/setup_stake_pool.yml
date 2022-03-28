@@ -4,22 +4,22 @@
 
   tasks:
 
-#    - name: Include cndeploy-os-tweaks
-#      include_role:
-#        name: cndeploy-os-tweaks
-
-#    - name: Include cndeploy-os-pkgs
-#      include_role:
-#        name: cndeploy-os-pkgs
-
-#    - name: Include cndeploy-cnode
-#      include_role:
-#        name: cndeploy-cnode
-
-    - name: Include cndeploy-cardano-node
+    - name: Include cndeploy-os-tweaks
       include_role:
-        name: cndeploy-cardano-node
+        name: cndeploy-os-tweaks
 
-#    - name: Include cndeploy-monitoring
-#      include_role:
-#        name: cndeploy-monitoring
+    - name: Include cndeploy-os-pkgs
+      include_role:
+        name: cndeploy-os-pkgs
+
+    - name: Include cndeploy-cnode-build
+      include_role:
+        name: cndeploy-cnode-build
+
+    - name: Include cndeploy-cnode-conf
+      include_role:
+        name: cndeploy-cnode-conf
+
+    - name: Include cndeploy-cnode-mon
+      include_role:
+        name: cndeploy-cnode-mon

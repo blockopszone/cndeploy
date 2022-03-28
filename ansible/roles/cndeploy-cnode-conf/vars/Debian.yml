@@ -1,0 +1,6 @@
+---
+
+cndeploy_pkgs_dep:
+  - curl
+  - acl
+  - secure-delete

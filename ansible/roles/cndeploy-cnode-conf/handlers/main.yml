@@ -1,0 +1,8 @@
+---
+
+- name: 'Restart Cardano node'
+  ansible.builtin.service:
+    name: 'cnode.service'
+    state: 'restarted'
+  become: true
+  become_user: 'root'

@@ -1,0 +1,9 @@
+---
+
+- hosts: all
+
+  tasks:
+
+    - name: Include cndeploy-cnode-sync-db
+      include_role:
+        name: cndeploy-cnode-sync-db

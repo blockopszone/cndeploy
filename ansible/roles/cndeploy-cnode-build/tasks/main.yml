@@ -1,4 +1,4 @@
-# Ansible role containing tasks to install Guild's operator cnode.
+# Ansible role containing tasks to build and install Guild's operator cnode.
 # TODO: allow cnode to be installed in a custom path instead of the default one
 # TODO: after install clean up
 
@@ -23,6 +23,16 @@
     state: 'present'
   become: true
   become_user: 'root'
+
+- name: 'Stop the node service if it exists and it is started'
+  ansible.builtin.service:
+    name: 'cnode.service'
+    state: 'stopped'
+  become: true
+  become_user: 'root'
+  failed_when: cnodeservice is failed and not 'Could not find the requested service' in cnodeservice.msg
+  notify: 'Start Cardano node'
+  register: cnodeservice
 
 - name: 'Install Guild Operators CNODE'
   block:

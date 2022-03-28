@@ -1,5 +1,7 @@
-# Ansible role containing tasks to configure and update Cardano stake pool nodes
+# Ansible role containing tasks to configure Cardano stake pool nodes
 # using Guild operator's cnode.
+
+# TODO only start when service was already started before the tasks execution
 
 ---
 
@@ -84,139 +86,32 @@
   become: true
   become_user: 'root'
 
-- name: 'Check local Cardano versions'
-  check_mode: false
-  delegate_to: localhost
-  ignore_errors: true
+- name: 'Configure Cardano Node'
+  notify: 'Restart Cardano node'
   block:
-    - name: 'Check local Cardano node version'
-      ansible.builtin.command:
-        cmd: 'cardano-node version'
-      changed_when: false
-      failed_when: false
-      register: cndeploy_node_version_local
-    - name: 'Check local Cardano client version'
-      ansible.builtin.command:
-        cmd: 'cardano-cli version'
-      changed_when: false
-      failed_when: false
-      register: cndeploy_cli_version_local
-    - name: 'Show local Cardano node version'
-      ansible.builtin.debug:
-        msg: '{{ cndeploy_node_version_local.stdout }}'
-      changed_when: false
-      failed_when: false
-    - name: 'Show local Cardano client version'
-      ansible.builtin.debug:
-        msg: '{{ cndeploy_cli_version_local.stdout }}'
-      changed_when: false
-      failed_when: false
-
-- name: 'If Cardano node is locally installed'
-  when:
-    - cndeploy_node_version_local.rc == 0
-    - cndeploy_cli_version_local.rc == 0
-  block:
-    - name: 'Check remote cardano versions'
-      check_mode: false
-      ignore_errors: true
+    - name: 'Set the common configuration for nodes'
       block:
-        - name: 'Check remote Cardano node version'
-          ansible.builtin.command:
-            cmd: '~/.cabal/bin/cardano-node version'
-          changed_when: false
-          failed_when: false
-          register: cndeploy_node_version
-        - name: 'Check remote Cardano client version'
-          ansible.builtin.command:
-            cmd: '~/.cabal/bin/cardano-cli version'
-          changed_when: false
-          failed_when: false
-          register: cndeploy_cli_version
-        - name: 'Show remote Cardano node version'
-          ansible.builtin.debug:
-            msg: '{{ cndeploy_node_version.stdout }}'
-          changed_when: false
-          failed_when: false
-        - name: 'Show remote Cardano client version'
-          ansible.builtin.debug:
-            msg: '{{ cndeploy_cli_version.stdout }}'
-          changed_when: false
-          failed_when: false
-    - name: 'Copy binaries if local and remote versions are not equal'
-      when: ((cndeploy_node_version_local.stdout != cndeploy_node_version.stdout) or
-             (cndeploy_cli_version_local.stdout != cndeploy_cli_version.stdout))
-      block:
-        - name: 'Stop the local service'
-          ansible.builtin.service:
-            name: 'cnode.service'
-            state: 'stopped'
-          become: true
-          become_user: 'root'
-          delegate_to: localhost
-          notify: 'Start Cardano node Local'
-          register: localservice
-        - name: 'Wait 30 seconds to make sure the local service is stopped'
-          ansible.builtin.pause:
-            seconds: 30
-          when: localservice.changed
-        - name: 'Stop the remote service if needed'
-          ansible.builtin.service:
-            name: 'cnode.service'
-            state: 'stopped'
-          become: true
-          become_user: 'root'
-          notify: 'Start Cardano node'
-          register: remoteservice
-          when: cndeploy_node_version.rc == 0
-        - name: 'Wait 30 seconds to make sure the remote service is stopped'
-          ansible.builtin.pause:
-            seconds: 30
-          when: remoteservice.changed
-        - name: 'Deploy Cardano node by transferring the compiled binaries to the host'
-          ansible.posix.synchronize:
-            archive: true
-            delete: true
-            dest: '~/'
-            mode: 'push'
-            src: '~/.cabal'
-          # synchronize works better for big transfers
-          #ansible.builtin.copy:
-          #  src: '~/.cabal'
-          #  dest: '~'
-          #async: 86400
-          #poll: 60
-        - name: 'Check again for remote cardano versions'
-          check_mode: false
-          ignore_errors: true
-          block:
-            # TODO: Be sure bin is in path
-            - name: 'Check new remote Cardano node version'
-              ansible.builtin.command:
-                cmd: '~/.cabal/bin/cardano-node version'
-              changed_when: false
-              failed_when: false
-              register: cndeploy_node_version_new
-            - name: 'Check new remote Cardano client version'
-              ansible.builtin.command:
-                cmd: '~/.cabal/bin/cardano-cli version'
-              changed_when: false
-              failed_when: false
-              register: cndeploy_cli_version_new
-            - name: 'Show new remote Cardano node version'
-              ansible.builtin.debug:
-                msg: '{{ cndeploy_node_version_new.stdout }}'
-              changed_when: false
-              failed_when: false
-            - name: 'Show new remote Cardano client version'
-              ansible.builtin.debug:
-                msg: '{{ cndeploy_cli_version_new.stdout }}'
-              changed_when: false
-              failed_when: false
-        - name: 'End execution for host if install was not successful'
-          meta: end_host
-          when: ((cndeploy_node_version_local.stdout != cndeploy_node_version_new.stdout) or
-                 (cndeploy_cli_version_local.stdout != cndeploy_cli_version_new.stdout))
+        - name: 'Set POOL_NAME in {{ cndeploy_cnode_dir }}/scripts/env'
+          ansible.builtin.lineinfile:
+            insertafter: '^#POOL_NAME='
+            line: 'POOL_NAME="{{ cndeploy_node_ticker|default() }}"'
+            path: '{{ cndeploy_cnode_dir }}/scripts/env'
+            regexp: '^POOL_NAME='
+            state: 'present'
+        - name: 'Set CNODE_PORT in {{ cndeploy_cnode_dir }}/scripts/env'
+          ansible.builtin.lineinfile:
+            insertafter: '^#CNODE_PORT='
+            line: 'CNODE_PORT="{{ cndeploy_node_port|default(3000) }}"'
+            path: '{{ cndeploy_cnode_dir }}/scripts/env'
+            regexp: '^CNODE_PORT='
+            state: 'present'
+        - name: 'Set CPU_CORES in {{ cndeploy_cnode_dir }}/scripts/cnode.sh'
+          ansible.builtin.lineinfile:
+            insertafter: '^#CPU_CORES='
+            line: 'CPU_CORES={{ cndeploy_node_cores|default(2) }}'
+            path: '{{ cndeploy_cnode_dir }}/scripts/cnode.sh'
+            regexp: '^CPU_CORES='
+            state: 'present'
     - name: 'Copy systemd unit files for all operation modes using templates'
       become: true
       become_user: 'root'
@@ -281,73 +176,6 @@
             dest: '/etc/systemd/system/cnode-tu-restart.timer'
             mode: '0644'
             src: 'cnode-tu-restart.timer.j2'
-    - name: 'Copy db to remote if not already present'
-      block:
-        - name: 'Check if db directory is empty'
-          ansible.builtin.find:
-            file_type: 'any'
-            paths: '{{ cndeploy_cnode_dir }}/db/'
-            patterns: '*.*'
-          register: cndeploy_db_dir_files
-        - name: 'If db directory is empty, stop the nodes and copy the database'
-          when: cndeploy_db_dir_files.matched|int == 0
-          block:
-            - name: 'Stop the local service'
-              ansible.builtin.service:
-                name: 'cnode.service'
-                state: 'stopped'
-              become: true
-              become_user: 'root'
-              delegate_to: localhost
-              notify: 'Start Cardano node Local'
-              register: localservice
-            - name: 'Wait 30 seconds to make sure the local service is stopped'
-              ansible.builtin.pause:
-                seconds: 30
-              when: localservice.changed
-            - name: 'Stop the remote service if needed'
-              ansible.builtin.service:
-                name: 'cnode.service'
-                state: 'stopped'
-              become: true
-              become_user: 'root'
-              notify: 'Start Cardano node'
-              register: remoteservice
-              when: cndeploy_node_version.rc == 0
-            - name: 'Wait 30 seconds to make sure the remote service is stopped'
-              ansible.builtin.pause:
-                seconds: 30
-              when: remoteservice.changed
-            - name: Copy the local database to remote node
-              ansible.posix.synchronize:
-                archive: true
-                delete: true
-                dest: '{{ cndeploy_cnode_dir }}/'
-                mode: 'push'
-                src: '{{ cndeploy_cnode_dir_local }}/db'
-    - name: 'Set the common configuration for nodes'
-      block:
-        - name: 'Set POOL_NAME in {{ cndeploy_cnode_dir }}/scripts/env'
-          ansible.builtin.lineinfile:
-            insertafter: '^#POOL_NAME='
-            line: 'POOL_NAME="{{ cndeploy_node_ticker|default() }}"'
-            path: '{{ cndeploy_cnode_dir }}/scripts/env'
-            regexp: '^POOL_NAME='
-            state: 'present'
-        - name: 'Set CNODE_PORT in {{ cndeploy_cnode_dir }}/scripts/env'
-          ansible.builtin.lineinfile:
-            insertafter: '^#CNODE_PORT='
-            line: 'CNODE_PORT="{{ cndeploy_node_port|default(3000) }}"'
-            path: '{{ cndeploy_cnode_dir }}/scripts/env'
-            regexp: '^CNODE_PORT='
-            state: 'present'
-        - name: 'Set CPU_CORES in {{ cndeploy_cnode_dir }}/scripts/cnode.sh'
-          ansible.builtin.lineinfile:
-            insertafter: '^#CPU_CORES='
-            line: 'CPU_CORES={{ cndeploy_node_cores|default(2) }}'
-            path: '{{ cndeploy_cnode_dir }}/scripts/cnode.sh'
-            regexp: '^CPU_CORES='
-            state: 'present'
     - name: 'Set the configuration for Relays'
       when: cndeploy_node_type == 'relay'
       block:
@@ -489,7 +317,7 @@
             state: 'present'
           when:
             - cndeploy_cnode_cncli_ptapikey is defined
-            - cndeploy_cnode_cncli_ptapikey|length > 10 
+            - cndeploy_cnode_cncli_ptapikey|length > 10
         - name: 'For BP Nodes ensure proper service status (enabled/disabled)'
           # TODO check if all the required setup is in place for every service
           become: true
@@ -578,12 +406,12 @@
                 name: 'cnode-logmonitor.service'
               when:
                 - cndeploy_cnode_logmonitor_enabled
-    - name: 'Enable and start cnode.service'
+    - name: 'Enable cnode.service'
       ansible.builtin.systemd:
         enabled: true
         masked: false
         name: 'cnode.service'
-        state: 'started'
+        #state: 'started'
       become: true
       become_user: 'root'
 

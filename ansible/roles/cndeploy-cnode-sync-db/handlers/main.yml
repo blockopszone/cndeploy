@@ -1,0 +1,41 @@
+---
+
+- name: 'Start Cardano node'
+  ansible.builtin.service:
+    name: 'cnode.service'
+    state: 'started'
+  become: true
+  become_user: 'root'
+
+- name: 'Start Cardano node in origin'
+  ansible.builtin.service:
+    name: 'cnode.service'
+    state: 'started'
+  become: true
+  become_user: 'root'
+  delegate_to: '{{ cndeploy_cnode_origin_host }}'
+
+- name: 'Disallow origin public key in remote'
+  ansible.posix.authorized_key:
+    key: '{{ originpubkey.stdout }}'
+    state: 'absent'
+    user: '{{ cndeploy_user }}'
+
+- name: 'ufw Disallow SSH from origin'
+  community.general.ufw:
+    delete: true
+    port: 22
+    proto: 'tcp'
+    rule: 'allow'
+    src: '{{ cndeploy_cnode_origin_host }}'
+  become: yes
+  become_user: 'root'
+
+- name: 'firewalld Disallow SSH from origin'
+  ansible.posix.firewalld:
+    permanent: 'yes'
+    port: '22/tcp'
+    source: '{{ cndeploy_cnode_origin_host }}'
+    state: 'disabled'
+  become: yes
+  become_user: 'root'
