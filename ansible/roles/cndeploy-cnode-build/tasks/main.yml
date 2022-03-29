@@ -58,6 +58,7 @@
       ansible.builtin.command:
         chdir: '~/git'
         cmd: 'git clone https://github.com/input-output-hk/cardano-node'
+        creates: '~/git/cardano-node'
     - name: 'Run git fetch'
       ansible.builtin.command:
         chdir: '~/git/cardano-node'
