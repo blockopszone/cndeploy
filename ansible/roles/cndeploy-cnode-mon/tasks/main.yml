@@ -23,6 +23,11 @@
   become: true
   become_user: 'root'
 
+- name: 'Create group for ssh tunneling'
+  ansible.builtin.group:
+    name: '{{ cndeploy_sshtunnel_user }}'
+    state: present
+
 - name: 'Create user for ssh tunneling'
   ansible.builtin.user:
     group: '{{ cndeploy_sshtunnel_user }}'
