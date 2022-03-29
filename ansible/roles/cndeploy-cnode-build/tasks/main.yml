@@ -67,7 +67,7 @@
         chdir: '~/git/cardano-node'
         cmd: 'git pull'
     - name: 'Run git checkout'
-      ansible.builtin.command:
+      ansible.builtin.shell:
         chdir: '~/git/cardano-node'
         cmd: 'git checkout $(curl -s https://api.github.com/repos/input-output-hk/cardano-node/releases/latest | jq -r .tag_name)'
     - name: 'Run cabal-build-all.sh'
