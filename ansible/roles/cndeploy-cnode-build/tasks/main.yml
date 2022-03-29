@@ -86,4 +86,5 @@
           {{ cndeploy_cnode_dir }}/scripts/cabal-build-all.sh
         register: cnodebuild
     - name: 'Debug Cardano Node'
-      ansible.builtin.debug: cnodebuild.stdout
+      ansible.builtin.debug: 
+        msg: {{ cnodebuild.stdout }}
