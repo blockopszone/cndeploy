@@ -74,4 +74,4 @@
     - name: 'Run cabal-build-all.sh'
       ansible.builtin.command:
         chdir: '~/git/cardano-node'
-        cmd: '$CNODE_HOME/scripts/cabal-build-all.sh'
+        cmd: '{{ cndeploy_cnode_dir }}/scripts/cabal-build-all.sh'

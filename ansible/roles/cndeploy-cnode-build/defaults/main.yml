@@ -1,3 +1,3 @@
 # Set the install directory, by default /opt/cardano/cnode
-# IMPORTANT, setting not in use, right now the default path is used.
-#cndeploy_cnode_dir: '/opt/cardano/cnode'
+# IMPORTANT, right now the default path is used, don't change this value.
+cndeploy_cnode_dir: '/opt/cardano/cnode'
