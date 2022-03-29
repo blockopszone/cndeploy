@@ -54,3 +54,23 @@
       ansible.builtin.command:
         cmd: '~/tmp/prereqs.sh -c'
       when: cndeploy_cnode_cncli_install
+    - name: 'Run git clone'
+      ansible.builtin.command:
+        chdir: '~/git'
+        cmd: 'git clone https://github.com/input-output-hk/cardano-node'
+    - name: 'Run git fetch'
+      ansible.builtin.command:
+        chdir: '~/git/cardano-node'
+        cmd: 'git fetch --tags --all'
+    - name: 'Run git pull'
+      ansible.builtin.command:
+        chdir: '~/git/cardano-node'
+        cmd: 'git pull'
+    - name: 'Run git checkout'
+      ansible.builtin.command:
+        chdir: '~/git/cardano-node'
+        cmd: 'git checkout $(curl -s https://api.github.com/repos/input-output-hk/cardano-node/releases/latest | jq -r .tag_name)'
+    - name: 'Run cabal-build-all.sh'
+      ansible.builtin.command:
+        chdir: '~/git/cardano-node'
+        cmd: '$CNODE_HOME/scripts/cabal-build-all.sh'
