@@ -84,7 +84,7 @@
           git pull origin master
           git checkout $(curl -s https://api.github.com/repos/input-output-hk/cardano-node/releases/latest | jq -r .tag_name)
           {{ cndeploy_cnode_dir }}/scripts/cabal-build-all.sh
-        register: cnodebuild
+      register: cnodebuild
     - name: 'Debug Cardano Node'
       ansible.builtin.debug:
         msg: '{{ cnodebuild.stdout }}'
