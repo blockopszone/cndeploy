@@ -77,14 +77,13 @@
     #    cmd: '{{ cndeploy_cnode_dir }}/scripts/cabal-build-all.sh'
     - name: 'Get and build Cardano node'
       ansible.builtin.shell:
-        cmd: >
-          source ~/.bashrc &&
-          cd ~/git/cardano-node &&
-          git fetch --tags --all &&
-          git pull origin master &&
-          git checkout $(curl -s https://api.github.com/repos/input-output-hk/cardano-node/releases/latest | jq -r .tag_name) &&
-          echo $PATH &&
-          {{ cndeploy_cnode_dir }}/scripts/cabal-build-all.sh
+        cmd: |
+          cd ~/git/cardano-node
+          source ~/.bashrc && git fetch --tags --all
+          source ~/.bashrc && git pull origin master
+          source ~/.bashrc && git checkout $(curl -s https://api.github.com/repos/input-output-hk/cardano-node/releases/latest | jq -r .tag_name)
+          source ~/.bashrc && echo $PATH
+          source ~/.bashrc && {{ cndeploy_cnode_dir }}/scripts/cabal-build-all.sh
       args:
         executable: /bin/bash
       register: cnodebuild
