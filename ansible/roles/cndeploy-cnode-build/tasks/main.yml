@@ -79,6 +79,7 @@
       ansible.builtin.shell:
         chdir: '~/git/cardano-node'
         cmd: |
+          source ~/.bashrc
           cd ~/git/cardano-node
           git fetch --tags --all
           git pull origin master
