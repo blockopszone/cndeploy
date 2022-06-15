@@ -267,7 +267,7 @@
         #    rsync_opts:
         #      - "--no-motd"
         #      - "--exclude=.git"
-        - name: 'For BP Nodes copy priv directory without cold.skey using file/copy'
+        - name: 'For BP Nodes copy priv directory without cold.* using file/copy'
           block:
             - name: 'For BP Nodes create directory for private keys'
               # TODO check if mode is changed for already existent parent directories
@@ -277,9 +277,9 @@
                 path: '{{ cndeploy_cnode_dir }}/priv/pool/{{ cndeploy_node_ticker }}'
                 recurse: true
                 state: 'directory'
-            - name: 'For BP Nodes create a list of private files (excluding cold.key)'
+            - name: 'For BP Nodes create a list of private files (excluding cold.*)'
               ansible.builtin.find:
-                excludes: 'cold.key'
+                excludes: 'cold.*'
                 file_type: 'file'
                 paths: '{{ cndeploy_cnode_dir_local }}/priv/pool/{{ cndeploy_node_ticker }}'
               delegate_to: localhost

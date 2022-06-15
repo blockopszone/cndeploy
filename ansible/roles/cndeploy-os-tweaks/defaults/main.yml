@@ -40,7 +40,7 @@ cndeploy_node_type: 'relay'
 cndeploy_node_port: 3000
 
 # define the IP address of each relay node
-# this IP addresses will be allowed to connect to the BP node port
+# these IP addresses will be allowed to connect to the BP node port
 cndeploy_relay_nodes_ip:
 #  - 2.2.2.2
 #  - 3.3.3.3
