@@ -12,14 +12,25 @@
       include_role:
         name: cndeploy-os-pkgs
 
-    - name: Include cndeploy-cnode-build
+    # Activate only build or sync-bin
+    #- name: Include cndeploy-cnode-build
+    #  include_role:
+    #    name: cndeploy-cnode-build
+    - name: Include cndeploy-cnode-sync-bin
       include_role:
-        name: cndeploy-cnode-build
+        name: cndeploy-cnode-sync-bin
 
+    # TODO: Evaluate when/if it is worth to manually sync the db files from origin
+    - name: Include cndeploy-cnode-sync-db
+      include_role:
+        name: cndeploy-cnode-sync-db
+
+    # TODO: Evaluate conf as handler when build/sync
     - name: Include cndeploy-cnode-conf
       include_role:
         name: cndeploy-cnode-conf
 
-    - name: Include cndeploy-cnode-mon
-      include_role:
-        name: cndeploy-cnode-mon
+    # TODO: Evaluate current monitoring options, disabled for now
+    #- name: Include cndeploy-cnode-mon
+    #  include_role:
+    #    name: cndeploy-cnode-mon

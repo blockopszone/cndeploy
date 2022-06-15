@@ -1,0 +1,9 @@
+---
+
+- hosts: all
+
+  tasks:
+
+    - name: Include cndeploy-cnode-build
+      include_role:
+        name: cndeploy-cnode-build
