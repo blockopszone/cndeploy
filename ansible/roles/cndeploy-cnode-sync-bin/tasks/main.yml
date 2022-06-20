@@ -329,6 +329,7 @@
               changed_when: false
               failed_when: false
         - name: 'Sending Warning if installation failed ...'
-          debug: 'WARNING INSTALL FAILED'
+          ansible.builtin.debug:
+            msg: 'WARNING INSTALL FAILED'
           when: ((cndeploy_node_version_origin.stdout != cndeploy_node_version_new.stdout) or
                  (cndeploy_cli_version_origin.stdout != cndeploy_cli_version_new.stdout))
