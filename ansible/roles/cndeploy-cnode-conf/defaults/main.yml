@@ -41,7 +41,6 @@ cndeploy_node_cores: 2
 
 # Define the cncli and logmonitor services to enable (only for BP)
 cndeploy_cnode_logmonitor_enabled: false
-cndeploy_cnode_cncli_install: false
 cndeploy_cnode_cncli_sync_enabled: false
 cndeploy_cnode_cncli_leaderlog_enabled: false
 cndeploy_cnode_cncli_validate_enabled: false

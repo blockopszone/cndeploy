@@ -33,3 +33,6 @@ cndeploy_cnode_dir: '/opt/cardano/cnode'
 # from origin
 # Required
 cndeploy_firewall_enabled: false
+
+# Set to true to install cncli
+cndeploy_cnode_cncli_install: false

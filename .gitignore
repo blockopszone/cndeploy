@@ -1,3 +1,4 @@
 .DS_Store
+ignore
 host_vars
 group_vars

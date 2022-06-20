@@ -87,7 +87,6 @@
   become_user: 'root'
 
 - name: 'Configure Cardano Node'
-  notify: 'Restart Cardano node'
   block:
     - name: 'Set the common configuration for nodes'
       block:
@@ -112,70 +111,6 @@
             path: '{{ cndeploy_cnode_dir }}/scripts/cnode.sh'
             regexp: '^CPU_CORES='
             state: 'present'
-    - name: 'Copy systemd unit files for all operation modes using templates'
-      become: true
-      become_user: 'root'
-      block:
-        - name: 'Deploy from template the systemd unit file cnode-cncli-leaderlog.service'
-          ansible.builtin.template:
-            dest: '/etc/systemd/system/cnode-cncli-leaderlog.service'
-            mode: '0644'
-            src: 'cnode-cncli-leaderlog.service.j2'
-        - name: 'Deploy from template the systemd unit file cnode-cncli-ptsendslots.service'
-          ansible.builtin.template:
-            dest: '/etc/systemd/system/cnode-cncli-ptsendslots.service'
-            mode: '0644'
-            src: 'cnode-cncli-ptsendslots.service.j2'
-        - name: 'Deploy from template the systemd unit file cnode-cncli-ptsendtip.service'
-          ansible.builtin.template:
-            dest: '/etc/systemd/system/cnode-cncli-ptsendtip.service'
-            mode: '0644'
-            src: 'cnode-cncli-ptsendtip.service.j2'
-        - name: 'Deploy from template the systemd unit file cnode-cncli-sync.service'
-          ansible.builtin.template:
-            dest: '/etc/systemd/system/cnode-cncli-sync.service'
-            mode: '0644'
-            src: 'cnode-cncli-sync.service.j2'
-        - name: 'Deploy from template the systemd unit file cnode-cncli-validate.service'
-          ansible.builtin.template:
-            dest: '/etc/systemd/system/cnode-cncli-validate.service'
-            mode: '0644'
-            src: 'cnode-cncli-validate.service.j2'
-        - name: 'Deploy from template the systemd unit file cnode-logmonitor.service'
-          ansible.builtin.template:
-            dest: '/etc/systemd/system/cnode-logmonitor.service'
-            mode: '0644'
-            src: 'cnode-logmonitor.service.j2'
-        - name: 'Deploy from template the systemd unit file cnode.service'
-          ansible.builtin.template:
-            dest: '/etc/systemd/system/cnode.service'
-            mode: '0644'
-            src: 'cnode.service.j2'
-        - name: 'Deploy from template the systemd unit file cnode-tu-fetch.service'
-          ansible.builtin.template:
-            dest: '/etc/systemd/system/cnode-tu-fetch.service'
-            mode: '0644'
-            src: 'cnode-tu-fetch.service.j2'
-        - name: 'Deploy from template the systemd unit file cnode-tu-push.service'
-          ansible.builtin.template:
-            dest: '/etc/systemd/system/cnode-tu-push.service'
-            mode: '0644'
-            src: 'cnode-tu-push.service.j2'
-        - name: 'Deploy from template the systemd unit file cnode-tu-push.timer'
-          ansible.builtin.template:
-            dest: '/etc/systemd/system/cnode-tu-push.timer'
-            mode: '0644'
-            src: 'cnode-tu-push.timer.j2'
-        - name: 'Deploy from template the systemd unit file cnode-tu-restart.service'
-          ansible.builtin.template:
-            dest: '/etc/systemd/system/cnode-tu-restart.service'
-            mode: '0644'
-            src: 'cnode-tu-restart.service.j2'
-        - name: 'Deploy from template the systemd unit file cnode-tu-restart.timer'
-          ansible.builtin.template:
-            dest: '/etc/systemd/system/cnode-tu-restart.timer'
-            mode: '0644'
-            src: 'cnode-tu-restart.timer.j2'
     - name: 'Set the configuration for Relays'
       when: cndeploy_node_type == 'relay'
       block:
@@ -191,70 +126,6 @@
             path: '{{ cndeploy_cnode_dir }}/scripts/topologyUpdater.sh'
             regexp: '^CUSTOM_PEERS='
             state: 'present'
-        - name: 'For Relays ensure proper service status (enabled/disabled)'
-          # TODO check if all the required setup is in place for every service
-          become: true
-          become_user: 'root'
-          block:
-            - name: 'For Relays disable cnode-cncli-leaderlog.service'
-              ansible.builtin.systemd:
-                enabled: false
-                masked: true
-                name: 'cnode-cncli-leaderlog.service'
-                state: 'stopped'
-            - name: 'For Relays disable cnode-cncli-ptsendslots.service'
-              ansible.builtin.systemd:
-                enabled: false
-                masked: true
-                name: 'cnode-cncli-ptsendslots.service'
-                state: 'stopped'
-            - name: 'For Relays disable cnode-cncli-validate.service'
-              ansible.builtin.systemd:
-                enabled: false
-                masked: true
-                name: 'cnode-cncli-validate.service'
-                state: 'stopped'
-            - name: 'For Relays disable cnode-cncli-sync.service'
-              ansible.builtin.systemd:
-                enabled: false
-                masked: true
-                name: 'cnode-cncli-sync.service'
-                state: 'stopped'
-            - name: 'For Relays disable cnode-cncli-ptsendtip.service'
-              ansible.builtin.systemd:
-                enabled: false
-                masked: true
-                name: 'cnode-cncli-ptsendtip.service'
-                state: 'stopped'
-            - name: 'For Relays disable cnode-logmonitor.service'
-              ansible.builtin.systemd:
-                enabled: false
-                masked: true
-                name: 'cnode-logmonitor.service'
-                state: 'stopped'
-            - name: 'For Relays enable cnode-tu-fetch.service'
-              ansible.builtin.systemd:
-                enabled: true
-                masked: false
-                name: 'cnode-tu-fetch.service'
-            - name: 'For Relays enable cnode-tu-push.service'
-              ansible.builtin.systemd:
-                masked: false
-                name: 'cnode-tu-push.service'
-            - name: 'For Relays enable cnode-tu-push.timer'
-              ansible.builtin.systemd:
-                enabled: true
-                masked: false
-                name: 'cnode-tu-push.timer'
-            - name: 'For Relays enable cnode-tu-restart.service'
-              ansible.builtin.systemd:
-                masked: false
-                name: 'cnode-tu-restart.service'
-            - name: 'For Relays enable cnode-tu-restart.timer'
-              ansible.builtin.systemd:
-                enabled: true
-                masked: false
-                name: 'cnode-tu-restart.timer'
     - name: 'Set the configuration for Block Producers'
       when: cndeploy_node_type == 'bp'
       block:
@@ -318,102 +189,181 @@
           when:
             - cndeploy_cnode_cncli_ptapikey is defined
             - cndeploy_cnode_cncli_ptapikey|length > 10
-        - name: 'For BP Nodes ensure proper service status (enabled/disabled)'
-          # TODO check if all the required setup is in place for every service
-          become: true
-          become_user: 'root'
-          block:
-            - name: 'Get stats of ~/.cargo/bin/cncli'
-              ansible.builtin.stat:
-                path: '~/.cargo/bin/cncli'
-              register: cndeploy_cncli_info
-            - name: 'For BP Nodes disable cnode-tu-fetch.service'
-              ansible.builtin.systemd:
-                enabled: false
-                masked: true
-                name: 'cnode-tu-fetch.service'
-                state: 'stopped'
-            - name: 'For BP Nodes disable cnode-tu-push.service'
-              ansible.builtin.systemd:
-                masked: true
-                name: 'cnode-tu-push.service'
-                state: 'stopped'
-            - name: 'For BP Nodes disable cnode-tu-push.timer'
-              ansible.builtin.systemd:
-                enabled: false
-                masked: true
-                name: 'cnode-tu-push.timer'
-                state: 'stopped'
-            - name: 'For BP Nodes disable cnode-tu-restart.service'
-              ansible.builtin.systemd:
-                masked: true
-                name: 'cnode-tu-restart.service'
-                state: 'stopped'
-            - name: 'For BP Nodes disable cnode-tu-restart.timer'
-              ansible.builtin.systemd:
-                enabled: false
-                masked: true
-                name: 'cnode-tu-restart.timer'
-                state: 'stopped'
-            - name: 'For BP Nodes, if set, enable cnode-cncli-leaderlog.service'
-              ansible.builtin.systemd:
-                enabled: true
-                masked: false
-                name: 'cnode-cncli-leaderlog.service'
-              when:
-                - cndeploy_cncli_info.stat.exists
-                - cndeploy_cnode_cncli_leaderlog_enabled
-            - name: 'For BP Nodes, if set, enable cnode-cncli-ptsendslots.service'
-              ansible.builtin.systemd:
-                enabled: true
-                masked: false
-                name: 'cnode-cncli-ptsendslots.service'
-              when:
-                - cndeploy_cncli_info.stat.exists
-                - cndeploy_cnode_cncli_ptsendslots_enabled
-                - cndeploy_cnode_cncli_ptapikey is defined
-                - cndeploy_cnode_cncli_ptapikey|length > 10
-            - name: 'For BP Nodes, if set, enable cnode-cncli-validate.service'
-              ansible.builtin.systemd:
-                enabled: true
-                masked: false
-                name: 'cnode-cncli-validate.service'
-              when:
-                - cndeploy_cncli_info.stat.exists
-                - cndeploy_cnode_cncli_validate_enabled
-            - name: 'For BP Nodes, if set, enable cnode-cncli-sync.service'
-              ansible.builtin.systemd:
-                enabled: true
-                masked: false
-                name: 'cnode-cncli-sync.service'
-              when:
-                - cndeploy_cncli_info.stat.exists
-                - cndeploy_cnode_cncli_sync_enabled
-            - name: 'For BP Nodes, if set, enable cnode-cncli-ptsendtip.service'
-              ansible.builtin.systemd:
-                enabled: true
-                masked: false
-                name: 'cnode-cncli-ptsendtip.service'
-              when:
-                - cndeploy_cncli_info.stat.exists
-                - cndeploy_cnode_cncli_ptsendtip_enabled
-                - cndeploy_cnode_cncli_ptapikey is defined
-                - cndeploy_cnode_cncli_ptapikey|length > 10
-            - name: 'For BP Nodes, if set, enable cnode-logmonitor.service'
-              ansible.builtin.systemd:
-                enabled: true
-                masked: false
-                name: 'cnode-logmonitor.service'
-              when:
-                - cndeploy_cnode_logmonitor_enabled
-    - name: 'Enable cnode.service'
-      ansible.builtin.systemd:
-        enabled: true
-        masked: false
-        name: 'cnode.service'
-        #state: 'started'
+  register: cnodeconfig
+
+- name: 'Stop the node if configuration changes were made'
+  notify: 'Start Cardano node'
+  ansible.builtin.service:
+    name: 'cnode.service'
+    state: 'stopped'
+  become: true
+  become_user: 'root'
+  when: cnodeconfig is changed
+
+- name: 'Set the services'
+  block:
+    - name: 'For Relays ensure proper service status (enabled/disabled)'
+      # TODO check if all the required setup is in place for every service
       become: true
       become_user: 'root'
+      when: cndeploy_node_type == 'relay'
+      block:
+        - name: 'For Relays disable cnode-cncli-leaderlog.service'
+          ansible.builtin.systemd:
+            enabled: false
+            masked: true
+            name: 'cnode-cncli-leaderlog.service'
+            state: 'stopped'
+        - name: 'For Relays disable cnode-cncli-ptsendslots.service'
+          ansible.builtin.systemd:
+            enabled: false
+            masked: true
+            name: 'cnode-cncli-ptsendslots.service'
+            state: 'stopped'
+        - name: 'For Relays disable cnode-cncli-validate.service'
+          ansible.builtin.systemd:
+            enabled: false
+            masked: true
+            name: 'cnode-cncli-validate.service'
+            state: 'stopped'
+        - name: 'For Relays disable cnode-cncli-sync.service'
+          ansible.builtin.systemd:
+            enabled: false
+            masked: true
+            name: 'cnode-cncli-sync.service'
+            state: 'stopped'
+        - name: 'For Relays disable cnode-cncli-ptsendtip.service'
+          ansible.builtin.systemd:
+            enabled: false
+            masked: true
+            name: 'cnode-cncli-ptsendtip.service'
+            state: 'stopped'
+        - name: 'For Relays disable cnode-logmonitor.service'
+          ansible.builtin.systemd:
+            enabled: false
+            masked: true
+            name: 'cnode-logmonitor.service'
+            state: 'stopped'
+        - name: 'For Relays enable cnode-tu-fetch.service'
+          ansible.builtin.systemd:
+            enabled: true
+            masked: false
+            name: 'cnode-tu-fetch.service'
+        - name: 'For Relays enable cnode-tu-push.service'
+          ansible.builtin.systemd:
+            masked: false
+            name: 'cnode-tu-push.service'
+        - name: 'For Relays enable cnode-tu-push.timer'
+          ansible.builtin.systemd:
+            enabled: true
+            masked: false
+            name: 'cnode-tu-push.timer'
+        - name: 'For Relays enable cnode-tu-restart.service'
+          ansible.builtin.systemd:
+            masked: false
+            name: 'cnode-tu-restart.service'
+        - name: 'For Relays enable cnode-tu-restart.timer'
+          ansible.builtin.systemd:
+            enabled: true
+            masked: false
+            name: 'cnode-tu-restart.timer'
+    - name: 'For BP Nodes ensure proper service status (enabled/disabled)'
+      # TODO check if all the required setup is in place for every service
+      become: true
+      become_user: 'root'
+      when: cndeploy_node_type == 'bp'
+      block:
+        - name: 'Get stats of ~/.cargo/bin/cncli'
+          ansible.builtin.stat:
+            path: '~/.cargo/bin/cncli'
+          register: cndeploy_cncli_info
+        - name: 'For BP Nodes disable cnode-tu-fetch.service'
+          ansible.builtin.systemd:
+            enabled: false
+            masked: true
+            name: 'cnode-tu-fetch.service'
+            state: 'stopped'
+        - name: 'For BP Nodes disable cnode-tu-push.service'
+          ansible.builtin.systemd:
+            masked: true
+            name: 'cnode-tu-push.service'
+            state: 'stopped'
+        - name: 'For BP Nodes disable cnode-tu-push.timer'
+          ansible.builtin.systemd:
+            enabled: false
+            masked: true
+            name: 'cnode-tu-push.timer'
+            state: 'stopped'
+        - name: 'For BP Nodes disable cnode-tu-restart.service'
+          ansible.builtin.systemd:
+            masked: true
+            name: 'cnode-tu-restart.service'
+            state: 'stopped'
+        - name: 'For BP Nodes disable cnode-tu-restart.timer'
+          ansible.builtin.systemd:
+            enabled: false
+            masked: true
+            name: 'cnode-tu-restart.timer'
+            state: 'stopped'
+        - name: 'For BP Nodes, if set, enable cnode-cncli-leaderlog.service'
+          ansible.builtin.systemd:
+            enabled: true
+            masked: false
+            name: 'cnode-cncli-leaderlog.service'
+          when:
+            - cndeploy_cncli_info.stat.exists
+            - cndeploy_cnode_cncli_leaderlog_enabled
+        - name: 'For BP Nodes, if set, enable cnode-cncli-ptsendslots.service'
+          ansible.builtin.systemd:
+            enabled: true
+            masked: false
+            name: 'cnode-cncli-ptsendslots.service'
+          when:
+            - cndeploy_cncli_info.stat.exists
+            - cndeploy_cnode_cncli_ptsendslots_enabled
+            - cndeploy_cnode_cncli_ptapikey is defined
+            - cndeploy_cnode_cncli_ptapikey|length > 10
+        - name: 'For BP Nodes, if set, enable cnode-cncli-validate.service'
+          ansible.builtin.systemd:
+            enabled: true
+            masked: false
+            name: 'cnode-cncli-validate.service'
+          when:
+            - cndeploy_cncli_info.stat.exists
+            - cndeploy_cnode_cncli_validate_enabled
+        - name: 'For BP Nodes, if set, enable cnode-cncli-sync.service'
+          ansible.builtin.systemd:
+            enabled: true
+            masked: false
+            name: 'cnode-cncli-sync.service'
+          when:
+            - cndeploy_cncli_info.stat.exists
+            - cndeploy_cnode_cncli_sync_enabled
+        - name: 'For BP Nodes, if set, enable cnode-cncli-ptsendtip.service'
+          ansible.builtin.systemd:
+            enabled: true
+            masked: false
+            name: 'cnode-cncli-ptsendtip.service'
+          when:
+            - cndeploy_cncli_info.stat.exists
+            - cndeploy_cnode_cncli_ptsendtip_enabled
+            - cndeploy_cnode_cncli_ptapikey is defined
+            - cndeploy_cnode_cncli_ptapikey|length > 10
+        - name: 'For BP Nodes, if set, enable cnode-logmonitor.service'
+          ansible.builtin.systemd:
+            enabled: true
+            masked: false
+            name: 'cnode-logmonitor.service'
+          when:
+            - cndeploy_cnode_logmonitor_enabled
+    - name: 'Enable cnode.service'
+    ansible.builtin.systemd:
+      enabled: true
+      masked: false
+      name: 'cnode.service'
+      #state: 'started'
+    become: true
+    become_user: 'root'
 
 - name: 'Check that user bash aliases are in place'
   ansible.builtin.blockinfile:

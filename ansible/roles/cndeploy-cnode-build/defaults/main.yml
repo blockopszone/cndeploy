@@ -1,3 +1,6 @@
 # Set the install directory, by default /opt/cardano/cnode
 # IMPORTANT, right now the default path is used, don't change this value.
 cndeploy_cnode_dir: '/opt/cardano/cnode'
+
+# Set to true to install cncli
+cndeploy_cnode_cncli_install: false

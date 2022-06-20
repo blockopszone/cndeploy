@@ -25,7 +25,6 @@
       include_role:
         name: cndeploy-cnode-sync-db
 
-    # TODO: Evaluate conf as handler when build/sync
     - name: Include cndeploy-cnode-conf
       include_role:
         name: cndeploy-cnode-conf
