@@ -1,8 +1,6 @@
 # Ansible role containing tasks to configure Cardano stake pool nodes
 # using Guild operator's cnode.
 
-# TODO only start when service was already started before the tasks execution
-
 ---
 
 - name: 'Check variables: cndeploy_cnode_dir_local'
@@ -97,6 +95,7 @@
             path: '{{ cndeploy_cnode_dir }}/scripts/env'
             regexp: '^POOL_NAME='
             state: 'present'
+          register: poolname
         - name: 'Set CNODE_PORT in {{ cndeploy_cnode_dir }}/scripts/env'
           ansible.builtin.lineinfile:
             insertafter: '^#CNODE_PORT='
@@ -104,6 +103,7 @@
             path: '{{ cndeploy_cnode_dir }}/scripts/env'
             regexp: '^CNODE_PORT='
             state: 'present'
+          register: nodeport
         - name: 'Set CPU_CORES in {{ cndeploy_cnode_dir }}/scripts/cnode.sh'
           ansible.builtin.lineinfile:
             insertafter: '^#CPU_CORES='
@@ -111,14 +111,17 @@
             path: '{{ cndeploy_cnode_dir }}/scripts/cnode.sh'
             regexp: '^CPU_CORES='
             state: 'present'
+          register: cpucores
     - name: 'Set the configuration for Relays'
       when: cndeploy_node_type == 'relay'
       block:
+        # TODO: Ensure changed id correct
         - name: 'For Relays make sure priv directory is empty'
           ansible.builtin.shell:
             cmd: 'srm -rfz {{ cndeploy_cnode_dir|quote }}/priv/*'
           args:
             removes: '{{ cndeploy_cnode_dir }}/priv/*'
+          register: relaypriv
         - name: 'For Relays set CUSTOM_PEERS in {{ cndeploy_cnode_dir }}/scripts/topologyUpdater.sh'
           ansible.builtin.lineinfile:
             insertafter: '^#CUSTOM_PEERS='
@@ -126,6 +129,7 @@
             path: '{{ cndeploy_cnode_dir }}/scripts/topologyUpdater.sh'
             regexp: '^CUSTOM_PEERS='
             state: 'present'
+          register: relaycustompeers
     - name: 'Set the configuration for Block Producers'
       when: cndeploy_node_type == 'bp'
       block:
@@ -148,6 +152,7 @@
                 path: '{{ cndeploy_cnode_dir }}/priv/pool/{{ cndeploy_node_ticker }}'
                 recurse: true
                 state: 'directory'
+              register: bpprivdir
             - name: 'For BP Nodes create a list of private files (excluding cold.*)'
               ansible.builtin.find:
                 excludes: 'cold.*'
@@ -155,6 +160,7 @@
                 paths: '{{ cndeploy_cnode_dir_local }}/priv/pool/{{ cndeploy_node_ticker }}'
               delegate_to: localhost
               register: cndeploy_cnode_priv
+            # TODO: Ensure changed id correct
             - name: 'For BP Nodes copy private files in list'
               ansible.builtin.copy:
                 dest: '{{ cndeploy_cnode_dir }}/priv/pool/{{ cndeploy_node_ticker }}/'
@@ -162,16 +168,19 @@
                 owner: '{{ ansible_user_id }}'
                 src: '{{ item.path }}'
               loop: '{{ cndeploy_cnode_priv.files }}'
+              register: bpprivfiles
         - name: 'For BP Nodes define topology in {{ cndeploy_cnode_dir }}/files/topology.json'
           ansible.builtin.template:
             dest: '{{ cndeploy_cnode_dir }}/files/topology.json'
             mode: '0664'
             src: 'topology.json.j2'
+          register: bptopology
         - name: 'For BP Nodes unset CUSTOM_PEERS in {{ cndeploy_cnode_dir }}/scripts/topologyUpdater.sh'
           ansible.builtin.lineinfile:
             path: '{{ cndeploy_cnode_dir }}/scripts/topologyUpdater.sh'
             regexp: '^CUSTOM_PEERS='
             state: 'absent'
+          register: bpcustompeers
         - name: 'Set POOL_TICKER in {{ cndeploy_cnode_dir }}/scripts/cncli.sh'
           ansible.builtin.lineinfile:
             insertafter: '^#POOL_TICKER='
@@ -179,6 +188,7 @@
             path: '{{ cndeploy_cnode_dir }}/scripts/cncli.sh'
             regexp: '^POOL_TICKER='
             state: 'present'
+          register: bpticker
         - name: 'Set PT_API_KEY in {{ cndeploy_cnode_dir }}/scripts/cncli.sh'
           ansible.builtin.lineinfile:
             insertafter: '^#PT_API_KEY='
@@ -186,19 +196,10 @@
             path: '{{ cndeploy_cnode_dir }}/scripts/cncli.sh'
             regexp: '^PT_API_KEY='
             state: 'present'
+          register: bpptapikey
           when:
             - cndeploy_cnode_cncli_ptapikey is defined
             - cndeploy_cnode_cncli_ptapikey|length > 10
-  register: cnodeconfig
-
-- name: 'Stop the node if configuration changes were made'
-  notify: 'Start Cardano node'
-  ansible.builtin.service:
-    name: 'cnode.service'
-    state: 'stopped'
-  become: true
-  become_user: 'root'
-  when: cnodeconfig is changed
 
 - name: 'Set the services'
   block:
@@ -364,6 +365,25 @@
         #state: 'started'
       become: true
       become_user: 'root'
+
+- name: 'Stop the node if configuration changes were made'
+  notify: 'Start Cardano node'
+  ansible.builtin.service:
+    name: 'cnode.service'
+    state: 'stopped'
+  become: true
+  become_user: 'root'
+  when: poolname is changed or
+        nodeport is changed or
+        cpucores is changed or
+        relaypriv is changed or
+        relaycustompeers is changed or
+        bpprivdir is changed or
+        bpprivfiles is changed or
+        bptopology is changed or
+        bpcustompeers is changed or
+        bpticker is changed or
+        bpptapikey is changed
 
 - name: 'Check that user bash aliases are in place'
   ansible.builtin.blockinfile:
