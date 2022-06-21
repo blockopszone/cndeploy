@@ -150,12 +150,11 @@
                 mode: '0700'
                 owner: '{{ ansible_user_id }}'
                 path: '{{ cndeploy_cnode_dir }}/priv/pool/{{ cndeploy_node_ticker }}'
-                recurse: true
                 state: 'directory'
               register: bpprivdir
-            - name: 'Debug bpprivdir...'
-              ansible.builtin.debug:
-                var: bpprivdir
+            #- name: 'Debug bpprivdir...'
+            #  ansible.builtin.debug:
+            #    var: bpprivdir
             - name: 'For BP Nodes create a list of private files (excluding cold files)'
               ansible.builtin.find:
                 excludes: 'cold.skey,cold.vkey,cold.counter'
@@ -172,9 +171,9 @@
                 src: '{{ item.path }}'
               loop: '{{ cndeploy_cnode_priv.files }}'
               register: bpprivfiles
-            - name: 'Debug bpprivfiles...'
-              ansible.builtin.debug:
-                var: bpprivfiles                           
+            #- name: 'Debug bpprivfiles...'
+            #  ansible.builtin.debug:
+            #    var: bpprivfiles
         - name: 'For BP Nodes define topology in {{ cndeploy_cnode_dir }}/files/topology.json'
           ansible.builtin.template:
             dest: '{{ cndeploy_cnode_dir }}/files/topology.json'
