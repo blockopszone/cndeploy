@@ -52,6 +52,12 @@
       changed_when: false
       failed_when: false
       register: cndeploy_cli_version_origin
+    - name: 'Check origin cncli version'
+      ansible.builtin.command:
+        cmd: 'cncli -V'
+      changed_when: false
+      failed_when: false
+      register: cndeploy_cncli_version_origin
     - name: 'Show origin Cardano node version'
       ansible.builtin.debug:
         msg: '{{ cndeploy_node_version_origin.stdout }}'
@@ -62,138 +68,173 @@
         msg: '{{ cndeploy_cli_version_origin.stdout }}'
       changed_when: false
       failed_when: false
+    - name: 'Show origin cncli version'
+      ansible.builtin.debug:
+        msg: '{{ cndeploy_cncli_version_origin.stdout }}'
+      changed_when: false
+      failed_when: false
+
+- name: 'Check remote cardano versions'
+  check_mode: false
+  ignore_errors: true
+  block:
+    - name: 'Check remote Cardano node version'
+      ansible.builtin.command:
+        cmd: '~/.cabal/bin/cardano-node version'
+      changed_when: false
+      failed_when: false
+      register: cndeploy_node_version
+    - name: 'Check remote Cardano client version'
+      ansible.builtin.command:
+        cmd: '~/.cabal/bin/cardano-cli version'
+      changed_when: false
+      failed_when: false
+      register: cndeploy_cli_version
+    - name: 'Check remote cncli version'
+      ansible.builtin.command:
+        cmd: '~/.cargo/bin/cncli -V'
+      changed_when: false
+      failed_when: false
+      register: cndeploy_cncli_version
+    - name: 'Show remote Cardano node version'
+      ansible.builtin.debug:
+        msg: '{{ cndeploy_node_version.stdout }}'
+      changed_when: false
+      failed_when: false
+    - name: 'Show remote Cardano client version'
+      ansible.builtin.debug:
+        msg: '{{ cndeploy_cli_version.stdout }}'
+      changed_when: false
+      failed_when: false
+    - name: 'Show remote cncli version'
+      ansible.builtin.debug:
+        msg: '{{ cndeploy_cncli_version.stdout }}'
+      changed_when: false
+      failed_when: false
+
+- name: 'Prepare SSH copy requirements if something needs to be transferred'
+  when: (
+          (
+            (cndeploy_node_version_origin.rc == 0) and
+            (cndeploy_cli_version_origin.rc == 0) and
+            (
+              (cndeploy_node_version_origin.stdout != cndeploy_node_version.stdout) or
+              (cndeploy_cli_version_origin.stdout != cndeploy_cli_version.stdout)
+            )
+          )
+          or
+          (
+            (cndeploy_cncli_version_origin.rc == 0) and
+            (cndeploy_cncli_version_origin.stdout != cndeploy_cncli_version.stdout)
+          )
+        )
+  block:
+    - name: 'Stop the service in origin'
+      ansible.builtin.service:
+        name: 'cnode.service'
+        state: 'stopped'
+      become: true
+      become_user: 'root'
+      delegate_to: '{{ cndeploy_cnode_origin_host }}'
+      notify: 'Start Cardano node in origin'
+      register: originservice
+    - name: 'Wait 30 seconds to make sure the service in origin is stopped'
+      ansible.builtin.pause:
+        seconds: 30
+      when: originservice.changed
+    - name: 'Stop the remote service if needed'
+      ansible.builtin.service:
+        name: 'cnode.service'
+        state: 'stopped'
+      become: true
+      become_user: 'root'
+      notify: 'Start Cardano node'
+      register: remoteservice
+      when: cndeploy_node_version.rc == 0
+    - name: 'Wait 30 seconds to make sure the remote service is stopped'
+      ansible.builtin.pause:
+        seconds: 30
+      when: remoteservice.changed
+    - name: 'Temporarily allow ssh from non-master origin to remote'
+      become: yes
+      become_user: 'root'
+      when:
+        - cndeploy_firewall_enabled|default(false)|bool
+        - cndeploy_cnode_origin_host != 'localhost'
+        - cndeploy_cnode_origin_host != '127.0.0.1'
+      block:
+        - name: 'Check if ufw is available'
+          ansible.builtin.stat:
+            path: '/usr/sbin/ufw'
+          register: ufw
+        - name: 'Check if firewalld is available'
+          ansible.builtin.stat:
+            path: '/usr/sbin/firewalld'
+          register: firewalld
+        - name: 'Check if iptables is available'
+          ansible.builtin.stat:
+            path: '/usr/sbin/iptables'
+          register: iptables
+        - name: 'Use ufw if available'
+          when: ufw.stat.exists
+          block:
+            - name: 'ufw Allow SSH from origin'
+              community.general.ufw:
+                port: 22
+                proto: 'tcp'
+                rule: 'allow'
+                src: '{{ cndeploy_cnode_origin_host }}'
+              notify: 'ufw Disallow SSH from origin'
+        - name: 'Use firewald if available when ufw is not'
+          # TODO testing needed
+          when:
+            - not ufw.stat.exists
+            - firewalld.stat.exists
+          block:
+            - name: 'firewalld Allow SSH from origin'
+              ansible.posix.firewalld:
+                permanent: 'yes'
+                port: '22/tcp'
+                source: '{{ cndeploy_cnode_origin_host }}'
+                state: 'enabled'
+              notify: 'firewalld Disallow SSH from origin'
+        - name: 'Use iptables if available when ufw and firewalld are not'
+          # TODO finish block with iptables module + permanent changes
+          ansible.builtin.debug:
+            msg: >
+              Iptables is the only known firewall available on the host,
+              but it can't be setup as it is not yet supported by the script.
+          when:
+            - not ufw.stat.exists
+            - not firewalld.stat.exists
+            - iptables.stat.exists
+    - name: 'Create a keypair in origin if it does not already exist'
+      ansible.builtin.command:
+        cmd: 'ssh-keygen -q -b 2048 -t rsa -N "" -C "creating SSH" -f ~/.ssh/id_rsa'
+        creates: '~/.ssh/id_rsa.pub'
+      delegate_to: '{{ cndeploy_cnode_origin_host }}'
+    - name: 'Get the pub key into a variable'
+      ansible.builtin.command: '/usr/bin/cat ~/.ssh/id_rsa.pub'
+      changed_when: false
+      check_mode: false
+      delegate_to: '{{ cndeploy_cnode_origin_host }}'
+      register: originpubkey
+    - name: 'Temporarily allow origin public key in remote if not already allowed'
+      ansible.posix.authorized_key:
+        key: '{{ originpubkey.stdout }}'
+        state: 'present'
+        user: '{{ cndeploy_user }}'
+      notify: 'Disallow origin public key in remote'
 
 - name: 'If Cardano node is installed in origin'
   when:
     - cndeploy_node_version_origin.rc == 0
     - cndeploy_cli_version_origin.rc == 0
   block:
-    - name: 'Check remote cardano versions'
-      check_mode: false
-      ignore_errors: true
-      block:
-        - name: 'Check remote Cardano node version'
-          ansible.builtin.command:
-            cmd: '~/.cabal/bin/cardano-node version'
-          changed_when: false
-          failed_when: false
-          register: cndeploy_node_version
-        - name: 'Check remote Cardano client version'
-          ansible.builtin.command:
-            cmd: '~/.cabal/bin/cardano-cli version'
-          changed_when: false
-          failed_when: false
-          register: cndeploy_cli_version
-        - name: 'Show remote Cardano node version'
-          ansible.builtin.debug:
-            msg: '{{ cndeploy_node_version.stdout }}'
-          changed_when: false
-          failed_when: false
-        - name: 'Show remote Cardano client version'
-          ansible.builtin.debug:
-            msg: '{{ cndeploy_cli_version.stdout }}'
-          changed_when: false
-          failed_when: false
     - name: 'Copy binaries if origin and remote versions are not equal'
       when: ((cndeploy_node_version_origin.stdout != cndeploy_node_version.stdout) or
              (cndeploy_cli_version_origin.stdout != cndeploy_cli_version.stdout))
       block:
-        - name: 'Stop the service in origin'
-          ansible.builtin.service:
-            name: 'cnode.service'
-            state: 'stopped'
-          become: true
-          become_user: 'root'
-          delegate_to: '{{ cndeploy_cnode_origin_host }}'
-          notify: 'Start Cardano node in origin'
-          register: originservice
-        - name: 'Wait 30 seconds to make sure the service in origin is stopped'
-          ansible.builtin.pause:
-            seconds: 30
-          when: originservice.changed
-        - name: 'Stop the remote service if needed'
-          ansible.builtin.service:
-            name: 'cnode.service'
-            state: 'stopped'
-          become: true
-          become_user: 'root'
-          notify: 'Start Cardano node'
-          register: remoteservice
-          when: cndeploy_node_version.rc == 0
-        - name: 'Wait 30 seconds to make sure the remote service is stopped'
-          ansible.builtin.pause:
-            seconds: 30
-          when: remoteservice.changed
-        - name: 'Temporarily allow ssh from non-master origin to remote'
-          become: yes
-          become_user: 'root'
-          when:
-            - cndeploy_firewall_enabled|default(false)|bool
-            - cndeploy_cnode_origin_host != 'localhost'
-            - cndeploy_cnode_origin_host != '127.0.0.1'
-          block:
-            - name: 'Check if ufw is available'
-              ansible.builtin.stat:
-                path: '/usr/sbin/ufw'
-              register: ufw
-            - name: 'Check if firewalld is available'
-              ansible.builtin.stat:
-                path: '/usr/sbin/firewalld'
-              register: firewalld
-            - name: 'Check if iptables is available'
-              ansible.builtin.stat:
-                path: '/usr/sbin/iptables'
-              register: iptables
-            - name: 'Use ufw if available'
-              when: ufw.stat.exists
-              block:
-                - name: 'ufw Allow SSH from origin'
-                  community.general.ufw:
-                    port: 22
-                    proto: 'tcp'
-                    rule: 'allow'
-                    src: '{{ cndeploy_cnode_origin_host }}'
-                  notify: 'ufw Disallow SSH from origin'
-            - name: 'Use firewald if available when ufw is not'
-              # TODO testing needed
-              when:
-                - not ufw.stat.exists
-                - firewalld.stat.exists
-              block:
-                - name: 'firewalld Allow SSH from origin'
-                  ansible.posix.firewalld:
-                    permanent: 'yes'
-                    port: '22/tcp'
-                    source: '{{ cndeploy_cnode_origin_host }}'
-                    state: 'enabled'
-                  notify: 'firewalld Disallow SSH from origin'
-            - name: 'Use iptables if available when ufw and firewalld are not'
-              # TODO finish block with iptables module + permanent changes
-              ansible.builtin.debug:
-                msg: >
-                  Iptables is the only known firewall available on the host,
-                  but it can't be setup as it is not yet supported by the script.
-              when:
-                - not ufw.stat.exists
-                - not firewalld.stat.exists
-                - iptables.stat.exists
-        - name: 'Create a keypair in origin if it does not already exist'
-          ansible.builtin.command:
-            cmd: 'ssh-keygen -q -b 2048 -t rsa -N "" -C "creating SSH" -f ~/.ssh/id_rsa'
-            creates: '~/.ssh/id_rsa.pub'
-          delegate_to: '{{ cndeploy_cnode_origin_host }}'
-        - name: 'Get the pub key into a variable'
-          ansible.builtin.command: '/usr/bin/cat ~/.ssh/id_rsa.pub'
-          changed_when: false
-          check_mode: false
-          delegate_to: '{{ cndeploy_cnode_origin_host }}'
-          register: originpubkey
-        - name: 'Temporarily allow origin public key in remote if not already allowed'
-          ansible.posix.authorized_key:
-            key: '{{ originpubkey.stdout }}'
-            state: 'present'
-            user: '{{ cndeploy_user }}'
-          notify: 'Disallow origin public key in remote'
         - name: 'Install/Update Guild Operators CNODE skipping system dependencies and reset settings to default'
           block:
             - name: 'Ensures $HOME/tmp exist'
@@ -333,3 +374,39 @@
             msg: 'WARNING INSTALL FAILED'
           when: ((cndeploy_node_version_origin.stdout != cndeploy_node_version_new.stdout) or
                  (cndeploy_cli_version_origin.stdout != cndeploy_cli_version_new.stdout))
+
+- name: 'If cncli is installed in origin and needs to be installed in destination'
+  when:
+    - cndeploy_cncli_version_origin.rc == 0
+    - cndeploy_cnode_cncli_install
+  block:
+    - name: 'Copy cncli binaries if origin and remote versions are not equal'
+      when: (cndeploy_cncli_version_origin.stdout != cndeploy_cncli_version.stdout)
+      block:
+        - name: 'Deploy cargo binaries'
+          ansible.posix.synchronize:
+            archive: true
+            delete: true
+            dest: '~/'
+            mode: 'push'
+            src: '~/.cargo'
+          delegate_to: '{{ cndeploy_cnode_origin_host }}'
+        - name: 'Check again for remote cncli versions'
+          check_mode: false
+          ignore_errors: true
+          block:
+            - name: 'Check new remote cncli version'
+              ansible.builtin.command:
+                cmd: '~/.cargo/bin/cncli -V'
+              changed_when: false
+              failed_when: false
+              register: cndeploy_cncli_version_new
+            - name: 'Show new remote cncli version'
+              ansible.builtin.debug:
+                msg: '{{ cndeploy_cncli_version_new.stdout }}'
+              changed_when: false
+              failed_when: false
+        - name: 'Sending Warning if cncli installation failed ...'
+          ansible.builtin.debug:
+            msg: 'WARNING CNCLI INSTALL FAILED'
+          when: (cndeploy_cncli_version_origin.stdout != cndeploy_cncli_version_new.stdout)
