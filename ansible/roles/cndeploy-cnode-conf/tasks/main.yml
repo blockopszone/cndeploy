@@ -220,6 +220,10 @@
             masked: true
             name: 'cnode-cncli-leaderlog.service'
             state: 'stopped'
+          register: relayleaderlog
+        - name: 'Debug relayleaderlog...'
+          ansible.builtin.debug:
+            var: relayleaderlog
         - name: 'For Relays disable cnode-cncli-ptsendslots.service'
           ansible.builtin.systemd:
             enabled: false
