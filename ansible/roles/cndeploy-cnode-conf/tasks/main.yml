@@ -357,13 +357,13 @@
           when:
             - cndeploy_cnode_logmonitor_enabled
     - name: 'Enable cnode.service'
-    ansible.builtin.systemd:
-      enabled: true
-      masked: false
-      name: 'cnode.service'
-      #state: 'started'
-    become: true
-    become_user: 'root'
+      ansible.builtin.systemd:
+        enabled: true
+        masked: false
+        name: 'cnode.service'
+        #state: 'started'
+      become: true
+      become_user: 'root'
 
 - name: 'Check that user bash aliases are in place'
   ansible.builtin.blockinfile:
