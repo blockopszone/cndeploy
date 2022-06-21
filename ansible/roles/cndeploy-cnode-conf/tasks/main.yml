@@ -286,29 +286,31 @@
         - name: 'For BP Nodes disable cnode-tu-fetch.service'
           ansible.builtin.systemd:
             enabled: false
-            masked: true
+            #masked: true
             name: 'cnode-tu-fetch.service'
             state: 'stopped'
         - name: 'For BP Nodes disable cnode-tu-push.service'
           ansible.builtin.systemd:
-            masked: true
+            enabled: false
+            #masked: true
             name: 'cnode-tu-push.service'
             state: 'stopped'
         - name: 'For BP Nodes disable cnode-tu-push.timer'
           ansible.builtin.systemd:
             enabled: false
-            masked: true
+            #masked: true
             name: 'cnode-tu-push.timer'
             state: 'stopped'
         - name: 'For BP Nodes disable cnode-tu-restart.service'
           ansible.builtin.systemd:
-            masked: true
+            enabled: false
+            #masked: true
             name: 'cnode-tu-restart.service'
             state: 'stopped'
         - name: 'For BP Nodes disable cnode-tu-restart.timer'
           ansible.builtin.systemd:
             enabled: false
-            masked: true
+            #masked: true
             name: 'cnode-tu-restart.timer'
             state: 'stopped'
         - name: 'For BP Nodes, if set, enable cnode-cncli-leaderlog.service'
@@ -367,7 +369,6 @@
         enabled: true
         masked: false
         name: 'cnode.service'
-        #state: 'started'
       become: true
       become_user: 'root'
 
