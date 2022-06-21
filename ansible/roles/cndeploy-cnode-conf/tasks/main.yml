@@ -216,41 +216,37 @@
       block:
         - name: 'For Relays disable cnode-cncli-leaderlog.service'
           ansible.builtin.systemd:
-            enabled: false
+            #enabled: false
             masked: true
             name: 'cnode-cncli-leaderlog.service'
             state: 'stopped'
-          register: relayleaderlog
-        - name: 'Debug relayleaderlog...'
-          ansible.builtin.debug:
-            var: relayleaderlog
         - name: 'For Relays disable cnode-cncli-ptsendslots.service'
           ansible.builtin.systemd:
-            enabled: false
+            #enabled: false
             masked: true
             name: 'cnode-cncli-ptsendslots.service'
             state: 'stopped'
         - name: 'For Relays disable cnode-cncli-validate.service'
           ansible.builtin.systemd:
-            enabled: false
+            #enabled: false
             masked: true
             name: 'cnode-cncli-validate.service'
             state: 'stopped'
         - name: 'For Relays disable cnode-cncli-sync.service'
           ansible.builtin.systemd:
-            enabled: false
+            #enabled: false
             masked: true
             name: 'cnode-cncli-sync.service'
             state: 'stopped'
         - name: 'For Relays disable cnode-cncli-ptsendtip.service'
           ansible.builtin.systemd:
-            enabled: false
+            #enabled: false
             masked: true
             name: 'cnode-cncli-ptsendtip.service'
             state: 'stopped'
         - name: 'For Relays disable cnode-logmonitor.service'
           ansible.builtin.systemd:
-            enabled: false
+            #enabled: false
             masked: true
             name: 'cnode-logmonitor.service'
             state: 'stopped'
