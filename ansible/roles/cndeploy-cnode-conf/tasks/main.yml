@@ -291,7 +291,7 @@
             state: 'stopped'
         - name: 'For BP Nodes disable cnode-tu-push.service'
           ansible.builtin.systemd:
-            enabled: false
+            #enabled: false
             #masked: true
             name: 'cnode-tu-push.service'
             state: 'stopped'
@@ -303,7 +303,7 @@
             state: 'stopped'
         - name: 'For BP Nodes disable cnode-tu-restart.service'
           ansible.builtin.systemd:
-            enabled: false
+            #enabled: false
             #masked: true
             name: 'cnode-tu-restart.service'
             state: 'stopped'
