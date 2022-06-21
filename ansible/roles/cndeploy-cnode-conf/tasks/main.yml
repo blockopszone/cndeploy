@@ -153,9 +153,9 @@
                 recurse: true
                 state: 'directory'
               register: bpprivdir
-            - name: 'For BP Nodes create a list of private files (excluding cold.*)'
+            - name: 'For BP Nodes create a list of private files (excluding cold files)'
               ansible.builtin.find:
-                excludes: 'cold.*'
+                excludes: 'cold.skey,cold.vkey,cold.counter'
                 file_type: 'file'
                 paths: '{{ cndeploy_cnode_dir_local }}/priv/pool/{{ cndeploy_node_ticker }}'
               delegate_to: localhost
