@@ -125,6 +125,7 @@
           or
           (
             (cndeploy_cncli_version_origin.rc == 0) and
+            (cndeploy_cnode_cncli_install) and
             (cndeploy_cncli_version_origin.stdout != cndeploy_cncli_version.stdout)
           )
         )
