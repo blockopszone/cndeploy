@@ -227,12 +227,12 @@
         user: '{{ cndeploy_user }}'
       notify: 'Disallow origin public key in remote'
 
-- name: 'If Cardano node is installed in origin'
+- name: 'If Cardano node is installed in origin copy binaries to destination'
   when:
     - cndeploy_node_version_origin.rc == 0
     - cndeploy_cli_version_origin.rc == 0
   block:
-    - name: 'Copy binaries if origin and remote versions are not equal'
+    - name: 'Copy binaries only if origin and remote versions are not equal'
       when: ((cndeploy_node_version_origin.stdout != cndeploy_node_version.stdout) or
              (cndeploy_cli_version_origin.stdout != cndeploy_cli_version.stdout))
       block:
@@ -253,11 +253,6 @@
               # -f forces to overwrite config files and scripts with new versions
               ansible.builtin.command:
                 cmd: '~/tmp/prereqs.sh -f -s'
-            - name: 'Add cargo init to bashrc'
-              ansible.builtin.lineinfile:
-                path: '~/.bashrc'
-                line: . "$HOME/.cargo/env"
-              when: cndeploy_cnode_cncli_install
         - name: 'Deploy Cardano node by transferring the compiled binaries to the host'
           ansible.posix.synchronize:
             archive: true
@@ -405,3 +400,7 @@
           ansible.builtin.debug:
             msg: 'WARNING CNCLI INSTALL FAILED'
           when: (cndeploy_cncli_version_origin.stdout != cndeploy_cncli_version_new.stdout)
+    - name: 'Add cargo init to bashrc'
+      ansible.builtin.lineinfile:
+        path: '~/.bashrc'
+        line: . "$HOME/.cargo/env"
