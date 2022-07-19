@@ -364,6 +364,35 @@
             name: 'cnode-logmonitor.service'
           when:
             - cndeploy_cnode_logmonitor_enabled
+    - name: 'Enable Submit Api if defined'
+      ansible.builtin.systemd:
+        enabled: true
+        masked: false
+        name: 'cnode-submit-api.service'
+        state: 'started'
+      when:
+        - cndeploy_cnode_submitapi_enabled
+    - name: 'Disable Submit Api if not defined'
+      ansible.builtin.systemd:
+        enabled: false
+        name: 'cnode-submit-api.service'
+        state: 'stopped'
+      when:
+        - cndeploy_cnode_submitapi_enabled
+    - name: 'Enable Blockperf if defined'
+      ansible.builtin.systemd:
+        enabled: true
+        masked: false
+        name: 'cnode-tu-blockperf.service'
+      when:
+        - cndeploy_cnode_blockperf_enabled
+    - name: 'Disable Blockperf if not defined'
+      ansible.builtin.systemd:
+        enabled: false
+        name: 'cnode-tu-blockperf.service'
+        state: 'stopped'
+      when:
+        - cndeploy_cnode_blockperf_enabled
     - name: 'Enable cnode.service'
       ansible.builtin.systemd:
         enabled: true

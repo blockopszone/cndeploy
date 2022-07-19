@@ -1,6 +1,7 @@
 # Ansible role containing tasks to synchronize the Cardano node binaries
 # from an origin host acting as a builder to the nodes.
 # TODO: Add user variable in templates
+# TODO: Add dbsync and ogmios systemd templates
 
 ---
 
@@ -364,6 +365,16 @@
         dest: '/etc/systemd/system/cnode-tu-restart.timer'
         mode: '0644'
         src: 'cnode-tu-restart.timer.j2'
+    - name: 'Deploy from template the systemd unit file cnode-submit-api.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-submit-api.service'
+        mode: '0644'
+        src: 'cnode-submit-api.service.j2'
+    - name: 'Deploy from template the systemd unit file cnode-tu-blockperf.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-tu-blockperf.service'
+        mode: '0644'
+        src: 'cnode-tu-blockperf.service.j2'
 
 - name: 'If cncli is installed in origin and needs to be installed in destination'
   when:

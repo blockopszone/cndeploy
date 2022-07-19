@@ -1,0 +1,21 @@
+[Unit]
+Description=Cardano Node - Block Performance
+BindsTo=cnode.service
+After=cnode.service
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=20
+User=ubuntu
+WorkingDirectory={{ cndeploy_cnode_dir }}/scripts
+ExecStart=/bin/bash -l -c "exec {{ cndeploy_cnode_dir }}/scripts/blockPerf.sh -s"
+KillSignal=SIGINT
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=cnode-tu-blockperf
+TimeoutStopSec=5
+KillMode=mixed
+
+[Install]
+WantedBy=cnode.service

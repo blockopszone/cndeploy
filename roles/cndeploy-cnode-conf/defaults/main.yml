@@ -39,13 +39,16 @@ cndeploy_node_port: 3000
 # Required
 cndeploy_node_cores: 2
 
-# Define the cncli and logmonitor services to enable (only for BP)
+# Define the cncli and logmonitor services to enable
 cndeploy_cnode_logmonitor_enabled: false
 cndeploy_cnode_cncli_sync_enabled: false
 cndeploy_cnode_cncli_leaderlog_enabled: false
 cndeploy_cnode_cncli_validate_enabled: false
 cndeploy_cnode_cncli_ptsendtip_enabled: false
 cndeploy_cnode_cncli_ptsendslots_enabled: false
+cndeploy_cnode_submitapi_enabled: false
+cndeploy_cnode_blockperf_enabled: false
+
 
 # Set to the API key of pooltool.io (use Ansible vault to protect the key)
 #cndeploy_cnode_cncli_ptapikey: '{{ vault_cndeploy_cnode_cncli_ptapikey }}'
