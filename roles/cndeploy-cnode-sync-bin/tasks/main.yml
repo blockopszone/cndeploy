@@ -270,79 +270,6 @@
           #  dest: '~'
           #async: 86400
           #poll: 60
-        - name: 'Deploy cargo binaries'
-          ansible.posix.synchronize:
-            archive: true
-            delete: true
-            dest: '~/'
-            mode: 'push'
-            src: '~/.cargo'
-          delegate_to: '{{ cndeploy_cnode_origin_host }}'
-          when: cndeploy_cnode_cncli_install
-        - name: 'Copy systemd unit files for all operation modes using templates'
-          become: true
-          become_user: 'root'
-          block:
-            - name: 'Deploy from template the systemd unit file cnode-cncli-leaderlog.service'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode-cncli-leaderlog.service'
-                mode: '0644'
-                src: 'cnode-cncli-leaderlog.service.j2'
-            - name: 'Deploy from template the systemd unit file cnode-cncli-ptsendslots.service'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode-cncli-ptsendslots.service'
-                mode: '0644'
-                src: 'cnode-cncli-ptsendslots.service.j2'
-            - name: 'Deploy from template the systemd unit file cnode-cncli-ptsendtip.service'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode-cncli-ptsendtip.service'
-                mode: '0644'
-                src: 'cnode-cncli-ptsendtip.service.j2'
-            - name: 'Deploy from template the systemd unit file cnode-cncli-sync.service'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode-cncli-sync.service'
-                mode: '0644'
-                src: 'cnode-cncli-sync.service.j2'
-            - name: 'Deploy from template the systemd unit file cnode-cncli-validate.service'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode-cncli-validate.service'
-                mode: '0644'
-                src: 'cnode-cncli-validate.service.j2'
-            - name: 'Deploy from template the systemd unit file cnode-logmonitor.service'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode-logmonitor.service'
-                mode: '0644'
-                src: 'cnode-logmonitor.service.j2'
-            - name: 'Deploy from template the systemd unit file cnode.service'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode.service'
-                mode: '0644'
-                src: 'cnode.service.j2'
-            - name: 'Deploy from template the systemd unit file cnode-tu-fetch.service'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode-tu-fetch.service'
-                mode: '0644'
-                src: 'cnode-tu-fetch.service.j2'
-            - name: 'Deploy from template the systemd unit file cnode-tu-push.service'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode-tu-push.service'
-                mode: '0644'
-                src: 'cnode-tu-push.service.j2'
-            - name: 'Deploy from template the systemd unit file cnode-tu-push.timer'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode-tu-push.timer'
-                mode: '0644'
-                src: 'cnode-tu-push.timer.j2'
-            - name: 'Deploy from template the systemd unit file cnode-tu-restart.service'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode-tu-restart.service'
-                mode: '0644'
-                src: 'cnode-tu-restart.service.j2'
-            - name: 'Deploy from template the systemd unit file cnode-tu-restart.timer'
-              ansible.builtin.template:
-                dest: '/etc/systemd/system/cnode-tu-restart.timer'
-                mode: '0644'
-                src: 'cnode-tu-restart.timer.j2'
         - name: 'Check again for remote cardano versions'
           check_mode: false
           ignore_errors: true
@@ -375,6 +302,71 @@
             msg: 'WARNING INSTALL FAILED'
           when: ((cndeploy_node_version_origin.stdout != cndeploy_node_version_new.stdout) or
                  (cndeploy_cli_version_origin.stdout != cndeploy_cli_version_new.stdout))
+
+- name: 'Copy systemd unit files for all operation modes using templates'
+  become: true
+  become_user: 'root'
+  block:
+    - name: 'Deploy from template the systemd unit file cnode-cncli-leaderlog.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-cncli-leaderlog.service'
+        mode: '0644'
+        src: 'cnode-cncli-leaderlog.service.j2'
+    - name: 'Deploy from template the systemd unit file cnode-cncli-ptsendslots.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-cncli-ptsendslots.service'
+        mode: '0644'
+        src: 'cnode-cncli-ptsendslots.service.j2'
+    - name: 'Deploy from template the systemd unit file cnode-cncli-ptsendtip.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-cncli-ptsendtip.service'
+        mode: '0644'
+        src: 'cnode-cncli-ptsendtip.service.j2'
+    - name: 'Deploy from template the systemd unit file cnode-cncli-sync.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-cncli-sync.service'
+        mode: '0644'
+        src: 'cnode-cncli-sync.service.j2'
+    - name: 'Deploy from template the systemd unit file cnode-cncli-validate.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-cncli-validate.service'
+        mode: '0644'
+        src: 'cnode-cncli-validate.service.j2'
+    - name: 'Deploy from template the systemd unit file cnode-logmonitor.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-logmonitor.service'
+        mode: '0644'
+        src: 'cnode-logmonitor.service.j2'
+    - name: 'Deploy from template the systemd unit file cnode.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode.service'
+        mode: '0644'
+        src: 'cnode.service.j2'
+    - name: 'Deploy from template the systemd unit file cnode-tu-fetch.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-tu-fetch.service'
+        mode: '0644'
+        src: 'cnode-tu-fetch.service.j2'
+    - name: 'Deploy from template the systemd unit file cnode-tu-push.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-tu-push.service'
+        mode: '0644'
+        src: 'cnode-tu-push.service.j2'
+    - name: 'Deploy from template the systemd unit file cnode-tu-push.timer'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-tu-push.timer'
+        mode: '0644'
+        src: 'cnode-tu-push.timer.j2'
+    - name: 'Deploy from template the systemd unit file cnode-tu-restart.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-tu-restart.service'
+        mode: '0644'
+        src: 'cnode-tu-restart.service.j2'
+    - name: 'Deploy from template the systemd unit file cnode-tu-restart.timer'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-tu-restart.timer'
+        mode: '0644'
+        src: 'cnode-tu-restart.timer.j2'
 
 - name: 'If cncli is installed in origin and needs to be installed in destination'
   when:
