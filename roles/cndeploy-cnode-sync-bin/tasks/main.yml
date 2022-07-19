@@ -249,6 +249,8 @@
                 mode: '0755'
                 url: 'https://raw.githubusercontent.com/cardano-community/guild-operators/master/scripts/cnode-helper-scripts/prereqs.sh'
             - name: 'Run prereqs.sh installer with -f and -s'
+              # -s avoid installing system dependencies plus ghc and cabal mainly to build the node
+              # -f forces to overwrite config files and scripts with new versions
               ansible.builtin.command:
                 cmd: '~/tmp/prereqs.sh -f -s'
             - name: 'Add cargo init to bashrc'
