@@ -6,7 +6,7 @@ After=network-online.target
 [Service]
 Type=simple
 Restart=always
-RestartSec=5
+RestartSec=60
 User=ubuntu
 LimitNOFILE=1048576
 WorkingDirectory={{ cndeploy_cnode_dir }}/scripts
@@ -17,7 +17,7 @@ SuccessExitStatus=143
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=cnode
-TimeoutStopSec=5
+TimeoutStopSec=60
 KillMode=mixed
 
 [Install]
