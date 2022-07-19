@@ -1,6 +1,6 @@
 # Ansible role containing tasks to synchronize the Cardano node binaries
 # from an origin host acting as a builder to the nodes.
-# TODO: Add cargo install flag / existance checks
+# TODO: Add user variable in templates
 
 ---
 
