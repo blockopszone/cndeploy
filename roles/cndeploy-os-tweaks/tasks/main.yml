@@ -224,30 +224,21 @@
     - name: 'Use ufw if available'
       when: ufw.stat.exists
       block:
-        - name: 'ufw: deny all from banned hosts'
-          community.general.ufw:
-            proto: 'any'
-            rule: 'deny'
-            src: '{{ item }}'
-          with_items: '{{ cndeploy_banned_ip }}'
-        - name: 'ufw: deny all to banned hosts'
-          community.general.ufw:
-            proto: 'any'
-            rule: 'deny'
-            dest: '{{ item }}'
-          with_items: '{{ cndeploy_banned_ip }}'
-        - name: 'ufw: allow SSH from defined management hosts'
-          community.general.ufw:
-            port: 22
-            proto: 'tcp'
-            rule: 'allow'
-            src: '{{ item }}'
-          with_items: '{{ cndeploy_management_ip }}'
-        - name: 'ufw: allow everywhere access to Relay-Node port'
+        - name: 'ufw: deny disabled nodes access to BP-Node port'
           community.general.ufw:
             port: '{{ cndeploy_node_port }}'
             proto: 'tcp'
-            rule: 'allow'
+            rule: 'deny'
+            src: '{{ item }}'
+          with_items: '{{ cndeploy_disabled_ip }}'
+          when: cndeploy_node_type == 'bp'
+        - name: 'ufw: deny disabled nodes access to Relay-Node port'
+          community.general.ufw:
+            port: '{{ cndeploy_node_port }}'
+            proto: 'tcp'
+            rule: 'deny'
+            src: '{{ item }}'
+          with_items: '{{ cndeploy_disabled_ip }}'
           when: cndeploy_node_type == 'relay'
         - name: 'ufw: allow relay nodes access to BP-Node port'
           community.general.ufw:
@@ -257,6 +248,27 @@
             src: '{{ item }}'
           with_items: '{{ cndeploy_relay_nodes_ip }}'
           when: cndeploy_node_type == 'bp'
+        - name: 'ufw: allow bp nodes access to Relay-Node port'
+          community.general.ufw:
+            port: '{{ cndeploy_node_port }}'
+            proto: 'tcp'
+            rule: 'allow'
+            src: '{{ item }}'
+          with_items: '{{ cndeploy_bp_nodes_ip }}'
+          when: cndeploy_node_type == 'relay'
+        - name: 'ufw: allow everywhere access to Relay-Node port'
+          community.general.ufw:
+            port: '{{ cndeploy_node_port }}'
+            proto: 'tcp'
+            rule: 'allow'
+          when: cndeploy_node_type == 'relay'
+        - name: 'ufw: allow SSH from defined management hosts'
+          community.general.ufw:
+            port: 22
+            proto: 'tcp'
+            rule: 'allow'
+            src: '{{ item }}'
+          with_items: '{{ cndeploy_management_ip }}'
         - name: 'ufw: enable UFW with deny as default policy'
           community.general.ufw:
             logging: 'on'
@@ -268,29 +280,21 @@
         - not ufw.stat.exists
         - firewalld.stat.exists
       block:
-        - name: 'firewalld: deny all from banned hosts'
-          ansible.posix.firewalld:
-            permanent: 'yes'
-            source: '{{ item }}'
-            state: 'disabled'
-          with_items: '{{ cndeploy_banned_ip }}'
-        - name: 'firewalld: deny all to banned hosts'
-          ansible.posix.firewalld:
-            permanent: 'yes'
-            rich_rule: rule family='ipv4' destination address='{{ item }}' drop
-          with_items: '{{ cndeploy_banned_ip }}'
-        - name: 'firewalld: allow SSH from defined management hosts'
-          ansible.posix.firewalld:
-            permanent: 'yes'
-            port: '22/tcp'
-            source: '{{ item }}'
-            state: 'enabled'
-          with_items: '{{ cndeploy_management_ip }}'
-        - name: 'firewalld: allow everywhere access to Relay-Node port'
+        - name: 'firewalld: deny disabled nodes access to BP-Node port'
           ansible.posix.firewalld:
             permanent: 'yes'
             port: '{{ cndeploy_node_port }}/tcp'
-            state: 'enabled'
+            source: '{{ item }}'
+            state: 'disabled'
+          with_items: '{{ cndeploy_disabled_ip }}'
+          when: cndeploy_node_type == 'bp'
+        - name: 'firewalld: deny disabled nodes access to Relay-Node port'
+          ansible.posix.firewalld:
+            permanent: 'yes'
+            port: '{{ cndeploy_node_port }}/tcp'
+            source: '{{ item }}'
+            state: 'disabled'
+          with_items: '{{ cndeploy_disabled_ip }}'
           when: cndeploy_node_type == 'relay'
         - name: 'firewalld: allow relay nodes access to BP-Node port'
           ansible.posix.firewalld:
@@ -300,6 +304,27 @@
             state: 'enabled'
           with_items: '{{ cndeploy_relay_nodes_ip }}'
           when: cndeploy_node_type == 'bp'
+        - name: 'firewalld: allow BP nodes access to Relay-Node port'
+          ansible.posix.firewalld:
+            permanent: 'yes'
+            port: '{{ cndeploy_node_port }}/tcp'
+            source: '{{ item }}'
+            state: 'enabled'
+          with_items: '{{ cndeploy_bp_nodes_ip }}'
+          when: cndeploy_node_type == 'relay'
+        - name: 'firewalld: allow everywhere access to Relay-Node port'
+          ansible.posix.firewalld:
+            permanent: 'yes'
+            port: '{{ cndeploy_node_port }}/tcp'
+            state: 'enabled'
+          when: cndeploy_node_type == 'relay'
+        - name: 'firewalld: allow SSH from defined management hosts'
+          ansible.posix.firewalld:
+            permanent: 'yes'
+            port: '22/tcp'
+            source: '{{ item }}'
+            state: 'enabled'
+          with_items: '{{ cndeploy_management_ip }}'
     - name: 'Use iptables if available when ufw and firewalld are not'
       # TODO finish block with iptables module + permanent changes
       ansible.builtin.debug:

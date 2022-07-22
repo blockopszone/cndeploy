@@ -39,14 +39,19 @@ cndeploy_node_type: 'relay'
 # Required
 cndeploy_node_port: 3000
 
+# define the IP address of each block producer (usually only one)
+# these IP addresses will be allowed to connect to the Relay nodes port
+cndeploy_bp_nodes_ip:
+#  - 1.1.1.1
+
 # define the IP address of each relay node
 # these IP addresses will be allowed to connect to the BP node port
 cndeploy_relay_nodes_ip:
 #  - 2.2.2.2
 #  - 3.3.3.3
 
-# Define a list of banned ip addresses
-cndeploy_banned_ip:
+# Define a list of disabled ip addresses to deny connections from them
+cndeploy_disabled_ip:
 #  - 4.4.4.4
 
 # Define the list of management or monitoring IP that will need access to port 22 on nodes.
