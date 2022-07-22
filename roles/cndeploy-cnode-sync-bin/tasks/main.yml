@@ -304,6 +304,7 @@
 - name: 'Copy systemd unit files for all operation modes using templates'
   become: true
   become_user: 'root'
+  notify: 'Reload systemd'
   block:
     - name: 'Deploy from template the systemd unit file cnode-cncli-leaderlog.service'
       ansible.builtin.template:

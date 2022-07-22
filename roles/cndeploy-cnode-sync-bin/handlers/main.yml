@@ -1,5 +1,11 @@
 ---
 
+- name: 'Reload systemd'
+  ansible.builtin.systemd:
+    daemon_reload: yes
+  become: true
+  become_user: 'root'
+
 - name: 'Start Cardano node'
   ansible.builtin.service:
     name: 'cnode.service'

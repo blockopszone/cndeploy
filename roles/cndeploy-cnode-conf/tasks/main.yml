@@ -383,7 +383,7 @@
         name: 'cnode-submit-api.service'
         state: 'stopped'
       when:
-        - cndeploy_cnode_submitapi_enabled
+        - cndeploy_cnode_submitapi_enabled == false
     - name: 'Enable Blockperf if defined'
       ansible.builtin.systemd:
         enabled: true
