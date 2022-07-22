@@ -45,6 +45,10 @@ cndeploy_relay_nodes_ip:
 #  - 2.2.2.2
 #  - 3.3.3.3
 
+# Define a list of banned ip addresses
+cndeploy_banned_ip:
+#  - 4.4.4.4
+
 # Define the list of management or monitoring IP that will need access to port 22 on nodes.
 # '{{ master_ip }}' is included by default to allow connections from the Ansible master,
 # in order to avoid accidental lockdowns. Remove only if you know what you are doing.

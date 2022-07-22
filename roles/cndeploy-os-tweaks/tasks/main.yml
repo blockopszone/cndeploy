@@ -224,6 +224,18 @@
     - name: 'Use ufw if available'
       when: ufw.stat.exists
       block:
+        - name: 'ufw: deny all from banned hosts'
+          community.general.ufw:
+            proto: 'any'
+            rule: 'deny'
+            src: '{{ item }}'
+          with_items: '{{ cndeploy_banned_ip }}'
+        - name: 'ufw: deny all to banned hosts'
+          community.general.ufw:
+            proto: 'any'
+            rule: 'deny'
+            dest: '{{ item }}'
+          with_items: '{{ cndeploy_banned_ip }}'
         - name: 'ufw: allow SSH from defined management hosts'
           community.general.ufw:
             port: 22
@@ -256,6 +268,17 @@
         - not ufw.stat.exists
         - firewalld.stat.exists
       block:
+        - name: 'firewalld: deny all from banned hosts'
+          ansible.posix.firewalld:
+            permanent: 'yes'
+            source: '{{ item }}'
+            state: 'disabled'
+          with_items: '{{ cndeploy_banned_ip }}'
+        - name: 'firewalld: deny all to banned hosts'
+          ansible.posix.firewalld:
+            permanent: 'yes'
+            rich_rule: rule family='ipv4' destination address='{{ item }}' drop
+          with_items: '{{ cndeploy_banned_ip }}'
         - name: 'firewalld: allow SSH from defined management hosts'
           ansible.posix.firewalld:
             permanent: 'yes'
