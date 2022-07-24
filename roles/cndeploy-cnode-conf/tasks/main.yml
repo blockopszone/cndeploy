@@ -1,6 +1,6 @@
 # Ansible role containing tasks to configure Cardano stake pool nodes
 # using Guild operator's cnode.
-# TODO: systemctl daemon-reload (needed when after systemd file changes)
+# TODO: Diagnose FAILED! => {"changed": false, "msg": "Unable to enable service cnode-submit-api.service: Failed to enable unit: Access denied\n"}
 ---
 
 - name: 'Check variables: cndeploy_cnode_dir_local'
