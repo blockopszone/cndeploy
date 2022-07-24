@@ -281,7 +281,7 @@
       block:
         - name: 'Get stats of ~/.cargo/bin/cncli'
           ansible.builtin.stat:
-            path: '~/.cargo/bin/cncli'
+            path: '{{ cndeploy_user_home }}/.cargo/bin/cncli'
           register: cndeploy_cncli_info
         - name: 'For BP Nodes disable cnode-tu-fetch.service'
           ansible.builtin.systemd:
