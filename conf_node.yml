@@ -1,0 +1,9 @@
+---
+
+- hosts: all
+
+  tasks:
+
+    - name: Include cndeploy-cnode-conf
+      include_role:
+        name: cndeploy-cnode-conf
