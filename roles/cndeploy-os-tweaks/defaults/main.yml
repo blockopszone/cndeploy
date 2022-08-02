@@ -39,10 +39,32 @@ cndeploy_node_type: 'relay'
 # Required
 cndeploy_node_port: 3000
 
-# define the IP address of each block producer (usually only one)
-# these IP addresses will be allowed to connect to the Relay nodes port
-cndeploy_bp_nodes_ip:
-#  - 1.1.1.1
+# define the block producers with:
+#  IP address to allow connections to the Relay nodes port
+#  Port to define the connections to the node
+#  Prio to be used by an external failover (active-pasive) monitor
+#  Role to define the configuration to apply
+#    active full bp setup and receives incoming connections from relays
+#    warm full bp setup and DONT receive incoming connections from relays
+#    cold generic node setup to be in sync with no specific role
+# Required to setup just one active bp
+cndeploy_bp_nodes:
+#  - ip: 1.1.1.1
+#    port: 6000
+#    prio: 1
+#    role: active
+#  - ip: 2.2.2.2
+#    port: 6000
+#    prio: 2
+#    role: warm
+#  - ip: 3.3.3.3
+#    port: 6000
+#    prio: 3
+#    role: warm
+#  - ip: 4.4.4.4
+#    port: 6000
+#    prio: 4
+#    role: cold
 
 # define the IP address of each relay node
 # these IP addresses will be allowed to connect to the BP node port

@@ -3,4 +3,6 @@
 cndeploy_pkgs_dep:
   - curl
   - acl
-  - ufw
+  - iptables
+  - iptables-persistent
+  - netfilter-persistent

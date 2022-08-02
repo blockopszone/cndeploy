@@ -46,6 +46,9 @@
       - cndeploy_node_port >= 1
       - cndeploy_node_port <= 65535
 
+- name: 'Check variables: cndeploy_bp_nodes'
+
+
 - name: 'Check variables: cndeploy_relay_nodes_ip'
   ansible.builtin.assert:
     fail_msg: >
@@ -159,13 +162,73 @@
     - cndeploy_ssh_restrict|default(false)|bool
     - ansible_user_id != 'root'
 
-- name: 'Setup allow-hostname (Ubuntu/Debian only atm)'
+- name: 'Disable IPv6'
+  ansible.posix.sysctl: name={{ item }} value=1 state=present reload=yes
+  with_items:
+    - net.ipv6.conf.all.disable_ipv6
+    - net.ipv6.conf.default.disable_ipv6
+    - net.ipv6.conf.lo.disable_ipv6
+  when: cndeploy_disable_ipv6|default(false)|bool
+
+- name: 'Setup firewall'
+  # Ensure that the only firewall active is iptables as we require an idempotent
+  # set of rules by flushing and loading from file at each execution.
+  become: yes
+  become_user: 'root'
+  when: cndeploy_firewall_enabled|default(false)|bool
+  block:
+    - name: 'If iptables is available, proceed to setup firewalls...'
+      ansible.builtin.stat:
+        path: '/usr/sbin/iptables'
+      register: iptables
+    - name: 'Iptables is available, proceed to setup firewalls...'
+      when: iptables.stat.exists
+      block:
+        - name: 'Disable UFW and enable netfilter-persistent'
+          when: ansible_os_family == "Debian"
+          block:
+            - name: 'Disable UFW'
+              community.general.ufw:
+                state: 'disabled'
+            - name: 'Enable netfilter-persistent'
+              ansible.builtin.systemd:
+                enabled: true
+                name: 'netfilter-persistent.service'
+                state: 'started'
+        - name: 'Disable firewalld and enable iptables'
+          when: ansible_os_family == "Redhat"
+          block:
+            - name: 'Disable firewalld'
+              ansible.builtin.systemd:
+                enabled: false
+                masked: true
+                name: 'firewalld.service'
+                state: 'stopped'
+            - name: 'Enable iptables'
+              ansible.builtin.systemd:
+                enabled: true
+                name: 'iptables.service'
+                state: 'started'
+        - name: 'Activate Forwarding'
+          ansible.posix.sysctl:
+            name: 'net.ipv4.ip_forward'
+            value: '1'
+            sysctl_set: yes
+            state: 'present'
+            reload: true
+        - name: 'Build IP4 BP rules from template'
+        - name: 'Build IP4 Relay rules from template'
+        - name: 'Build IP4 Standby rules from template'
+        - name: 'Build IP6 rules from template'
+        - name: 'Apply IP4 rules from file'
+        - name: 'Apply IP6 rules from file'
+
+- name: 'Setup allow-hostname in iptables mode'
   become: true
   become_user: 'root'
   when:
     - cndeploy_allowhostname_enabled|default(false)|bool
     - cndeploy_allowhostname is defined
-    - ansible_facts['os_family'] == 'Debian'
   block:
     - name: 'Check if allow-hostname script already exists'
       # required as get_url not always behaves like described in its documentation,
@@ -189,11 +252,11 @@
         line: 'HOSTNAME={{ cndeploy_allowhostname }}'
         regexp: '^HOSTNAME='
         state: 'present'
-    - name: 'Configure ufw mode in the script'
+    - name: 'Configure iptables mode in the script'
       ansible.builtin.lineinfile:
         dest: '/usr/local/bin/allow-hostname.bash'
-        line: 'UFWMODE=yes'
-        regexp: '^UFWMODE='
+        line: 'IPTMODE=yes'
+        regexp: '^IPTMODE='
         state: 'present'
     - name: 'Configure cron to run the script every 5 minutes'
       ansible.builtin.copy:
@@ -203,138 +266,6 @@
         group: 'root'
         mode: '0644'
         owner: 'root'
-
-- name: 'Setup firewall'
-  become: yes
-  become_user: 'root'
-  when: cndeploy_firewall_enabled|default(false)|bool
-  block:
-    - name: 'Check if ufw is available'
-      ansible.builtin.stat:
-        path: '/usr/sbin/ufw'
-      register: ufw
-    - name: 'Check if firewalld is available'
-      ansible.builtin.stat:
-        path: '/usr/sbin/firewalld'
-      register: firewalld
-    - name: 'Check if iptables is available'
-      ansible.builtin.stat:
-        path: '/usr/sbin/iptables'
-      register: iptables
-    - name: 'Use ufw if available'
-      when: ufw.stat.exists
-      block:
-        - name: 'ufw: deny disabled nodes access to BP-Node port'
-          community.general.ufw:
-            port: '{{ cndeploy_node_port }}'
-            proto: 'tcp'
-            rule: 'deny'
-            src: '{{ item }}'
-          with_items: '{{ cndeploy_disabled_ip }}'
-          when: cndeploy_node_type == 'bp'
-        - name: 'ufw: deny disabled nodes access to Relay-Node port'
-          community.general.ufw:
-            port: '{{ cndeploy_node_port }}'
-            proto: 'tcp'
-            rule: 'deny'
-            src: '{{ item }}'
-          with_items: '{{ cndeploy_disabled_ip }}'
-          when: cndeploy_node_type == 'relay'
-        - name: 'ufw: allow relay nodes access to BP-Node port'
-          community.general.ufw:
-            port: '{{ cndeploy_node_port }}'
-            proto: 'tcp'
-            rule: 'allow'
-            src: '{{ item }}'
-          with_items: '{{ cndeploy_relay_nodes_ip }}'
-          when: cndeploy_node_type == 'bp'
-        - name: 'ufw: allow bp nodes access to Relay-Node port'
-          community.general.ufw:
-            port: '{{ cndeploy_node_port }}'
-            proto: 'tcp'
-            rule: 'allow'
-            src: '{{ item }}'
-          with_items: '{{ cndeploy_bp_nodes_ip }}'
-          when: cndeploy_node_type == 'relay'
-        - name: 'ufw: allow everywhere access to Relay-Node port'
-          community.general.ufw:
-            port: '{{ cndeploy_node_port }}'
-            proto: 'tcp'
-            rule: 'allow'
-          when: cndeploy_node_type == 'relay'
-        - name: 'ufw: allow SSH from defined management hosts'
-          community.general.ufw:
-            port: 22
-            proto: 'tcp'
-            rule: 'allow'
-            src: '{{ item }}'
-          with_items: '{{ cndeploy_management_ip }}'
-        - name: 'ufw: enable UFW with deny as default policy'
-          community.general.ufw:
-            logging: 'on'
-            policy: 'deny'
-            state: 'enabled'
-    - name: 'Use firewald if available when ufw is not'
-      # TODO testing needed
-      when:
-        - not ufw.stat.exists
-        - firewalld.stat.exists
-      block:
-        - name: 'firewalld: deny disabled nodes access to BP-Node port'
-          ansible.posix.firewalld:
-            permanent: 'yes'
-            port: '{{ cndeploy_node_port }}/tcp'
-            source: '{{ item }}'
-            state: 'disabled'
-          with_items: '{{ cndeploy_disabled_ip }}'
-          when: cndeploy_node_type == 'bp'
-        - name: 'firewalld: deny disabled nodes access to Relay-Node port'
-          ansible.posix.firewalld:
-            permanent: 'yes'
-            port: '{{ cndeploy_node_port }}/tcp'
-            source: '{{ item }}'
-            state: 'disabled'
-          with_items: '{{ cndeploy_disabled_ip }}'
-          when: cndeploy_node_type == 'relay'
-        - name: 'firewalld: allow relay nodes access to BP-Node port'
-          ansible.posix.firewalld:
-            permanent: 'yes'
-            port: '{{ cndeploy_node_port }}/tcp'
-            source: '{{ item }}'
-            state: 'enabled'
-          with_items: '{{ cndeploy_relay_nodes_ip }}'
-          when: cndeploy_node_type == 'bp'
-        - name: 'firewalld: allow BP nodes access to Relay-Node port'
-          ansible.posix.firewalld:
-            permanent: 'yes'
-            port: '{{ cndeploy_node_port }}/tcp'
-            source: '{{ item }}'
-            state: 'enabled'
-          with_items: '{{ cndeploy_bp_nodes_ip }}'
-          when: cndeploy_node_type == 'relay'
-        - name: 'firewalld: allow everywhere access to Relay-Node port'
-          ansible.posix.firewalld:
-            permanent: 'yes'
-            port: '{{ cndeploy_node_port }}/tcp'
-            state: 'enabled'
-          when: cndeploy_node_type == 'relay'
-        - name: 'firewalld: allow SSH from defined management hosts'
-          ansible.posix.firewalld:
-            permanent: 'yes'
-            port: '22/tcp'
-            source: '{{ item }}'
-            state: 'enabled'
-          with_items: '{{ cndeploy_management_ip }}'
-    - name: 'Use iptables if available when ufw and firewalld are not'
-      # TODO finish block with iptables module + permanent changes
-      ansible.builtin.debug:
-        msg: >
-          Iptables is the only known firewall available on the host,
-          but it can't be setup as it is not yet supported by the script.
-      when:
-        - not ufw.stat.exists
-        - not firewalld.stat.exists
-        - iptables.stat.exists
 
 - name: 'Setup an additional Swap file'
   # based on Greg Dubicki's code
