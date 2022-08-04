@@ -43,7 +43,7 @@
       Invalid value -> cndeploy_bp_nodes.port must be an integer between 1 and 65535.
     quiet: true
     that:
-      - item.port is integer
+      - item.port|int != 0
       - item.port >= 1
       - item.port <= 65535
   loop: '{{ cndeploy_bp_nodes }}'
@@ -55,7 +55,7 @@
       Invalid value -> cndeploy_bp_nodes.prio must be an integer between 1 and 99.
     quiet: true
     that:
-      - item.prio is integer
+      - item.prio|int != 0
       - item.prio >= 1
       - item.prio <= 99
   loop: '{{ cndeploy_bp_nodes }}'
