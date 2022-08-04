@@ -23,7 +23,7 @@
       Invalid value -> port must be an integer between 1 and 65535.
     quiet: true
     that:
-      - cndeploy_node_port is integer
+      - cndeploy_node_port|int != 0
       - cndeploy_node_port >= 1
       - cndeploy_node_port <= 65535
 
