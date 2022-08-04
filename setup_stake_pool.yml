@@ -12,6 +12,10 @@
       include_role:
         name: cndeploy-os-pkgs
 
+    - name: Include cndeploy-os-fw
+      include_role:
+        name: cndeploy-os-fw
+
     # Activate only build or sync-bin
     #- name: Include cndeploy-cnode-build
     #  include_role:

@@ -1,0 +1,69 @@
+#
+cndeploy_disable_ipv6: false
+
+# set to true to enable the firewall to allow connections to only the necessary ports
+# Required
+cndeploy_firewall_enabled: false
+
+# set to true to enable the use of allow-hostname to grant all ports access
+# to a dynamic dns hostname.
+# Required
+cndeploy_allowhostname_enabled: false
+
+# Specify the hostname to always allow connections from
+#cndeploy_allowhostname: set_your_dyn_hostname_here.something
+
+# set to 'bp' for block producers, or 'relay' for relay nodes
+# Required
+cndeploy_node_type: 'relay'
+
+# set to the tcp port of the node
+# It will be used to generate the firewall rules
+# Required
+cndeploy_node_port: 3000
+
+# define the block producers with:
+#  IP address to allow connections to the Relay nodes port
+#  Port to define the connections to the node
+#  Prio to be used by an external failover (active-pasive) monitor
+#  Role to define the configuration to apply
+#    active full bp setup and receives incoming connections from relays
+#    warm full bp setup and DONT receive incoming connections from relays
+#    cold generic node setup to be in sync with no specific role
+# Required to setup just one active bp
+cndeploy_bp_nodes:
+#  - ip: 1.1.1.1
+#    port: 6000
+#    prio: 1
+#    role: active
+#  - ip: 2.2.2.2
+#    port: 6000
+#    prio: 2
+#    role: warm
+#  - ip: 3.3.3.3
+#    port: 6000
+#    prio: 3
+#    role: warm
+#  - ip: 4.4.4.4
+#    port: 6000
+#    prio: 4
+#    role: cold
+
+# define the IP address of each relay node
+# these IP addresses will be allowed to connect to the BP node port
+cndeploy_relay_nodes_ip:
+#  - 2.2.2.2
+#  - 3.3.3.3
+
+# Define the list of management or monitoring IP that will need access to port 22 on nodes.
+# '{{ master_ip }}' is included by default to allow connections from the Ansible master,
+# in order to avoid accidental lockdowns. Remove only if you know what you are doing.
+# To allow connections to the SSH port from everywhere (not recommended) add 0.0.0.0/0 to the list.
+cndeploy_management_ip:
+  - '{{ master_ip }}'
+#  - 0.0.0.0/0
+#  - 4.4.4.4
+
+# Define a list of disabled ip addresses to deny connections from them
+cndeploy_blacklist_ip:
+#  - 9.9.9.9

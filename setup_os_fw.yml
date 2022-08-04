@@ -1,0 +1,9 @@
+---
+
+- hosts: all
+
+  tasks:
+
+    - name: Include cndeploy-os-fw
+      include_role:
+        name: cndeploy-os-fw

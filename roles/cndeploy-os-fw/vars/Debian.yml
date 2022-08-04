@@ -1,0 +1,8 @@
+---
+
+cndeploy_pkgs_dep:
+  - curl
+  - acl
+  - iptables
+  - iptables-persistent
+  - netfilter-persistent
