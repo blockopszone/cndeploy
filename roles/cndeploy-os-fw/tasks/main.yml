@@ -195,16 +195,19 @@
                 src: 'iptables-rules-4-bp.j2'
               when: cndeploy_node_type == 'bp'
             - name: 'Deploy IP4 Relay rules from template for Debian family'
+              ansible.builtin.template:
                 dest: '/etc/iptables/rules.v4'
                 mode: '0644'
                 src: 'iptables-rules-4-relay.j2'
               when: cndeploy_node_type == 'relay'
             - name: 'Deploy IP4 Standby rules from template for Debian family'
+              ansible.builtin.template:
                 dest: '/etc/iptables/rules.v4'
                 mode: '0644'
                 src: 'iptables-rules-4-standby.j2'
               when: cndeploy_node_type == 'standby'
             - name: 'Deploy IP6 rules from template for Debian family'
+              ansible.builtin.template:
                 dest: '/etc/iptables/rules.v6'
                 mode: '0644'
                 src: 'iptables-rules-6.j2'
@@ -224,16 +227,19 @@
                 src: 'iptables-rules-4-bp.j2'
               when: cndeploy_node_type == 'bp'
             - name: 'Deploy IP4 Relay rules from template for Redhat family'
+              ansible.builtin.template:
                 dest: '/etc/sysconfig/iptables'
                 mode: '0644'
                 src: 'iptables-rules-4-relay.j2'
               when: cndeploy_node_type == 'relay'
             - name: 'Deploy IP4 Standby rules from template for Redhat family'
+              ansible.builtin.template:
                 dest: '/etc/sysconfig/iptables'
                 mode: '0644'
                 src: 'iptables-rules-4-standby.j2'
               when: cndeploy_node_type == 'standby'
             - name: 'Deploy IP6 rules from template for Redhat family'
+              ansible.builtin.template:
                 dest: '/etc/sysconfig/ip6tables'
                 mode: '0644'
                 src: 'iptables-rules-6.j2'
