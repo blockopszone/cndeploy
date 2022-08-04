@@ -157,8 +157,12 @@
           when: ansible_os_family == "Debian"
           block:
             - name: 'Disable UFW'
-              community.general.ufw:
-                state: 'disabled'
+              ansible.builtin.systemd:
+                name: 'ufw.service'
+                state: 'stopped'
+                enabled: false
+              #community.general.ufw:
+              #  state: 'disabled'
             - name: 'Enable netfilter-persistent'
               ansible.builtin.systemd:
                 enabled: true
