@@ -1,11 +1,13 @@
 *nat
 :PREROUTING ACCEPT [0:0]
 :POSTROUTING ACCEPT [0:0]
+{% if cndeploy_bp_nodes|length > 0 %}
 {% for item in cndeploy_bp_nodes %}
 {% if item.role|lower == "active" %}
 -A PREROUTING -i lo -p tcp -d 127.0.0.1 --dport 6000 -j DNAT --to-destination {{ item.ip }}:{{ item.port }}
 {% endif %}
 {% endfor %}
+{% endif %}
 COMMIT
 
 *filter
@@ -14,14 +16,18 @@ COMMIT
 :OUTPUT ACCEPT [0:0]
 -A INPUT -i lo -j ACCEPT
 -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+{% if cndeploy_blacklist_ip|length > 0 %}
 {% for bl_ip in cndeploy_blacklist_ip %}
 -A INPUT -s {{ bl_ip }} -j DROP
 -A OUTPUT -d {{ bl_ip }} -j DROP
 {% endfor %}
+{% endif %}
 -A INPUT -p tcp --dport {{ cndeploy_node_port }} -m conntrack --ctstate NEW -j ACCEPT
+{% if cndeploy_management_ip|length > 0 %}
 {% for mng_ip in cndeploy_management_ip %}
 -A INPUT -p tcp -s {{ mng_ip }} --dport 22 -m conntrack --ctstate NEW -j ACCEPT
 {% endfor %}
+{% endif %}
 -A INPUT -p tcp -s {{ master_ip }} --dport 22 -m conntrack --ctstate NEW -j ACCEPT
 -A INPUT -m limit --limit 5/min -j LOG --log-prefix "iptables denied: " --log-level 7
 COMMIT
