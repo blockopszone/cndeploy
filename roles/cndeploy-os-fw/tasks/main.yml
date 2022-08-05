@@ -68,7 +68,8 @@
     quiet: true
     that:
       - (item.role|lower == 'relay' or
-         item.role|lower == 'bp' or
+         item.role|lower == 'active' or
+         item.role|lower == 'warm' or         
          item.role|lower == 'standby')
   loop: '{{ cndeploy_bp_nodes }}'
   when: cndeploy_bp_nodes is defined
