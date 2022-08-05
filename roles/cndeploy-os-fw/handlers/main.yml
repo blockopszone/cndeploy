@@ -1,1 +1,31 @@
 ---
+
+- name: 'Apply IP4 rules from file for Debian family'
+  ansible.builtin.shell:
+    cmd: '/sbin/iptables-restore < /etc/iptables/rules.v4'
+  become: true
+  become_user: 'root'
+
+- name: 'Apply IP6 rules from file for Debian family'
+  ansible.builtin.shell:
+    cmd: '/sbin/iptables-restore < /etc/iptables/rules.v6'
+  become: true
+  become_user: 'root'
+
+- name: 'Apply IP4 rules from file for Redhat family'
+  ansible.builtin.shell:
+    cmd: '/sbin/iptables-save < /etc/sysconfig/iptables'
+  become: true
+  become_user: 'root'
+
+- name: 'Apply IP6 rules from file for Redhat family'
+  ansible.builtin.shell:
+    cmd: '/sbin/ip6tables-save < /etc/sysconfig/ip6tables'
+  become: true
+  become_user: 'root'
+
+- name: 'Run hostname-allow.bash script'
+  ansible.builtin.shell:
+    cmd: '/usr/local/bin/allow-hostname.bash'
+  become: true
+  become_user: 'root'

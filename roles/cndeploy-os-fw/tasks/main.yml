@@ -200,30 +200,28 @@
                 dest: '/etc/iptables/rules.v4'
                 mode: '0644'
                 src: 'iptables-rules-4-bp.j2'
+              notify: 'Apply IP4 rules from file for Debian family'
               when: cndeploy_node_type == 'bp'
             - name: 'Deploy IP4 Relay rules from template for Debian family'
               ansible.builtin.template:
                 dest: '/etc/iptables/rules.v4'
                 mode: '0644'
                 src: 'iptables-rules-4-relay.j2'
+              notify: 'Apply IP4 rules from file for Debian family'
               when: cndeploy_node_type == 'relay'
             - name: 'Deploy IP4 Standby rules from template for Debian family'
               ansible.builtin.template:
                 dest: '/etc/iptables/rules.v4'
                 mode: '0644'
                 src: 'iptables-rules-4-standby.j2'
+              notify: 'Apply IP4 rules from file for Debian family'
               when: cndeploy_node_type == 'standby'
             - name: 'Deploy IP6 rules from template for Debian family'
               ansible.builtin.template:
                 dest: '/etc/iptables/rules.v6'
                 mode: '0644'
                 src: 'iptables-rules-6.j2'
-            - name: 'Apply IP4 rules from file for Debian family'
-              ansible.builtin.shell:
-                cmd: '/sbin/iptables-restore < /etc/iptables/rules.v4'
-            - name: 'Apply IP6 rules from file for Debian family'
-              ansible.builtin.shell:
-                cmd: '/sbin/iptables-restore < /etc/iptables/rules.v6'
+              notify: 'Apply IP6 rules from file for Debian family'
         - name: 'Deploy iptables rules for Redhat family'
           when: ansible_os_family == "Redhat"
           block:
@@ -232,30 +230,28 @@
                 dest: '/etc/sysconfig/iptables'
                 mode: '0644'
                 src: 'iptables-rules-4-bp.j2'
+              notify: 'Apply IP4 rules from file for Redhat family'
               when: cndeploy_node_type == 'bp'
             - name: 'Deploy IP4 Relay rules from template for Redhat family'
               ansible.builtin.template:
                 dest: '/etc/sysconfig/iptables'
                 mode: '0644'
                 src: 'iptables-rules-4-relay.j2'
+              notify: 'Apply IP4 rules from file for Redhat family'
               when: cndeploy_node_type == 'relay'
             - name: 'Deploy IP4 Standby rules from template for Redhat family'
               ansible.builtin.template:
                 dest: '/etc/sysconfig/iptables'
                 mode: '0644'
                 src: 'iptables-rules-4-standby.j2'
+              notify: 'Apply IP4 rules from file for Redhat family'
               when: cndeploy_node_type == 'standby'
             - name: 'Deploy IP6 rules from template for Redhat family'
               ansible.builtin.template:
                 dest: '/etc/sysconfig/ip6tables'
                 mode: '0644'
                 src: 'iptables-rules-6.j2'
-            - name: 'Apply IP4 rules from file for Redhat family'
-              ansible.builtin.shell:
-                cmd: '/sbin/iptables-save < /etc/sysconfig/iptables'
-            - name: 'Apply IP6 rules from file for Redhat family'
-              ansible.builtin.shell:
-                cmd: '/sbin/ip6tables-save < /etc/sysconfig/ip6tables'
+              notify: 'Apply IP6 rules from file for Redhat family'
 
 - name: 'Setup allow-hostname in iptables mode'
   become: true
