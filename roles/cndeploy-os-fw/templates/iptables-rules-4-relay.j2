@@ -14,9 +14,14 @@ COMMIT
 :OUTPUT ACCEPT [0:0]
 -A INPUT -i lo -j ACCEPT
 -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+{% for bl_ip in cndeploy_blacklist_ip %}
+-A INPUT -s {{ bl_ip }} -j DROP
+-A OUTPUT -d {{ bl_ip }} -j DROP
+{% endfor %}
 -A INPUT -p tcp --dport {{ cndeploy_node_port }} -m conntrack --ctstate NEW -j ACCEPT
 {% for mng_ip in cndeploy_management_ip %}
 -A INPUT -p tcp -s {{ mng_ip }} --dport 22 -m conntrack --ctstate NEW -j ACCEPT
 {% endfor %}
+-A INPUT -p tcp -s {{ master_ip }} --dport 22 -m conntrack --ctstate NEW -j ACCEPT
 -A INPUT -m limit --limit 5/min -j LOG --log-prefix "iptables denied: " --log-level 7
 COMMIT
