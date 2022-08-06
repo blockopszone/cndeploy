@@ -51,18 +51,26 @@
   ansible.builtin.debug:
     msg: '{{ ssh_host_ip }}'
 
-- name: 'Get node vars from nodes definition'
-  block:
-    ansible.builtin.set_fact:
-      cndeploy_node_type: '{{ item.type }}'
-    ansible.builtin.set_fact:
-      cndeploy_node_port: '{{ item.port }}'      
+- name: 'Get node type from nodes definition'
+  ansible.builtin.set_fact:
+    cndeploy_node_type: '{{ item.type }}'
   loop: '{{ cndeploy_nodes }}'
   when: item.management_ip == ssh_host_ip
 
-- name: 'Show cndeploy_node_type_new'
+- name: 'Show cndeploy_node_type'
   ansible.builtin.debug:
-    msg: '{{ cndeploy_node_type_new }}'
+    msg: '{{ cndeploy_node_type }}'
+
+- name: 'Get node port from nodes definition'
+  ansible.builtin.set_fact:
+    cndeploy_node_port: '{{ item.port }}'
+  loop: '{{ cndeploy_nodes }}'
+  when: item.management_ip == ssh_host_ip
+
+- name: 'Show cndeploy_node_port'
+  ansible.builtin.debug:
+    msg: '{{ cndeploy_node_port }}'
+
 
 # Check vars
 #- name: 'Check variables: cndeploy_node_type'
