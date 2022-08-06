@@ -5,7 +5,8 @@
 # - Disable ufw and firewalld
 # - Setup iptables rules according to node's role from templates (idempotently).
 # - Optionally setup allow-hostname script to allow connections from a ddns hostname.
-
+#
+# TODO: Testing for Redhat family
 ---
 
 - name: 'Check variables: cndeploy_node_type'
@@ -117,13 +118,21 @@
         - '{{ role_path }}/vars'
       skip: true
 
-- name: 'Resolve other vars'
+- name: 'Resolve master IP'
   ansible.builtin.set_fact:
     master_ip: '{{ ansible_env["SSH_CLIENT"].split() | first }}'
 
-- name: 'Show Master IP (origin of current connection)'
+- name: 'Show master IP (origin of current connection)'
   ansible.builtin.debug:
     msg: '{{ master_ip }}'
+
+- name: 'Resolve host IP'
+  ansible.builtin.set_fact:
+    host_ip: '{{ ansible_env["SSH_CONNECTION"].split() | second }}'
+
+- name: 'Show host IP (destination of current connection)'
+  ansible.builtin.debug:
+    msg: '{{ host_ip }}'
 
 - name: 'Install dependencies for the OS'
   ansible.builtin.package:
