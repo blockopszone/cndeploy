@@ -10,9 +10,11 @@
 -A OUTPUT -d {{ bl_ip }} -j DROP
 {% endfor %}
 {% endif %}
-{% if cndeploy_relay_nodes_ip|default("") is not none %}
-{% for relay_ip in cndeploy_relay_nodes_ip %}
--A INPUT -p tcp -s {{ relay_ip }} --dport {{ cndeploy_node_port }} -m conntrack --ctstate NEW -j ACCEPT
+{% if cndeploy_nodes|default("") is not none %}
+{% for node in cndeploy_nodes %}
+{% if node.type == "relay" %}
+-A INPUT -p tcp -s {{ node.node_ip }} --dport {{ node.port }} -m conntrack --ctstate NEW -j ACCEPT
+{% endif %}
 {% endfor %}
 {% endif %}
 {% if cndeploy_management_ip|default("") is not none %}

@@ -15,12 +15,12 @@ cndeploy_allowhostname_enabled: false
 
 # set to 'bp' for block producers, or 'relay' for relay nodes
 # Required
-cndeploy_node_type: 'relay'
+#cndeploy_node_type: 'relay'
 
 # set to the tcp port of the node
 # It will be used to generate the firewall rules
 # Required
-cndeploy_node_port: 3000
+#cndeploy_node_port: 3000
 
 # define the block producers with:
 #  IP address to allow connections to the Relay nodes port
@@ -31,7 +31,7 @@ cndeploy_node_port: 3000
 #    warm full bp setup and DONT receive incoming connections from relays
 #    cold generic node setup to be in sync with no specific role
 # Required to setup just one active bp
-cndeploy_bp_nodes:
+#cndeploy_bp_nodes:
 #  - ip: 1.1.1.1
 #    port: 6000
 #    prio: 1
@@ -51,7 +51,7 @@ cndeploy_bp_nodes:
 
 # define the IP address of each relay node
 # these IP addresses will be allowed to connect to the BP node port
-cndeploy_relay_nodes_ip:
+#cndeploy_relay_nodes_ip:
 #  - 2.2.2.2
 #  - 3.3.3.3
 

@@ -9,102 +9,18 @@
 # TODO: Testing for Redhat family
 ---
 
-- name: 'Check variables: cndeploy_node_type'
-  assert:
-    fail_msg: Invalid value -> Valid type values are "relay", "bp" and "standby".
-    quiet: true
-    that:
-      - (cndeploy_node_type|lower == 'relay' or
-         cndeploy_node_type|lower == 'bp' or
-         cndeploy_node_type|lower == 'standby')
-
-- name: 'Check variables: cndeploy_node_port'
+# Check management_ip definitions first thing as they are used to resolve other vars
+- name: 'Check variables: cndeploy_nodes.management_ip'
   ansible.builtin.assert:
     fail_msg: >
-      Invalid value -> port must be an integer between 1 and 65535.
+      Invalid value -> cndeploy_nodes.management_ip must contain valid IPv4 addresses.
     quiet: true
     that:
-      - cndeploy_node_port|int != 0
-      - cndeploy_node_port >= 1
-      - cndeploy_node_port <= 65535
+      - item.management_ip|ipv4
+  loop: '{{ cndeploy_nodes }}'
+  when: cndeploy_nodes is defined
 
-- name: 'Check variables: cndeploy_bp_nodes.ip'
-  ansible.builtin.assert:
-    fail_msg: >
-      Invalid value -> cndeploy_bp_nodes.ip must contain valid IPv4 addresses.
-    quiet: true
-    that:
-      - item.ip|ipv4
-  loop: '{{ cndeploy_bp_nodes }}'
-  when: cndeploy_bp_nodes is defined
-
-- name: 'Check variables: cndeploy_bp_nodes.port'
-  ansible.builtin.assert:
-    fail_msg: >
-      Invalid value -> cndeploy_bp_nodes.port must be an integer between 1 and 65535.
-    quiet: true
-    that:
-      - item.port|int != 0
-      - item.port >= 1
-      - item.port <= 65535
-  loop: '{{ cndeploy_bp_nodes }}'
-  when: cndeploy_bp_nodes is defined
-
-- name: 'Check variables: cndeploy_bp_nodes.prio'
-  ansible.builtin.assert:
-    fail_msg: >
-      Invalid value -> cndeploy_bp_nodes.prio must be an integer between 1 and 99.
-    quiet: true
-    that:
-      - item.prio|int != 0
-      - item.prio >= 1
-      - item.prio <= 99
-  loop: '{{ cndeploy_bp_nodes }}'
-  when: cndeploy_bp_nodes is defined
-
-- name: 'Check variables: cndeploy_bp_nodes.role'
-  ansible.builtin.assert:
-    fail_msg: >
-      Invalid value -> Valid role values are "relay", "bp" and "standby".
-    quiet: true
-    that:
-      - (item.role|lower == 'relay' or
-         item.role|lower == 'active' or
-         item.role|lower == 'warm' or
-         item.role|lower == 'standby')
-  loop: '{{ cndeploy_bp_nodes }}'
-  when: cndeploy_bp_nodes is defined
-
-- name: 'Check variables: cndeploy_relay_nodes_ip'
-  ansible.builtin.assert:
-    fail_msg: >
-      Invalid value -> relay_nodes_ip must contain valid IPv4 addresses.
-    quiet: true
-    that:
-      - item|ipv4
-  loop: '{{ cndeploy_relay_nodes_ip }}'
-  when: cndeploy_relay_nodes_ip is defined
-
-- name: 'Check variables: cndeploy_management_ip'
-  ansible.builtin.assert:
-    fail_msg: >
-      Invalid value -> management_ip must contain valid IPv4 addresses.
-    quiet: true
-    that:
-      - item|ipv4
-  loop: '{{ cndeploy_management_ip }}'
-  when: cndeploy_management_ip is defined
-
-- name: 'Check variables: cndeploy_allowhostname'
-  ansible.builtin.assert:
-    fail_msg: >
-      Invalid value -> allowhostname must be defined and resolve to an IPv4 address.
-    quiet: true
-    that:
-      - cndeploy_allowhostname is defined
-      - (lookup("dig", cndeploy_allowhostname) != 'NXDOMAIN')
-  when: cndeploy_allowhostname_enabled|default(false)|bool
-
+# Resolve vars
 - name: 'Resolve platform specific vars'
   include_vars: '{{ item }}'
   with_first_found:
@@ -126,15 +42,135 @@
   ansible.builtin.debug:
     msg: '{{ master_ip }}'
 
-- name: 'Resolve host IP'
+- name: 'Resolve SSH host IP'
   # hostvars[inventory_hostname]['ansible_env'].SSH_CONNECTION.split(' ')[2]
   ansible.builtin.set_fact:
-    host_ip: '{{ ansible_env["SSH_CONNECTION"].split(" ")[2] }}'
+    ssh_host_ip: '{{ ansible_env["SSH_CONNECTION"].split(" ")[2] }}'
 
-- name: 'Show host IP (destination of current connection)'
+- name: 'Show SSH host IP (destination of current connection)'
   ansible.builtin.debug:
-    msg: '{{ host_ip }}'
+    msg: '{{ ssh_host_ip }}'
 
+- name: 'Get node vars from nodes definition'
+  ansible.builtin.set_fact:
+    cndeploy_node_type_new = {{ item.type }}
+  loop: cndeploy_nodes
+  when: item.management_ip == ssh_host_ip
+
+- name: 'Show cndeploy_node_type_new'
+  ansible.builtin.debug:
+    msg: '{{ cndeploy_node_type_new }}'
+
+# Check vars
+#- name: 'Check variables: cndeploy_node_type'
+#  assert:
+#    fail_msg: Invalid value -> Valid type values are "relay", "bp" and "standby".
+#    quiet: true
+#    that:
+#      - (cndeploy_node_type|lower == 'relay' or
+#         cndeploy_node_type|lower == 'bp' or
+#         cndeploy_node_type|lower == 'standby')
+
+#- name: 'Check variables: cndeploy_node_port'
+#  ansible.builtin.assert:
+#    fail_msg: >
+#      Invalid value -> port must be an integer between 1 and 65535.
+#    quiet: true
+#    that:
+#      - cndeploy_node_port|int != 0
+#      - cndeploy_node_port >= 1
+#      - cndeploy_node_port <= 65535
+
+
+- name: 'Check variables: cndeploy_nodes.node_ip'
+  ansible.builtin.assert:
+    fail_msg: >
+      Invalid value -> cndeploy_nodes.node_ip must contain valid IPv4 addresses.
+    quiet: true
+    that:
+      - item.node_ip|ipv4
+  loop: '{{ cndeploy_nodes }}'
+  when: cndeploy_nodes is defined
+
+- name: 'Check variables: cndeploy_nodes.port'
+  ansible.builtin.assert:
+    fail_msg: >
+      Invalid value -> cndeploy_nodes.port must be an integer between 1 and 65535.
+    quiet: true
+    that:
+      - item.port|int != 0
+      - item.port >= 1
+      - item.port <= 65535
+  loop: '{{ cndeploy_nodes }}'
+  when: cndeploy_nodes is defined
+
+- name: 'Check variables: cndeploy_nodes.prio'
+  ansible.builtin.assert:
+    fail_msg: >
+      Invalid value -> cndeploy_nodes.prio must be an integer between 1 and 99.
+    quiet: true
+    that:
+      - item.prio|int != 0
+      - item.prio >= 1
+      - item.prio <= 99
+  loop: '{{ cndeploy_nodes }}'
+  when: cndeploy_nodes is defined
+
+- name: 'Check variables: cndeploy_nodes.type'
+  ansible.builtin.assert:
+    fail_msg: >
+      Invalid value -> Valid type values are "relay", "active", "warm", "builder" and "standby".
+    quiet: true
+    that:
+      - (item.type|lower == 'relay' or
+         item.type|lower == 'active' or
+         item.type|lower == 'warm' or
+         item.type|lower == 'builder' or
+         item.type|lower == 'standby')
+  loop: '{{ cndeploy_nodes }}'
+  when: cndeploy_nodes is defined
+
+#- name: 'Check variables: cndeploy_relay_nodes_ip'
+#  ansible.builtin.assert:
+#    fail_msg: >
+#      Invalid value -> relay_nodes_ip must contain valid IPv4 addresses.
+#    quiet: true
+#    that:
+#      - item|ipv4
+#  loop: '{{ cndeploy_relay_nodes_ip }}'
+#  when: cndeploy_relay_nodes_ip is defined
+
+- name: 'Check variables: cndeploy_management_ip'
+  ansible.builtin.assert:
+    fail_msg: >
+      Invalid value -> cndeploy_management_ip must contain valid IPv4 addresses.
+    quiet: true
+    that:
+      - item|ipv4
+  loop: '{{ cndeploy_management_ip }}'
+  when: cndeploy_management_ip is defined
+
+- name: 'Check variables: cndeploy_blacklist_ip'
+  ansible.builtin.assert:
+    fail_msg: >
+      Invalid value -> cndeploy_blacklist_ip must contain valid IPv4 addresses.
+    quiet: true
+    that:
+      - item|ipv4
+  loop: '{{ cndeploy_blacklist_ip }}'
+  when: cndeploy_blacklist_ip is defined
+
+- name: 'Check variables: cndeploy_allowhostname'
+  ansible.builtin.assert:
+    fail_msg: >
+      Invalid value -> allowhostname must be defined and resolve to an IPv4 address.
+    quiet: true
+    that:
+      - cndeploy_allowhostname is defined
+      - (lookup("dig", cndeploy_allowhostname) != 'NXDOMAIN')
+  when: cndeploy_allowhostname_enabled|default(false)|bool
+
+# Actions
 - name: 'Install dependencies for the OS'
   ansible.builtin.package:
     name: '{{ cndeploy_pkgs_dep|default([]) }}'
