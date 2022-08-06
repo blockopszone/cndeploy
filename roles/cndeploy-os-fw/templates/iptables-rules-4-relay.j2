@@ -4,7 +4,7 @@
 {% if cndeploy_bp_nodes|default("") is not none %}
 {% for item in cndeploy_bp_nodes %}
 {% if item.role|lower == "active" %}
--A OUTPUT -o lo -d 127.0.0.1 -p tcp --dport 6000 -j DNAT --to-destination {{ item.ip }}:{{ item.port }}
+-A OUTPUT -d 127.0.0.1 -p tcp --dport 6000 -j DNAT --to-destination {{ item.ip }}:{{ item.port }}
 {% endif %}
 {% endfor %}
 {% endif %}
