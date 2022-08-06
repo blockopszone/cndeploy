@@ -129,7 +129,7 @@
 - name: 'Resolve host IP'
   # hostvars[inventory_hostname]['ansible_env'].SSH_CONNECTION.split(' ')[2]
   ansible.builtin.set_fact:
-    host_ip: '{{ ansible_env["SSH_CONNECTION"].split(' ')[2] }}'
+    host_ip: '{{ ansible_env["SSH_CONNECTION"].split(" ")[2] }}'
 
 - name: 'Show host IP (destination of current connection)'
   ansible.builtin.debug:
