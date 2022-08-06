@@ -192,6 +192,13 @@
             sysctl_set: yes
             state: 'present'
             reload: true
+        - name: 'Activate Forwarding from localhost'
+          ansible.posix.sysctl:
+            name: 'net.ipv4.conf.all.route_localnet'
+            value: '1'
+            sysctl_set: yes
+            state: 'present'
+            reload: true
         - name: 'Deploy iptables rules for Debian family'
           when: ansible_os_family == "Debian"
           block:
