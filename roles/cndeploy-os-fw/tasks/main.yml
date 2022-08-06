@@ -53,7 +53,7 @@
 
 - name: 'Get node vars from nodes definition'
   ansible.builtin.set_fact:
-    cndeploy_node_type_new = {{ item.type }}
+    cndeploy_node_type_new: {{ item.type }}
   loop: '{{ cndeploy_nodes }}'
   when: item.management_ip == ssh_host_ip
 
