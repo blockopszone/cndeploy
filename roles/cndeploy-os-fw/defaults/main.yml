@@ -1,69 +1,89 @@
+# Define the list of nodes in order to setup most of the services.
+#  management_ip: set to the IPv4 address used by Ansible to connect to the node.
+#    Usually the same than node_ip, but it can change when using a vpn or mng nets.
+#    This address must be correctly defined so Ansible can resolve the other host vars.
+#  node_ip: set to the IPv4 address where the node services will be listening.
+#    This address must be public in the case of relays.
+#  port: set to the TCP port number where the node must be listening.
+#  hostname: set to the desired hostname for the node.
+#  cores: set to the number of cores that the node software must use (<= of available)
+#  type: set to the type of node for that entry, allowed values are:
+#    - active, full bp setup and receives incoming pull connections from relays,
+#        as only one active is allowed, the one with lower prio number will be used.
+#    - warm, full bp setup and DONT receive incoming pull connections from relays
+#    - relay, full relay setup, a minimum of two is recommended for high availability.
+#    - standby, generic node setup not participating in the stake pool with any role,
+#        but being kept in sync so it can take any role after a restart when needed.
+#    - builder, standby node that additionally builds and/or uploads node versions
+#        and db, just once or in a periodic way, so it can be used when deploying
+#        or updating other nodes.
+#  prio: set the priority (1 to 99) for the node in his role type,
+#    mostly used for active/warm/standby selection.
 #
+# Required.
+#
+#cndeploy_nodes:
+#  - management_ip: 1.1.1.2
+#    node_ip: 1.1.1.1
+#    hostname: bp
+#    cores: 4
+#    port: 6001
+#    type: active
+#    prio: 1
+#  - management_ip: 2.2.2.2
+#    node_ip: 2.2.2.2
+#    hostname: otherbp
+#    cores: 4
+#    port: 6001
+#    type: warm
+#    prio: 2
+#  - management_ip: 3.3.3.3
+#    node_ip: 3.3.3.3
+#    hostname: relay1
+#    cores: 4
+#    port: 3001
+#    type: relay
+#    prio: 1
+#  - management_ip: 4.4.4.4
+#    node_ip: 4.4.4.4
+#    hostname: relay2
+#    cores: 4
+#    port: 3001
+#    type: relay
+#    prio: 1
+#  - management_ip: 5.5.5.5
+#    node_ip: 5.5.5.5
+#    hostname: builder
+#    cores: 4
+#    port: 3001
+#    type: relay
+#    prio: 2
+
+# Set to true to disable IPv6
 cndeploy_disable_ipv6: false
 
-# set to true to enable the firewall to allow connections to only the necessary ports
-# Required
+# Set to true to enable the firewall so only connections to the necessary ports
+# are allowed
 cndeploy_firewall_enabled: false
+
+# Define the list of IPv4 to whitelist (allow all connections), usually
+# management or monitoring IP that will need access to any port on nodes.
+# '{{ master_ip }}' is included by default to allow connections from the Ansible master,
+# in order to avoid accidental lockdowns. Remove only if you know what you are doing.
+# To allow connections to the SSH port from everywhere (not recommended),
+# add 0.0.0.0/0 to the list.
+cndeploy_whitelist_ip:
+  - '{{ master_ip }}'
+#  - 0.0.0.0/0
+#  - 8.8.8.8
+
+# Define a list of IPv4 addresses to deny all connections from
+cndeploy_blacklist_ip:
+#  - 9.9.9.9
 
 # set to true to enable the use of allow-hostname to grant all ports access
 # to a dynamic dns hostname.
-# Required
 cndeploy_allowhostname_enabled: false
 
 # Specify the hostname to always allow connections from
 #cndeploy_allowhostname: set_your_dyn_hostname_here.something
-
-# set to 'bp' for block producers, or 'relay' for relay nodes
-# Required
-#cndeploy_node_type: 'relay'
-
-# set to the tcp port of the node
-# It will be used to generate the firewall rules
-# Required
-#cndeploy_node_port: 3000
-
-# define the block producers with:
-#  IP address to allow connections to the Relay nodes port
-#  Port to define the connections to the node
-#  Prio to be used by an external failover (active-pasive) monitor
-#  Role to define the configuration to apply
-#    active full bp setup and receives incoming connections from relays
-#    warm full bp setup and DONT receive incoming connections from relays
-#    cold generic node setup to be in sync with no specific role
-# Required to setup just one active bp
-#cndeploy_bp_nodes:
-#  - ip: 1.1.1.1
-#    port: 6000
-#    prio: 1
-#    role: active
-#  - ip: 2.2.2.2
-#    port: 6000
-#    prio: 2
-#    role: warm
-#  - ip: 3.3.3.3
-#    port: 6000
-#    prio: 3
-#    role: warm
-#  - ip: 4.4.4.4
-#    port: 6000
-#    prio: 4
-#    role: cold
-
-# define the IP address of each relay node
-# these IP addresses will be allowed to connect to the BP node port
-#cndeploy_relay_nodes_ip:
-#  - 2.2.2.2
-#  - 3.3.3.3
-
-# Define the list of management or monitoring IP that will need access to port 22 on nodes.
-# '{{ master_ip }}' is included by default to allow connections from the Ansible master,
-# in order to avoid accidental lockdowns. Remove only if you know what you are doing.
-# To allow connections to the SSH port from everywhere (not recommended) add 0.0.0.0/0 to the list.
-cndeploy_management_ip:
-  - '{{ master_ip }}'
-#  - 0.0.0.0/0
-#  - 4.4.4.4
-
-# Define a list of disabled ip addresses to deny connections from them
-cndeploy_blacklist_ip:
-#  - 9.9.9.9
