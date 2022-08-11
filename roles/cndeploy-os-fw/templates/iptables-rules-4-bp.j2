@@ -17,9 +17,9 @@
 {% endif %}
 {% endfor %}
 {% endif %}
-{% if cndeploy_management_ip|default("") is not none %}
-{% for mng_ip in cndeploy_management_ip %}
--A INPUT -p tcp -s {{ mng_ip }} --dport 22 -m conntrack --ctstate NEW -j ACCEPT
+{% if cndeploy_whitelist_ip|default("") is not none %}
+{% for wl_ip in cndeploy_whitelist_ip %}
+-A INPUT -p tcp -s {{ wl_ip }} -m conntrack --ctstate NEW -j ACCEPT
 {% endfor %}
 {% endif %}
 -A INPUT -p tcp -s {{ master_ip }} --dport 22 -m conntrack --ctstate NEW -j ACCEPT
