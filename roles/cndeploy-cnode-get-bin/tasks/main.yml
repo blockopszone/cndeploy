@@ -1,0 +1,286 @@
+# Ansible role containing tasks to get the Cardano node binaries from an URL
+# TODO: Add user variable in templates
+# TODO: Add dbsync and ogmios systemd templates
+# TODO: Check for changes in last template versions from guild operators
+
+---
+
+- name: 'Resolve platform specific vars'
+  include_vars: '{{ item }}'
+  with_first_found:
+    - files:
+        - '{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml'
+        - '{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml'
+        - '{{ ansible_distribution }}-{{ ansible_distribution_release }}.yml'
+        - '{{ ansible_distribution }}.yml'
+        - '{{ ansible_os_family }}.yml'
+      paths:
+        - '{{ role_path }}/vars'
+      skip: true
+
+- name: 'Resolve SSH host IP'
+  ansible.builtin.set_fact:
+    ssh_host_ip: '{{ ansible_env["SSH_CONNECTION"].split(" ")[2] }}'
+
+- name: 'Resolve node definition vars if present'
+  when: cndeploy_nodes is defined
+  block:
+    - name: 'Export the dictionary containing this node variables to cndeploy_node'
+      ansible.builtin.set_fact:
+        cndeploy_node: '{{ item }}'
+      with_list: '{{ cndeploy_nodes }}'
+      when: item.cndeploy_node_management_ip == ssh_host_ip
+    - name: 'Resolve the variables contained in cndeploy_node'
+      when: cndeploy_node is defined
+      ansible.builtin.set_fact:
+        '{{ item.key }}': '{{ item.value }}'
+      with_dict: '{{ cndeploy_node }}'
+
+- name: 'Resolve cndeploy_nodes_types.all dictionary vars if present'
+  when: cndeploy_nodes_types.all is defined
+  ansible.builtin.set_fact:
+    '{{ item.key }}': '{{ item.value }}'
+  with_dict: '{{ cndeploy_nodes_types.all }}'
+
+- name: 'Resolve cndeploy_nodes_types.{{ cndeploy_node_type }} dictionary vars if present'
+  when: 'cndeploy_nodes_types[cndeploy_node_type] is defined'
+  ansible.builtin.set_fact:
+    '{{ item.key }}': '{{ item.value }}'
+  with_dict: '{{ cndeploy_nodes_types[cndeploy_node_type] }}'
+
+- name: 'Resolve cndeploy_nodes_types.{{ cndeploy_node_management_ip }} dictionary vars if present'
+  when: 'cndeploy_nodes_types[cndeploy_node_management_ip] is defined'
+  ansible.builtin.set_fact:
+    '{{ item.key }}': '{{ item.value }}'
+  with_dict: '{{ cndeploy_nodes_types[cndeploy_node_management_ip] }}'
+
+- name: 'Install dependencies for the OS'
+  ansible.builtin.package:
+    name: '{{ cndeploy_pkgs_dep|default([]) }}'
+    state: 'present'
+  become: true
+  become_user: 'root'
+
+- name: 'Create a temporal directory to extract the new node binaries'
+  ansible.builtin.file:
+    path: '~/cabalbintemp'
+    state: directory
+    mode: '0755'
+  changed_when: false
+
+- name: 'Download and extract the archive with the node binaries to a temporary location'
+  ansible.builtin.unarchive:
+    src: '{{ cndeploy_cnode_bin_archive_url }}'
+    dest: '~/cabalbintemp'
+    remote_src: yes
+  changed_when: false
+
+- name: 'Check the versions of the just extracted cardano binaries'
+  check_mode: false
+  ignore_errors: true
+  block:
+    - name: 'Check tmp dir Cardano node version'
+      ansible.builtin.command:
+        cmd: '~/cabalbintemp/cardano-node version'
+      changed_when: false
+      failed_when: false
+      register: cndeploy_node_version_tmp
+    - name: 'Check tmp dir Cardano client version'
+      ansible.builtin.command:
+        cmd: '~/cabalbintemp/cardano-cli version'
+      changed_when: false
+      failed_when: false
+      register: cndeploy_cli_version_tmp
+    - name: 'Show tmp dir Cardano node version'
+      ansible.builtin.debug:
+        msg: '{{ cndeploy_node_version_tmp.stdout }}'
+      changed_when: false
+      failed_when: false
+    - name: 'Show tmp dir Cardano client version'
+      ansible.builtin.debug:
+        msg: '{{ cndeploy_cli_version_tmp.stdout }}'
+      changed_when: false
+      failed_when: false
+
+- name: 'Check the versions of the installed cardano versions'
+  check_mode: false
+  ignore_errors: true
+  block:
+    - name: 'Check installed Cardano node version'
+      ansible.builtin.command:
+        cmd: '~/.cabal/bin/cardano-node version'
+      changed_when: false
+      failed_when: false
+      register: cndeploy_node_version
+    - name: 'Check installed Cardano client version'
+      ansible.builtin.command:
+        cmd: '~/.cabal/bin/cardano-cli version'
+      changed_when: false
+      failed_when: false
+      register: cndeploy_cli_version
+    - name: 'Show installed Cardano node version'
+      ansible.builtin.debug:
+        msg: '{{ cndeploy_node_version.stdout }}'
+      changed_when: false
+      failed_when: false
+    - name: 'Show installed Cardano client version'
+      ansible.builtin.debug:
+        msg: '{{ cndeploy_cli_version.stdout }}'
+      changed_when: false
+      failed_when: false
+
+- name: 'If downloaded node binaries are different than the ones installed'
+  when: ((cndeploy_node_version_tmp.stdout != cndeploy_node_version.stdout) or
+         (cndeploy_cli_version_tmp.stdout != cndeploy_cli_version.stdout))
+  block:
+    - name: 'Stop the remote service'
+      ansible.builtin.service:
+        name: 'cnode.service'
+        state: 'stopped'
+      become: true
+      become_user: 'root'
+      notify: 'Start Cardano node'
+      register: remoteservice
+      when: cndeploy_node_version.rc == 0
+    - name: 'Wait 30 seconds to make sure the remote service is stopped'
+      ansible.builtin.pause:
+        seconds: 30
+      when: remoteservice.changed
+    - name: 'Overwrite old binaries with the new ones'
+      ansible.builtin.copy:
+        src: '~/cabalbintemp/'
+        dest: '~/.cabal/bin/'
+        mode: 'preserve'
+    - name: 'Install/Update Guild Operators CNODE skipping system dependencies and reset settings to default'
+      block:
+        - name: 'Ensures $HOME/tmp exist'
+          ansible.builtin.file:
+            path: '~/tmp'
+            recurse: true
+            state: 'directory'
+        - name: 'Get Guild Operators prereqs.sh script'
+          ansible.builtin.get_url:
+            dest: '~/tmp/'
+            mode: '0755'
+            url: 'https://raw.githubusercontent.com/cardano-community/guild-operators/master/scripts/cnode-helper-scripts/prereqs.sh'
+        - name: 'Run prereqs.sh installer with -f and -s'
+          # -s avoid installing system dependencies plus ghc and cabal mainly to build the node
+          # -f forces to overwrite config files and scripts with new versions
+          ansible.builtin.command:
+            cmd: '~/tmp/prereqs.sh -f -s'
+
+- name: 'Delete the temporal directory'
+  ansible.builtin.file:
+    path: '~/cabalbintemp'
+    state: 'absent'
+  changed_when: false
+
+- name: 'Copy systemd unit files for all operation modes using templates'
+  become: true
+  become_user: 'root'
+  notify: 'Reload systemd'
+  block:
+    - name: 'Deploy from template the systemd unit file cnode-cncli-leaderlog.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-cncli-leaderlog.service'
+        mode: '0644'
+        src: 'cnode-cncli-leaderlog.service.j2'
+    - name: 'Deploy from template the systemd unit file cnode-cncli-ptsendslots.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-cncli-ptsendslots.service'
+        mode: '0644'
+        src: 'cnode-cncli-ptsendslots.service.j2'
+    - name: 'Deploy from template the systemd unit file cnode-cncli-ptsendtip.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-cncli-ptsendtip.service'
+        mode: '0644'
+        src: 'cnode-cncli-ptsendtip.service.j2'
+    - name: 'Deploy from template the systemd unit file cnode-cncli-sync.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-cncli-sync.service'
+        mode: '0644'
+        src: 'cnode-cncli-sync.service.j2'
+    - name: 'Deploy from template the systemd unit file cnode-cncli-validate.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-cncli-validate.service'
+        mode: '0644'
+        src: 'cnode-cncli-validate.service.j2'
+    - name: 'Deploy from template the systemd unit file cnode-logmonitor.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-logmonitor.service'
+        mode: '0644'
+        src: 'cnode-logmonitor.service.j2'
+    - name: 'Deploy from template the systemd unit file cnode.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode.service'
+        mode: '0644'
+        src: 'cnode.service.j2'
+    - name: 'Deploy from template the systemd unit file cnode-tu-fetch.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-tu-fetch.service'
+        mode: '0644'
+        src: 'cnode-tu-fetch.service.j2'
+    - name: 'Deploy from template the systemd unit file cnode-tu-push.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-tu-push.service'
+        mode: '0644'
+        src: 'cnode-tu-push.service.j2'
+    - name: 'Deploy from template the systemd unit file cnode-tu-push.timer'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-tu-push.timer'
+        mode: '0644'
+        src: 'cnode-tu-push.timer.j2'
+    - name: 'Deploy from template the systemd unit file cnode-tu-restart.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-tu-restart.service'
+        mode: '0644'
+        src: 'cnode-tu-restart.service.j2'
+    - name: 'Deploy from template the systemd unit file cnode-tu-restart.timer'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-tu-restart.timer'
+        mode: '0644'
+        src: 'cnode-tu-restart.timer.j2'
+    - name: 'Deploy from template the systemd unit file cnode-submit-api.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-submit-api.service'
+        mode: '0644'
+        src: 'cnode-submit-api.service.j2'
+    - name: 'Deploy from template the systemd unit file cnode-tu-blockperf.service'
+      ansible.builtin.template:
+        dest: '/etc/systemd/system/cnode-tu-blockperf.service'
+        mode: '0644'
+        src: 'cnode-tu-blockperf.service.j2'
+
+- name: 'If cncli needs to be installed in destination'
+  when:
+    - cndeploy_cnode_cncli_install
+  block:
+    - name: Download and extract the archive with the cncli binaries
+      ansible.builtin.unarchive:
+        src: '{{ cndeploy_cncli_bin_archive_url }}'
+        dest: '~/.cargo/bin'
+        remote_src: yes
+    - name: 'Check for remote cncli versions'
+      check_mode: false
+      ignore_errors: true
+      block:
+        - name: 'Check remote cncli version'
+          ansible.builtin.command:
+            cmd: '~/.cargo/bin/cncli -V'
+          changed_when: false
+          failed_when: false
+          register: cndeploy_cncli_version_new
+        - name: 'Show new remote cncli version'
+          ansible.builtin.debug:
+            msg: '{{ cndeploy_cncli_version_new.stdout }}'
+          changed_when: false
+          failed_when: false
+    - name: 'Deploy the cargo env file from template'
+      ansible.builtin.template:
+        dest: '~/.cargo/env'
+        mode: '0664'
+        src: 'cargo-env.j2'
+    - name: 'Add cargo init to bashrc'
+      ansible.builtin.lineinfile:
+        path: '~/.bashrc'
+        line: . "$HOME/.cargo/env"

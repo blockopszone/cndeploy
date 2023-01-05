@@ -1,0 +1,17 @@
+[Unit]
+Description=Cardano Node - Topology Updater - fetches a fresh topology before cnode.service start
+BindsTo=cnode.service
+Before=cnode.service
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory={{ cndeploy_cnode_dir }}/scripts
+ExecStart=/bin/bash -l -c "exec {{ cndeploy_cnode_dir }}/scripts/topologyUpdater.sh -p"
+ExecStartPost=/bin/sleep 5
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=cnode-tu-fetch
+
+[Install]
+WantedBy=cnode.service

@@ -1,0 +1,5 @@
+---
+
+cndeploy_pkgs_dep:
+  - curl
+  - gtar

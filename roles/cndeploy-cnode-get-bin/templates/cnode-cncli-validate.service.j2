@@ -1,0 +1,22 @@
+[Unit]
+Description=Cardano Node - CNCLI Validate
+BindsTo=cnode-cncli-sync.service
+After=cnode-cncli-sync.service
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=20
+User=ubuntu
+WorkingDirectory={{ cndeploy_cnode_dir }}/scripts
+ExecStartPre=/bin/sleep 5
+ExecStart=/bin/bash -l -c "exec {{ cndeploy_cnode_dir }}/scripts/cncli.sh validate"
+SuccessExitStatus=143
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=cnode-cncli-validate
+TimeoutStopSec=5
+KillMode=mixed
+
+[Install]
+WantedBy=cnode-cncli-sync.service

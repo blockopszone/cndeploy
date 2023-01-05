@@ -1,0 +1,23 @@
+# Set to the user to be used for installation, it'll be created if don't exist
+# set to '{{ ansible_user_id }}' to use the user that Ansible connects with
+# Required
+cndeploy_user: '{{ ansible_user_id }}'
+
+# Set to the desired/existent home for the user, init scripts will be placed
+# Required
+cndeploy_user_home: '/home/{{ cndeploy_user }}'
+
+# Set the install directory, by default /opt/cardano/cnode
+# IMPORTANT, for now, please use the default value to
+# keep the compatibility with other cndeploy roles.
+# Required
+cndeploy_cnode_dir: '/opt/cardano/cnode'
+
+# Set to the url containing the node binaries archive to install
+cndeploy_cnode_bin_archive_url: 'https://update-cardano-mainnet.iohk.io/cardano-node-releases/cardano-node-1.35.4-linux.tar.gz'
+
+# Set to true to install cncli
+cndeploy_cnode_cncli_install: false
+
+# Set to the url containing the cncli binaries archive to install
+cndeploy_cncli_bin_archive_url: 'https://github.com/cardano-community/cncli/releases/download/v5.2.0/cncli-5.2.0-x86_64-unknown-linux-gnu.tar.gz'

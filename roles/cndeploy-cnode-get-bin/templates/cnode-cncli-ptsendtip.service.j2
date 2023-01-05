@@ -1,0 +1,23 @@
+[Unit]
+Description=Cardano Node - CNCLI PoolTool SendTip
+BindsTo=cnode.service
+After=cnode.service
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=20
+User=ubuntu
+WorkingDirectory={{ cndeploy_cnode_dir }}/scripts
+ExecStart=/bin/bash -l -c "exec {{ cndeploy_cnode_dir }}/scripts/cncli.sh ptsendtip"
+ExecStop=/bin/bash -l -c "exec kill -2 $(ps -ef | grep [c]ncli.sendtip.*.cnode-pooltool.json | tr -s ' ' | cut -d ' ' -f2) &>/dev/null"
+KillSignal=SIGINT
+SuccessExitStatus=143
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=cnode-cncli-ptsendtip
+TimeoutStopSec=5
+KillMode=mixed
+
+[Install]
+WantedBy=cnode.service

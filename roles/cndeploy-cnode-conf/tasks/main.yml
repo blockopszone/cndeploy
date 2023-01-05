@@ -3,67 +3,6 @@
 # TODO: Diagnose FAILED! => {"changed": false, "msg": "Unable to enable service cnode-submit-api.service: Failed to enable unit: Access denied\n"}
 ---
 
-- name: 'Check variables: cndeploy_cnode_dir_local'
-  ansible.builtin.assert:
-    fail_msg: >
-      Invalid value -> Local cnode directory must be also defined
-      in CNODE_HOME environment variable.
-    quiet: true
-    that:
-      - cndeploy_cnode_dir_local == lookup('env', 'CNODE_HOME')
-        or cndeploy_cnode_dir_local_check_override
-  delegate_to: localhost
-
-- name: 'Check variables: cndeploy_node_type'
-  ansible.builtin.assert:
-    fail_msg: >
-      Invalid value -> Valid type values are "relay" and "bp".
-    quiet: true
-    that:
-      - (cndeploy_node_type|lower == 'relay' or cndeploy_node_type|lower == 'bp')
-
-- name: 'Check variables: cndeploy_node_ticker'
-  ansible.builtin.assert:
-    fail_msg: >
-      Invalid value -> String must contain between 3 and 5 characters,
-      allowed characters are A to Z and 0 to 9.
-    quiet: true
-    that:
-      - cndeploy_node_ticker is match('^[A-Z0-9]{3,5}$')
-
-- name: 'Check variables: cndeploy_node_port'
-  ansible.builtin.assert:
-    fail_msg: >
-      Invalid value -> port must be an integer between 1 and 65535.
-    quiet: true
-    that:
-      - cndeploy_node_port is integer
-      - cndeploy_node_port >= 1
-      - cndeploy_node_port <= 65535
-
-- name: 'Check variables: cndeploy_node_cores'
-  ansible.builtin.assert:
-    fail_msg: >
-      Invalid value -> value must be an integer between 1 and 64.
-    quiet: true
-    that:
-      - cndeploy_node_cores is integer
-      - cndeploy_node_cores >= 1
-      - cndeploy_node_cores <= 64
-
-- name: 'Check variables: cndeploy_relay_nodes'
-  ansible.builtin.assert:
-    fail_msg: >
-      Invalid value -> addr must be an IPv4 address or a resolvable host,
-      and port must be an integer between 1 and 65535
-    quiet: true
-    that:
-      - (item.addr|ipv4 or lookup('dig', item.addr) != 'NXDOMAIN')
-      - item.port is integer
-      - item.port >= 1
-      - item.port <= 65535
-  loop: '{{ cndeploy_relay_nodes }}'
-
 - name: 'Resolve platform specific vars'
   include_vars: '{{ item }}'
   with_first_found:
@@ -76,6 +15,172 @@
       paths:
         - '{{ role_path }}/vars'
       skip: true
+
+- name: 'Resolve SSH host IP'
+  ansible.builtin.set_fact:
+    ssh_host_ip: '{{ ansible_env["SSH_CONNECTION"].split(" ")[2] }}'
+
+- name: 'Resolve node definition vars if present'
+  when: cndeploy_nodes is defined
+  block:
+    - name: 'Export the dictionary containing this node variables to cndeploy_node'
+      ansible.builtin.set_fact:
+        cndeploy_node: '{{ item }}'
+      with_list: '{{ cndeploy_nodes }}'
+      when: item.cndeploy_node_management_ip == ssh_host_ip
+    - name: 'Resolve the variables contained in cndeploy_node'
+      when: cndeploy_node is defined
+      ansible.builtin.set_fact:
+        '{{ item.key }}': '{{ item.value }}'
+      with_dict: '{{ cndeploy_node }}'
+
+- name: 'Resolve cndeploy_nodes_types.all dictionary vars if present'
+  when: cndeploy_nodes_types.all is defined
+  ansible.builtin.set_fact:
+    '{{ item.key }}': '{{ item.value }}'
+  with_dict: '{{ cndeploy_nodes_types.all }}'
+
+- name: 'Resolve cndeploy_nodes_types.{{ cndeploy_node_type }} dictionary vars if present'
+  when: 'cndeploy_nodes_types[cndeploy_node_type] is defined'
+  ansible.builtin.set_fact:
+    '{{ item.key }}': '{{ item.value }}'
+  with_dict: '{{ cndeploy_nodes_types[cndeploy_node_type] }}'
+
+- name: 'Resolve cndeploy_nodes_types.{{ cndeploy_node_management_ip }} dictionary vars if present'
+  when: 'cndeploy_nodes_types[cndeploy_node_management_ip] is defined'
+  ansible.builtin.set_fact:
+    '{{ item.key }}': '{{ item.value }}'
+  with_dict: '{{ cndeploy_nodes_types[cndeploy_node_management_ip] }}'
+
+- name: 'Resolve calculated vars if not already set and node is relay: cndeploy_relay_custom_peers'
+  when:
+    - cndeploy_node_type|lower == 'relay'
+    - cndeploy_nodes is defined
+    - cndeploy_relay_custom_peers is not defined
+  block:
+    - name: 'Check variables: cndeploy_nodes for required fields to calculate: cndeploy_relay_custom_peers'
+      ansible.builtin.assert:
+        fail_msg: >
+          Invalid value -> cndeploy_nodes definition must contain valid values for keys
+          cndeploy_node_management_ip
+          cndeploy_node_ip
+          cndeploy_node_type
+          cndeploy_node_port
+        quiet: true
+        that:
+          - (item.cndeploy_node_management_ip|ipv4 or lookup('dig', item.cndeploy_node_management_ip) != 'NXDOMAIN')
+          - (item.cndeploy_node_ip|ipv4 or lookup('dig', item.cndeploy_node_ip) != 'NXDOMAIN')
+          - item.cndeploy_node_type is defined
+          - item.cndeploy_node_port is integer
+          - item.cndeploy_node_port >= 1
+          - item.cndeploy_node_port <= 65535
+      loop: '{{ cndeploy_nodes }}'
+    - name: 'Calculate cndeploy_relay_custom_peers'
+      with_items: '{{ cndeploy_nodes }}'
+      when:
+        - item.cndeploy_node_type|lower == "bp" or item.cndeploy_node_type|lower == "relay"
+        - item.cndeploy_node_management_ip != ssh_host_ip
+      ansible.builtin.set_fact:
+        cndeploy_relay_custom_peers: '{{ cndeploy_relay_custom_peers | default("") }}{{ item.cndeploy_node_ip }},{{ item.cndeploy_node_port }} '
+    - name: 'Format cndeploy_relay_custom_peers'
+      ansible.builtin.set_fact:
+        cndeploy_relay_custom_peers: '{{ cndeploy_relay_custom_peers | trim | replace(" ", "|") }}'
+
+- name: 'Resolve calculated vars if not already set and node is bp: cndeploy_bp_topology_producers'
+  when:
+    - cndeploy_node_type|lower == 'bp'
+    - cndeploy_nodes is defined
+    - cndeploy_bp_topology_producers is not defined
+  block:
+    - name: 'Check variables: cndeploy_nodes for required fields to calculate: cndeploy_bp_topology_producers'
+      ansible.builtin.assert:
+        fail_msg: >
+          Invalid value -> cndeploy_nodes definition must contain valid values for keys
+          cndeploy_node_ip
+          cndeploy_node_type
+          cndeploy_node_port
+        quiet: true
+        that:
+          - (item.cndeploy_node_ip|ipv4 or lookup('dig', item.cndeploy_node_ip) != 'NXDOMAIN')
+          - item.cndeploy_node_type is defined
+          - item.cndeploy_node_port is integer
+          - item.cndeploy_node_port >= 1
+          - item.cndeploy_node_port <= 65535
+      loop: '{{ cndeploy_nodes }}'
+    - name: 'Initialise cndeploy_bp_topology_producers'
+      ansible.builtin.set_fact:
+        cndeploy_bp_topology_producers: []
+    - name: 'Populate cndeploy_bp_topology_producers'
+      with_items: '{{ cndeploy_nodes }}'
+      when:
+        - item.cndeploy_node_type|lower == "relay"
+      ansible.builtin.set_fact:
+        cndeploy_bp_topology_producers: "{{ cndeploy_bp_topology_producers + [{'addr':item.cndeploy_node_ip, 'port':item.cndeploy_node_port, 'valency':'1'}] }}"
+
+- name: 'Check variables: cndeploy_node_port'
+  ansible.builtin.assert:
+    fail_msg: >
+      Invalid value -> cndeploy_node_port must be an integer between 1 and 65535.
+    quiet: true
+    that:
+      - cndeploy_node_port|default(3001)|int != 0
+      - cndeploy_node_port|default(3001)|int >= 1
+      - cndeploy_node_port|default(3001)|int <= 65535
+
+- name: 'Check variables: cndeploy_node_type'
+  ansible.builtin.assert:
+    fail_msg: >
+      Invalid value -> Valid type values are "relay", "bp" and "standby".
+    quiet: true
+    that:
+      - (cndeploy_node_type|default('standby')|lower == 'relay' or
+         cndeploy_node_type|default('standby')|lower == 'bp' or
+         cndeploy_node_type|default('standby')|lower == 'standby')
+
+- name: 'Check variables: cndeploy_node_cores'
+  ansible.builtin.assert:
+    fail_msg: >
+      Invalid value -> cores value must be an integer between 1 and 64.
+    quiet: true
+    that:
+      - cndeploy_node_cores|default(2)|int is integer
+      - cndeploy_node_cores|default(2)|int >= 1
+      - cndeploy_node_cores|default(2)|int <= 64
+
+- name: 'Check variables: cndeploy_cnode_dir_local'
+  ansible.builtin.assert:
+    fail_msg: >
+      Invalid value -> Local cnode directory must be also defined
+      in CNODE_HOME environment variable.
+    quiet: true
+    that:
+      - cndeploy_cnode_dir_local == lookup('env', 'CNODE_HOME')
+        or cndeploy_cnode_dir_local_check_override
+  delegate_to: localhost
+
+- name: 'Check variables: cndeploy_node_ticker'
+  ansible.builtin.assert:
+    fail_msg: >
+      Invalid value -> String must contain between 3 and 5 characters,
+      allowed characters are A to Z and 0 to 9.
+    quiet: true
+    that:
+      - cndeploy_node_ticker is match('^[A-Z0-9]{3,5}$')
+
+- name: 'Check variables: cndeploy_bp_topology_producers'
+  when:
+    - cndeploy_node_type|lower == 'bp'
+  ansible.builtin.assert:
+    fail_msg: >
+      Invalid value -> addr must be an IPv4 address or a resolvable host,
+      and port must be an integer between 1 and 65535
+    quiet: true
+    that:
+      - (item.addr|ipv4 or lookup('dig', item.addr) != 'NXDOMAIN')
+      - item.port is integer
+      - item.port >= 1
+      - item.port <= 65535
+  loop: '{{ cndeploy_bp_topology_producers }}'
 
 - name: 'Install dependencies for the OS'
   ansible.builtin.package:
@@ -125,7 +230,7 @@
         - name: 'For Relays set CUSTOM_PEERS in {{ cndeploy_cnode_dir }}/scripts/topologyUpdater.sh'
           ansible.builtin.lineinfile:
             insertafter: '^#CUSTOM_PEERS='
-            line: 'CUSTOM_PEERS="{{ cndeploy_node_custom_peers|default() }}"'
+            line: 'CUSTOM_PEERS="{{ cndeploy_relay_custom_peers|default() }}"'
             path: '{{ cndeploy_cnode_dir }}/scripts/topologyUpdater.sh'
             regexp: '^CUSTOM_PEERS='
             state: 'present'
@@ -212,7 +317,7 @@
       # TODO check if all the required setup is in place for every service
       become: true
       become_user: 'root'
-      when: cndeploy_node_type == 'relay'
+      when: cndeploy_node_type|lower == 'relay'
       block:
         - name: 'For Relays disable cnode-cncli-leaderlog.service'
           ansible.builtin.systemd:
@@ -273,11 +378,83 @@
             enabled: true
             masked: false
             name: 'cnode-tu-restart.timer'
+    - name: 'For Standby nodes ensure proper service status (enabled/disabled)'
+      # TODO check if all the required setup is in place for every service
+      become: true
+      become_user: 'root'
+      when: cndeploy_node_type|lower == 'standby'
+      block:
+        - name: 'For Standby nodes disable cnode-cncli-leaderlog.service'
+          ansible.builtin.systemd:
+            enabled: false
+            #masked: true
+            name: 'cnode-cncli-leaderlog.service'
+            state: 'stopped'
+        - name: 'For Standby nodes disable cnode-cncli-ptsendslots.service'
+          ansible.builtin.systemd:
+            enabled: false
+            #masked: true
+            name: 'cnode-cncli-ptsendslots.service'
+            state: 'stopped'
+        - name: 'For Standby nodes disable cnode-cncli-validate.service'
+          ansible.builtin.systemd:
+            enabled: false
+            #masked: true
+            name: 'cnode-cncli-validate.service'
+            state: 'stopped'
+        - name: 'For Standby nodes disable cnode-cncli-sync.service'
+          ansible.builtin.systemd:
+            enabled: false
+            #masked: true
+            name: 'cnode-cncli-sync.service'
+            state: 'stopped'
+        - name: 'For Standby nodes disable cnode-cncli-ptsendtip.service'
+          ansible.builtin.systemd:
+            enabled: false
+            #masked: true
+            name: 'cnode-cncli-ptsendtip.service'
+            state: 'stopped'
+        - name: 'For Standby nodes disable cnode-logmonitor.service'
+          ansible.builtin.systemd:
+            enabled: false
+            #masked: true
+            name: 'cnode-logmonitor.service'
+            state: 'stopped'
+        - name: 'For Standby nodes disable cnode-tu-fetch.service'
+          ansible.builtin.systemd:
+            enabled: false
+            #masked: true
+            name: 'cnode-tu-fetch.service'
+            state: 'stopped'
+        - name: 'For Standby nodes disable cnode-tu-push.service'
+          ansible.builtin.systemd:
+            #enabled: false
+            #masked: true
+            name: 'cnode-tu-push.service'
+            state: 'stopped'
+        - name: 'For Standby nodes disable cnode-tu-push.timer'
+          ansible.builtin.systemd:
+            enabled: false
+            #masked: true
+            name: 'cnode-tu-push.timer'
+            state: 'stopped'
+        - name: 'For Standby nodes disable cnode-tu-restart.service'
+          ansible.builtin.systemd:
+            #enabled: false
+            #masked: true
+            name: 'cnode-tu-restart.service'
+            state: 'stopped'
+        - name: 'For Standby nodes disable cnode-tu-restart.timer'
+          ansible.builtin.systemd:
+            enabled: false
+            #masked: true
+            name: 'cnode-tu-restart.timer'
+            state: 'stopped'
     - name: 'For BP Nodes ensure proper service status (enabled/disabled)'
       # TODO check if all the required setup is in place for every service
       become: true
       become_user: 'root'
-      when: cndeploy_node_type == 'bp'
+      when: cndeploy_node_type|lower == 'bp'
       block:
         - name: 'Get stats of ~/.cargo/bin/cncli'
           ansible.builtin.stat:

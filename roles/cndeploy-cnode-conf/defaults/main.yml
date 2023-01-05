@@ -49,18 +49,21 @@ cndeploy_cnode_cncli_ptsendslots_enabled: false
 cndeploy_cnode_submitapi_enabled: false
 cndeploy_cnode_blockperf_enabled: false
 
-
 # Set to the API key of pooltool.io (use Ansible vault to protect the key)
 #cndeploy_cnode_cncli_ptapikey: '{{ vault_cndeploy_cnode_cncli_ptapikey }}'
 
 # Custom peers field for topology following (IP,port[,valency]) format
 # for example: 10.0.0.1,3001|10.0.0.2,3002|relays.mydomain.com,3003,3
-# Used by Relay Nodes to generate topology.json via topologyUpdater script
-cndeploy_node_custom_peers:
+# Used by Relay Nodes to generate topology.json via topologyUpdater script.
+# When this variable is commented (not defined), the value is auto generated
+# from cndeploy_nodes list (if it contains valid data).
+#cndeploy_relay_custom_peers:
 
 # Define the list of relay nodes, used by a template for topology.json generation
-# Used by BP Nodes to generate topology.json via template
-cndeploy_relay_nodes:
+# Used by BP Nodes to generate topology.json via template.
+# When this variable is commented (not defined), the value is auto generated
+# from cndeploy_nodes list (if it contains valid data).
+#cndeploy_bp_topology_producers:
 #  - addr: some.host.dom
 #    port: 3000
 #    valency: 1

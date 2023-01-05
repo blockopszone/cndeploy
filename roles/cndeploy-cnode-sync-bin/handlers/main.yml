@@ -27,21 +27,13 @@
     state: 'absent'
     user: '{{ cndeploy_user }}'
 
-- name: 'ufw Disallow SSH from origin'
-  community.general.ufw:
-    delete: true
-    port: 22
-    proto: 'tcp'
-    rule: 'allow'
-    src: '{{ cndeploy_cnode_origin_host }}'
-  become: yes
-  become_user: 'root'
-
-- name: 'firewalld Disallow SSH from origin'
-  ansible.posix.firewalld:
-    permanent: 'yes'
-    port: '22/tcp'
+- name: 'Disallow connections on port 22 from origin using iptables'
+  ansible.builtin.iptables:
+    chain: 'INPUT'
+    protocol: 'tcp'
     source: '{{ cndeploy_cnode_origin_host }}'
-    state: 'disabled'
+    destination_ports: '22'
+    jump: 'ACCEPT'
+    state: 'absent'
   become: yes
   become_user: 'root'

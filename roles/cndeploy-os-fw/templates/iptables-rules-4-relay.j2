@@ -2,8 +2,8 @@
 :PREROUTING ACCEPT [0:0]
 :POSTROUTING ACCEPT [0:0]
 {% if cndeploy_nodes|default("") is not none %}
-{% set active_node_ip = (cndeploy_nodes|selectattr('type', 'eq', 'active')|sort(attribute="prio")|first).node_ip %}
-{% set active_port = (cndeploy_nodes|selectattr('type', 'eq', 'active')|sort(attribute="prio")|first).port %}
+{% set active_node_ip = (cndeploy_nodes|selectattr('cndeploy_node_type', 'eq', 'bp')|sort(attribute="cndeploy_node_prio")|first).cndeploy_node_ip %}
+{% set active_port = (cndeploy_nodes|selectattr('cndeploy_node_type', 'eq', 'bp')|sort(attribute="cndeploy_node_prio")|first).cndeploy_node_port %}
 {% if active_node_ip|ansible.utils.ipv4 and active_port|int>=1 and active_port|int<=65535 %}
 -A OUTPUT -m addrtype --src-type LOCAL --dst-type LOCAL -p tcp --dport 6000 -j DNAT --to-destination {{ active_node_ip }}:{{ active_port }}
 -A POSTROUTING -m addrtype --src-type LOCAL --dst-type UNICAST -j MASQUERADE

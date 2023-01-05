@@ -1,6 +1,6 @@
 {
   "Producers": [
-    {% for item in cndeploy_relay_nodes %}
+    {% for item in cndeploy_bp_topology_producers %}
     {
       "addr": "{{ item.addr }}",
       "port": {{ item.port|default([3000]) }},

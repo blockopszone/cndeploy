@@ -1,0 +1,21 @@
+[Unit]
+Description=Cardano Node - CNCLI Leaderlog
+BindsTo=cnode-cncli-sync.service
+After=cnode-cncli-sync.service
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=20
+User=ubuntu
+WorkingDirectory={{ cndeploy_cnode_dir }}/scripts
+ExecStart=/bin/bash -l -c "exec {{ cndeploy_cnode_dir }}/scripts/cncli.sh leaderlog"
+SuccessExitStatus=143
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=cnode-cncli-leaderlog
+TimeoutStopSec=5
+KillMode=mixed
+
+[Install]
+WantedBy=cnode-cncli-sync.service

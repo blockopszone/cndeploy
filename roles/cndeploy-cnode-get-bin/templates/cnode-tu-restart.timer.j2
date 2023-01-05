@@ -1,0 +1,11 @@
+[Unit]
+Description=Cardano Node - Wake Topology Updater restart service at set interval
+BindsTo=cnode.service
+
+[Timer]
+OnActiveSec=86400
+OnUnitInactiveSec=86400
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target cnode.service

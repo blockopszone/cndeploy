@@ -3,17 +3,6 @@
 
 ---
 
-- name: 'Check variables: cndeploy_cnode_origin_dir'
-  ansible.builtin.assert:
-    fail_msg: >
-      Invalid value -> Local cnode directory must be also defined
-      in CNODE_HOME environment variable.
-    quiet: true
-    that:
-      - cndeploy_cnode_origin_dir == lookup('env', 'CNODE_HOME')
-        or cndeploy_cnode_origin_dir_check_override
-  delegate_to: '{{ cndeploy_cnode_origin_host }}'
-
 - name: 'Resolve platform specific vars'
   include_vars: '{{ item }}'
   with_first_found:
@@ -26,6 +15,53 @@
       paths:
         - '{{ role_path }}/vars'
       skip: true
+
+- name: 'Resolve SSH host IP'
+  ansible.builtin.set_fact:
+    ssh_host_ip: '{{ ansible_env["SSH_CONNECTION"].split(" ")[2] }}'
+
+- name: 'Resolve node definition vars if present'
+  when: cndeploy_nodes is defined
+  block:
+    - name: 'Export the dictionary containing this node variables to cndeploy_node'
+      ansible.builtin.set_fact:
+        cndeploy_node: '{{ item }}'
+      with_list: '{{ cndeploy_nodes }}'
+      when: item.cndeploy_node_management_ip == ssh_host_ip
+    - name: 'Resolve the variables contained in cndeploy_node'
+      when: cndeploy_node is defined
+      ansible.builtin.set_fact:
+        '{{ item.key }}': '{{ item.value }}'
+      with_dict: '{{ cndeploy_node }}'
+
+- name: 'Resolve cndeploy_nodes_types.all dictionary vars if present'
+  when: cndeploy_nodes_types.all is defined
+  ansible.builtin.set_fact:
+    '{{ item.key }}': '{{ item.value }}'
+  with_dict: '{{ cndeploy_nodes_types.all }}'
+
+- name: 'Resolve cndeploy_nodes_types.{{ cndeploy_node_type }} dictionary vars if present'
+  when: 'cndeploy_nodes_types[cndeploy_node_type] is defined'
+  ansible.builtin.set_fact:
+    '{{ item.key }}': '{{ item.value }}'
+  with_dict: '{{ cndeploy_nodes_types[cndeploy_node_type] }}'
+
+- name: 'Resolve cndeploy_nodes_types.{{ cndeploy_node_management_ip }} dictionary vars if present'
+  when: 'cndeploy_nodes_types[cndeploy_node_management_ip] is defined'
+  ansible.builtin.set_fact:
+    '{{ item.key }}': '{{ item.value }}'
+  with_dict: '{{ cndeploy_nodes_types[cndeploy_node_management_ip] }}'
+
+- name: 'Check variables: cndeploy_cnode_origin_dir'
+  ansible.builtin.assert:
+    fail_msg: >
+      Invalid value -> Local cnode directory must be also defined
+      in CNODE_HOME environment variable.
+    quiet: true
+    that:
+      - cndeploy_cnode_origin_dir == lookup('env', 'CNODE_HOME')
+        or cndeploy_cnode_origin_dir_check_override
+  delegate_to: '{{ cndeploy_cnode_origin_host }}'
 
 - name: 'Install dependencies for the OS'
   ansible.builtin.package:
@@ -87,50 +123,19 @@
             - cndeploy_cnode_origin_host != 'localhost'
             - cndeploy_cnode_origin_host != '127.0.0.1'
           block:
-            - name: 'Check if ufw is available'
-              ansible.builtin.stat:
-                path: '/usr/sbin/ufw'
-              register: ufw
-            - name: 'Check if firewalld is available'
-              ansible.builtin.stat:
-                path: '/usr/sbin/firewalld'
-              register: firewalld
             - name: 'Check if iptables is available'
               ansible.builtin.stat:
                 path: '/usr/sbin/iptables'
               register: iptables
-            - name: 'Use ufw if available'
-              when: ufw.stat.exists
-              block:
-                - name: 'ufw Allow SSH from origin'
-                  community.general.ufw:
-                    port: 22
-                    proto: 'tcp'
-                    rule: 'allow'
-                    src: '{{ cndeploy_cnode_origin_host }}'
-                  notify: 'ufw Disallow SSH from origin'
-            - name: 'Use firewald if available when ufw is not'
-              # TODO testing needed
+            - name: 'Allow connections on port 22 from origin using iptables'
+              ansible.builtin.iptables:
+                chain: 'INPUT'
+                protocol: 'tcp'
+                source: '{{ cndeploy_cnode_origin_host }}'
+                destination_ports: '22'
+                jump: 'ACCEPT'
+              notify: 'Disallow connections on port 22 from origin using iptables'
               when:
-                - not ufw.stat.exists
-                - firewalld.stat.exists
-              block:
-                - name: 'firewalld Allow SSH from origin'
-                  ansible.posix.firewalld:
-                    permanent: 'yes'
-                    port: '22/tcp'
-                    source: '{{ cndeploy_cnode_origin_host }}'
-                    state: 'enabled'
-                  notify: 'firewalld Disallow SSH from origin'
-            - name: 'Use iptables if available when ufw and firewalld are not'
-              # TODO finish block with iptables module + permanent changes
-              ansible.builtin.debug:
-                msg: >
-                  Iptables is the only known firewall available on the host,
-                  but it can't be setup as it is not yet supported by the script.
-              when:
-                - not ufw.stat.exists
-                - not firewalld.stat.exists
                 - iptables.stat.exists
         - name: 'Create a keypair in origin if it does not already exist'
           ansible.builtin.command:

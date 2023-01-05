@@ -1,0 +1,23 @@
+[Unit]
+Description=Cardano Node Submit API
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+User=ubuntu
+LimitNOFILE=1048576
+WorkingDirectory={{ cndeploy_cnode_dir }}/scripts
+ExecStart=/bin/bash -l -c "exec {{ cndeploy_cnode_dir }}/scripts/submitapi.sh"
+KillSignal=SIGINT
+SuccessExitStatus=143
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=cnode-submit-api
+TimeoutStopSec=5
+KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target
