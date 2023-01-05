@@ -16,18 +16,21 @@
       include_role:
         name: cndeploy-os-fw
 
-    # Activate only build or sync-bin
+    # Activate only build or sync-bini or get-bin
     #- name: Include cndeploy-cnode-build
     #  include_role:
     #    name: cndeploy-cnode-build
-    - name: Include cndeploy-cnode-sync-bin
+    #- name: Include cndeploy-cnode-sync-bin
+    #  include_role:
+    #    name: cndeploy-cnode-sync-bin
+    - name: Include cndeploy-cnode-get-bin
       include_role:
-        name: cndeploy-cnode-sync-bin
+        name: cndeploy-cnode-get-bin
 
     # TODO: Evaluate when/if it is worth to manually sync the db files from origin
-    - name: Include cndeploy-cnode-sync-db
-      include_role:
-        name: cndeploy-cnode-sync-db
+    #- name: Include cndeploy-cnode-sync-db
+    #  include_role:
+    #    name: cndeploy-cnode-sync-db
 
     - name: Include cndeploy-cnode-conf
       include_role:

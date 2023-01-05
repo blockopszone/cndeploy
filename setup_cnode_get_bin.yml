@@ -1,0 +1,9 @@
+---
+
+- hosts: all
+
+  tasks:
+
+    - name: Include cndeploy-cnode-get-bin
+      include_role:
+        name: cndeploy-cnode-get-bin
