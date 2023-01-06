@@ -89,9 +89,9 @@
       Invalid value -> swappiness must be a number between 0 and 100.
     quiet: true
     that:
-      - cndeploy_swappiness is integer
-      - cndeploy_swappiness >= 0
-      - cndeploy_swappiness <= 100
+      - cndeploy_swappiness|int is integer
+      - cndeploy_swappiness|int >= 0
+      - cndeploy_swappiness|int <= 100
   when:
     - cndeploy_swap_configure|default(false)|bool
     - cndeploy_swap_enable|default(false)|bool
