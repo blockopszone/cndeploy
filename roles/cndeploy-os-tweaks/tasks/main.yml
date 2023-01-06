@@ -77,8 +77,8 @@
       Invalid value -> swap_file_size_mb must be an integer greater than 1.
     quiet: true
     that:
-      - cndeploy_swap_file_size_mb is integer
-      - cndeploy_swap_file_size_mb >= 1
+      - cndeploy_swap_file_size_mb|int is integer
+      - cndeploy_swap_file_size_mb|int >= 1
   when:
     - cndeploy_swap_configure|default(false)|bool
     - cndeploy_swap_enable|default(false)|bool
