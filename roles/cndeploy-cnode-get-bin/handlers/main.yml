@@ -12,3 +12,10 @@
     state: 'started'
   become: true
   become_user: 'root'
+
+- name: 'Start Submit Api'
+  ansible.builtin.systemd:
+    name: 'cnode-submit-api.service'
+    state: 'started'
+    become: true
+    become_user: 'root'

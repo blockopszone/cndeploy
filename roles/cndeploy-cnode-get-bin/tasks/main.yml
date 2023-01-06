@@ -146,6 +146,19 @@
       ansible.builtin.pause:
         seconds: 30
       when: remoteservice.changed
+    - name: 'Stop Submit Api if started'
+      ansible.builtin.systemd:
+        name: 'cnode-submit-api.service'
+        state: 'stopped'
+        become: true
+        become_user: 'root'
+        notify: 'Start Submit Api'
+        register: remoteapiservice
+        when: cndeploy_node_version.rc == 0
+    - name: 'Wait 30 seconds to make sure the remote submit api service is stopped'
+      ansible.builtin.pause:
+        seconds: 30
+      when: remoteapiservice.changed
     - name: 'Overwrite old binaries with the new ones'
       ansible.builtin.copy:
         src: '~/cabalbintemp/'
