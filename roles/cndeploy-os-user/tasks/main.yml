@@ -35,23 +35,23 @@
         '{{ item.key }}': '{{ item.value }}'
       with_dict: '{{ cndeploy_node }}'
 
-- name: 'Resolve cndeploy_nodes_types.all dictionary vars if present'
-  when: cndeploy_nodes_types.all is defined
+- name: 'Resolve cndeploy_config.all dictionary vars if present'
+  when: cndeploy_config.all is defined
   ansible.builtin.set_fact:
     '{{ item.key }}': '{{ item.value }}'
-  with_dict: '{{ cndeploy_nodes_types.all }}'
+  with_dict: '{{ cndeploy_config.all }}'
 
-- name: 'Resolve cndeploy_nodes_types.{{ cndeploy_node_type }} dictionary vars if present'
-  when: 'cndeploy_nodes_types[cndeploy_node_type] is defined'
+- name: 'Resolve cndeploy_config.{{ cndeploy_node_type }} dictionary vars if present'
+  when: 'cndeploy_config[cndeploy_node_type] is defined'
   ansible.builtin.set_fact:
     '{{ item.key }}': '{{ item.value }}'
-  with_dict: '{{ cndeploy_nodes_types[cndeploy_node_type] }}'
+  with_dict: '{{ cndeploy_config[cndeploy_node_type] }}'
 
-- name: 'Resolve cndeploy_nodes_types.{{ cndeploy_node_management_ip }} dictionary vars if present'
-  when: 'cndeploy_nodes_types[cndeploy_node_management_ip] is defined'
+- name: 'Resolve cndeploy_config.{{ cndeploy_node_management_ip }} dictionary vars if present'
+  when: 'cndeploy_config[cndeploy_node_management_ip] is defined'
   ansible.builtin.set_fact:
     '{{ item.key }}': '{{ item.value }}'
-  with_dict: '{{ cndeploy_nodes_types[cndeploy_node_management_ip] }}'
+  with_dict: '{{ cndeploy_config[cndeploy_node_management_ip] }}'
 
 - name: 'Create group for admin user'
   ansible.builtin.group:
