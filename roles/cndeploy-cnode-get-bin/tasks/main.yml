@@ -150,6 +150,7 @@
       ansible.builtin.copy:
         src: '~/cabalbintemp/'
         dest: '~/.cabal/bin/'
+        remote_src: true
         mode: 'preserve'
     - name: 'Install/Update Guild Operators CNODE skipping system dependencies and reset settings to default'
       block:
