@@ -60,16 +60,16 @@
     '{{ item.key }}': '{{ item.value }}'
   with_dict: '{{ cndeploy_config[cndeploy_node_management_ip] }}'
 
-- name: 'Check variables: cndeploy_hostname'
+- name: 'Check variables: cndeploy_node_hostname'
   ansible.builtin.assert:
     fail_msg: >
       Invalid value -> hostname must be a string formed by up to 253 characters,
       (a to z, A to Z, 0 to 9, _, -, .)
     quiet: true
     that:
-      - cndeploy_hostname is defined
-      - cndeploy_hostname is match('^[a-zA-Z0-9-_.]{1,253}$')
-  when: cndeploy_hostname_change|default(false)|bool
+      - cndeploy_node_hostname is defined
+      - cndeploy_node_hostname is match('^[a-zA-Z0-9-_.]{1,253}$')
+  when: cndeploy_node_hostname_change|default(false)|bool
 
 - name: 'Check variables: cndeploy_swap_file_size_mb'
   ansible.builtin.assert:
@@ -105,12 +105,12 @@
 
 - name: 'Set hostname'
   ansible.builtin.hostname:
-    name: '{{ cndeploy_hostname }}'
+    name: '{{ cndeploy_node_hostname }}'
   become: true
   become_user: 'root'
   when:
-    - cndeploy_hostname_change|default(false)|bool
-    - cndeploy_hostname is defined
+    - cndeploy_node_hostname_change|default(false)|bool
+    - cndeploy_node_hostname is defined
 
 - name: 'Add entries to hosts file'
   ansible.builtin.blockinfile:

@@ -1,9 +1,9 @@
 # set to true to change hostname
 # Required
-cndeploy_hostname_change: false
+cndeploy_node_hostname_change: false
 
 # set to the desired hostname
-#cndeploy_hostname: cn
+#cndeploy_node_hostname: cn
 
 # set to true to add entries to the hosts file
 # Required
