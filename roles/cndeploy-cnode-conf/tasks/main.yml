@@ -312,11 +312,11 @@
             - cndeploy_cnode_cncli_ptapikey|length > 10
 
 - name: 'Set the services'
+  become: true
+  become_user: 'root'
   block:
     - name: 'For Relays ensure proper service status (enabled/disabled)'
       # TODO check if all the required setup is in place for every service
-      become: true
-      become_user: 'root'
       when: cndeploy_node_type|lower == 'relay'
       block:
         - name: 'For Relays disable cnode-cncli-leaderlog.service'
@@ -380,8 +380,6 @@
             name: 'cnode-tu-restart.timer'
     - name: 'For Standby nodes ensure proper service status (enabled/disabled)'
       # TODO check if all the required setup is in place for every service
-      become: true
-      become_user: 'root'
       when: cndeploy_node_type|lower == 'standby'
       block:
         - name: 'For Standby nodes disable cnode-cncli-leaderlog.service'
@@ -452,8 +450,6 @@
             state: 'stopped'
     - name: 'For BP Nodes ensure proper service status (enabled/disabled)'
       # TODO check if all the required setup is in place for every service
-      become: true
-      become_user: 'root'
       when: cndeploy_node_type|lower == 'bp'
       block:
         - name: 'Get stats of ~/.cargo/bin/cncli'
@@ -580,8 +576,6 @@
         enabled: true
         masked: false
         name: 'cnode.service'
-      become: true
-      become_user: 'root'
 
 - name: 'Stop the node if configuration changes were made'
   notify: 'Start Cardano node'
