@@ -12,8 +12,8 @@
 {% endif %}
 {% if groups['all']|default("") is not none %}
 {% for node in groups['all'] %}
-{% if node.cndeploy_node_type == "relay" %}
--A INPUT -p tcp -s {{ node.cndeploy_node_ip }} --dport {{ node.cndeploy_node_port }} -m conntrack --ctstate NEW -j ACCEPT
+{% if hostvars[node]['cndeploy_node_type'] == "relay" %}
+-A INPUT -p tcp -s {{ hostvars[node]['cndeploy_node_ip'] }} --dport {{ hostvars[node]['cndeploy_node_port'] }} -m conntrack --ctstate NEW -j ACCEPT
 {% endif %}
 {% endfor %}
 {% endif %}
