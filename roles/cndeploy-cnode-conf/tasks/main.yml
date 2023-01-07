@@ -41,7 +41,7 @@
           - hostvars[item]['cndeploy_node_port'] is integer
           - hostvars[item]['cndeploy_node_port'] >= 1
           - hostvars[item]['cndeploy_node_port'] <= 65535
-      with_items: '{{ groups["all"] }}''
+      with_items: '{{ groups["all"] }}'
     - name: 'Calculate cndeploy_relay_custom_peers'
       with_items: '{{ groups["all"] }}'
       when:
