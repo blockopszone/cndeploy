@@ -27,8 +27,8 @@
   block:
     - name: 'Check variables: hostvars for required fields to calculate: cndeploy_relay_custom_peers'
       when:
-        - hostvars[item]['cndeploy_node_type']|lower|default("") == 'relay' or
-          hostvars[item]['cndeploy_node_type']|lower|default("") == 'bp'
+        - hostvars[item]['cndeploy_node_type']|lower|default('') == 'relay' or
+          hostvars[item]['cndeploy_node_type']|lower|default('') == 'bp'
       ansible.builtin.assert:
         fail_msg: >
           Invalid value -> hostvars definition must contain valid values for keys
@@ -41,11 +41,11 @@
           - hostvars[item]['cndeploy_node_port'] is integer
           - hostvars[item]['cndeploy_node_port'] >= 1
           - hostvars[item]['cndeploy_node_port'] <= 65535
-      with_items: “{{ groups['all'] }}”
+      with_items: '{{ groups["all"] }}''
     - name: 'Calculate cndeploy_relay_custom_peers'
-      with_items: “{{ groups['all'] }}”
+      with_items: '{{ groups["all"] }}'
       when:
-        - hostvars[item]['cndeploy_node_type']|lower|default("") == "bp" or hostvars[item]['cndeploy_node_type']|lower|default("") == "relay"
+        - hostvars[item]['cndeploy_node_type']|lower|default('') == 'bp' or hostvars[item]['cndeploy_node_type']|lower|default('') == 'relay'
         - hostvars[item]['cndeploy_node_ip'] != ssh_host_ip
         - hostvars[item]['ansible_host'] != ssh_host_ip
       ansible.builtin.set_fact:
@@ -61,8 +61,8 @@
   block:
     - name: 'Check variables: hostvars for required fields to calculate: cndeploy_bp_topology_producers'
       when:
-        - hostvars[item]['cndeploy_node_type']|lower|default("") == 'relay' or
-          hostvars[item]['cndeploy_node_type']|lower|default("") == 'bp'
+        - hostvars[item]['cndeploy_node_type']|lower|default('') == 'relay' or
+          hostvars[item]['cndeploy_node_type']|lower|default('') == 'bp'
       ansible.builtin.assert:
         fail_msg: >
           Invalid value -> hostvars definition must contain valid values for keys
@@ -75,14 +75,14 @@
           - hostvars[item]['cndeploy_node_port'] is integer
           - hostvars[item]['cndeploy_node_port'] >= 1
           - hostvars[item]['cndeploy_node_port'] <= 65535
-      with_items: “{{ groups['all'] }}”
+      with_items: '{{ groups["all"] }}'
     - name: 'Initialise cndeploy_bp_topology_producers'
       ansible.builtin.set_fact:
         cndeploy_bp_topology_producers: []
     - name: 'Populate cndeploy_bp_topology_producers'
-      with_items: “{{ groups['all'] }}”
+      with_items: '{{ groups["all"] }}'
       when:
-        - hostvars[item]['cndeploy_node_type']|lower|default("") == "relay"
+        - hostvars[item]['cndeploy_node_type']|lower|default('') == 'relay'
       ansible.builtin.set_fact:
         cndeploy_bp_topology_producers: "{{ cndeploy_bp_topology_producers + [{'addr':hostvars[item]['cndeploy_node_ip'], 'port':hostvars[item]['cndeploy_node_port'], 'valency':'1'}] }}"
 
