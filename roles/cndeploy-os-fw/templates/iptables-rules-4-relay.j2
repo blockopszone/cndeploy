@@ -1,19 +1,19 @@
 *nat
 :PREROUTING ACCEPT [0:0]
 :POSTROUTING ACCEPT [0:0]
-
-{% set active_node_ip = '' %}
-{% set active_node_port = '' %}
-{% set active_node_prio = 100 %}
+{% set ns = namespace() %}
+{% set ns.active_node_ip = '' %}
+{% set ns.active_node_port = '' %}
+{% set ns.active_node_prio = 100 %}
 {% for host in groups['bp'] %}
-{%   if hostvars[host]['cndeploy_node_prio']|int < active_node_prio|int %}
-{%     set active_node_ip = hostvars[host]['cndeploy_node_ip'] %}
-{%     set active_node_port = hostvars[host]['cndeploy_node_port'] %}
-{%     set active_node_prio = hostvars[host]['cndeploy_node_prio']|int %}
-{%   endif %}
+{% if hostvars[host]['cndeploy_node_prio']|int < ns.active_node_prio|int %}
+{% set ns.active_node_ip = hostvars[host]['cndeploy_node_ip'] %}
+{% set ns.active_node_port = hostvars[host]['cndeploy_node_port'] %}
+{% set ns.active_node_prio = hostvars[host]['cndeploy_node_prio']|int %}
+{% endif %}
 {% endfor %}
-{% if active_node_ip|ansible.utils.ipv4 and active_port|int>=1 and active_port|int<=65535 %}
--A OUTPUT -m addrtype --src-type LOCAL --dst-type LOCAL -p tcp --dport 6000 -j DNAT --to-destination {{ active_node_ip }}:{{ active_port }}
+{% if ns.active_node_ip|ansible.utils.ipv4 and ns.active_node_port|int>=1 and ns.active_node_port|int<=65535 %}
+-A OUTPUT -m addrtype --src-type LOCAL --dst-type LOCAL -p tcp --dport 6000 -j DNAT --to-destination {{ ns.active_node_ip }}:{{ ns.active_node_port }}
 -A POSTROUTING -m addrtype --src-type LOCAL --dst-type UNICAST -j MASQUERADE
 {% endif %}
 COMMIT
