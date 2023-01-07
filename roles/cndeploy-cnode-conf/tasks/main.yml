@@ -57,7 +57,7 @@
 - name: 'Show cndeploy_relay_custom_peers'
   ansible.builtin.debug:
     msg: '{{ cndeploy_relay_custom_peers }}'
-  when: cndeploy_host_type == 'relay'
+  when: cndeploy_node_type == 'relay'
 
 - name: 'Resolve calculated vars if not already set and node is bp: cndeploy_bp_topology_producers'
   when:
@@ -94,7 +94,7 @@
 - name: 'Show cndeploy_bp_topology_producers'
   ansible.builtin.debug:
     msg: '{{ cndeploy_bp_topology_producers }}'
-  when: cndeploy_host_type == 'bp'
+  when: cndeploy_node_type == 'bp'
 
 - name: 'Check variables: cndeploy_node_port'
   ansible.builtin.assert:
