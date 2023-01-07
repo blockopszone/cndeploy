@@ -45,9 +45,9 @@
     - name: 'Calculate cndeploy_relay_custom_peers'
       with_items: '{{ groups["all"] }}'
       when:
-        - hostvars[item]['cndeploy_node_type']|lower|default('') == 'bp' or hostvars[item]['cndeploy_node_type']|lower|default('') == 'relay'
-        - hostvars[item]['cndeploy_node_ip'] != ssh_host_ip
-        - hostvars[item]['ansible_host'] != ssh_host_ip
+        - (hostvars[item]['cndeploy_node_type']|lower|default('') == 'bp' or hostvars[item]['cndeploy_node_type']|lower|default('') == 'relay')
+        #- hostvars[item]['cndeploy_node_ip'] != ssh_host_ip
+        #- hostvars[item]['ansible_host'] != ssh_host_ip
       ansible.builtin.set_fact:
         cndeploy_relay_custom_peers: '{{ cndeploy_relay_custom_peers | default("") }}{{ hostvars[item]["cndeploy_node_ip"] }},{{ hostvars[item]["cndeploy_node_port"] }} '
     - name: 'Format cndeploy_relay_custom_peers'
