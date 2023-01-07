@@ -22,7 +22,7 @@
 
 - name: 'Resolve calculated vars if not already set and node is relay: cndeploy_relay_custom_peers'
   when:
-    - cndeploy_node_type|lower|default("") == 'relay'
+    - cndeploy_node_type|lower|default('') == 'relay'
     - cndeploy_relay_custom_peers is not defined
   block:
     - name: 'Check variables: hostvars for required fields to calculate: cndeploy_relay_custom_peers'
@@ -57,10 +57,11 @@
 - name: 'Show cndeploy_relay_custom_peers'
   ansible.builtin.debug:
     msg: '{{ cndeploy_relay_custom_peers }}'
+  when: cndeploy_host_type == 'relay'
 
 - name: 'Resolve calculated vars if not already set and node is bp: cndeploy_bp_topology_producers'
   when:
-    - cndeploy_node_type|lower|default("") == 'bp'
+    - cndeploy_node_type|lower|default('') == 'bp'
     - cndeploy_bp_topology_producers is not defined
   block:
     - name: 'Check variables: hostvars for required fields to calculate: cndeploy_bp_topology_producers'
@@ -93,6 +94,7 @@
 - name: 'Show cndeploy_bp_topology_producers'
   ansible.builtin.debug:
     msg: '{{ cndeploy_bp_topology_producers }}'
+  when: cndeploy_host_type == 'bp'
 
 - name: 'Check variables: cndeploy_node_port'
   ansible.builtin.assert:
