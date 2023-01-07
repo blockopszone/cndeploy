@@ -10,8 +10,8 @@
 -A OUTPUT -d {{ bl_ip }} -j DROP
 {% endfor %}
 {% endif %}
-{% if cndeploy_nodes|default("") is not none %}
-{% for node in cndeploy_nodes %}
+{% if groups['all']|default("") is not none %}
+{% for node in groups['all'] %}
 {% if node.cndeploy_node_type == "relay" %}
 -A INPUT -p tcp -s {{ node.cndeploy_node_ip }} --dport {{ node.cndeploy_node_port }} -m conntrack --ctstate NEW -j ACCEPT
 {% endif %}

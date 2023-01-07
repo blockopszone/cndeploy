@@ -17,42 +17,6 @@
         - '{{ role_path }}/vars'
       skip: true
 
-- name: 'Resolve SSH host IP'
-  ansible.builtin.set_fact:
-    ssh_host_ip: '{{ ansible_env["SSH_CONNECTION"].split(" ")[2] }}'
-
-- name: 'Resolve node definition vars if present'
-  when: cndeploy_nodes is defined
-  block:
-    - name: 'Export the dictionary containing this node variables to cndeploy_node'
-      ansible.builtin.set_fact:
-        cndeploy_node: '{{ item }}'
-      with_list: '{{ cndeploy_nodes }}'
-      when: item.cndeploy_node_management_ip == ssh_host_ip
-    - name: 'Resolve the variables contained in cndeploy_node'
-      when: cndeploy_node is defined
-      ansible.builtin.set_fact:
-        '{{ item.key }}': '{{ item.value }}'
-      with_dict: '{{ cndeploy_node }}'
-
-- name: 'Resolve cndeploy_config.all dictionary vars if present'
-  when: cndeploy_config.all is defined
-  ansible.builtin.set_fact:
-    '{{ item.key }}': '{{ item.value }}'
-  with_dict: '{{ cndeploy_config.all }}'
-
-- name: 'Resolve cndeploy_config.{{ cndeploy_node_type }} dictionary vars if present'
-  when: 'cndeploy_config[cndeploy_node_type] is defined'
-  ansible.builtin.set_fact:
-    '{{ item.key }}': '{{ item.value }}'
-  with_dict: '{{ cndeploy_config[cndeploy_node_type] }}'
-
-- name: 'Resolve cndeploy_config.{{ cndeploy_node_management_ip }} dictionary vars if present'
-  when: 'cndeploy_config[cndeploy_node_management_ip] is defined'
-  ansible.builtin.set_fact:
-    '{{ item.key }}': '{{ item.value }}'
-  with_dict: '{{ cndeploy_config[cndeploy_node_management_ip] }}'
-
 - name: 'Create group for admin user'
   ansible.builtin.group:
     name: '{{ cndeploy_user|default(cndeploy_user_default) }}'

@@ -56,13 +56,13 @@ cndeploy_cnode_blockperf_enabled: false
 # for example: 10.0.0.1,3001|10.0.0.2,3002|relays.mydomain.com,3003,3
 # Used by Relay Nodes to generate topology.json via topologyUpdater script.
 # When this variable is commented (not defined), the value is auto generated
-# from cndeploy_nodes list (if it contains valid data).
+# from the list of hosts / groups.
 #cndeploy_relay_custom_peers:
 
 # Define the list of relay nodes, used by a template for topology.json generation
 # Used by BP Nodes to generate topology.json via template.
 # When this variable is commented (not defined), the value is auto generated
-# from cndeploy_nodes list (if it contains valid data).
+# from the list of hosts / groups.
 #cndeploy_bp_topology_producers:
 #  - addr: some.host.dom
 #    port: 3000
