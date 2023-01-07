@@ -61,7 +61,7 @@
       - hostvars[item]['cndeploy_node_prio']|default(50)|int != 0
       - hostvars[item]['cndeploy_node_prio']|default(50)|int >= 1
       - hostvars[item]['cndeploy_node_prio']|default(50)|int <= 99
-  with_items: “{{ groups['all'] }}”
+  with_items: '{{ groups["all"] }}'
 
 - name: 'Check variables: cndeploy_node_type'
   ansible.builtin.assert:
