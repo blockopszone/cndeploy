@@ -43,8 +43,8 @@
 # cndeploy _node_ip _node_port _node_prio _node_type are required by this role
 - name: 'Check variables: hostvars for required fields in every needed host'
   when:
-    - hostvars[item]['cndeploy_node_type']|lower|default("") == 'relay' or
-      hostvars[item]['cndeploy_node_type']|lower|default("") == 'bp'
+    - hostvars[item]['cndeploy_node_type']|lower|default('') == 'relay' or
+      hostvars[item]['cndeploy_node_type']|lower|default('') == 'bp'
   ansible.builtin.assert:
     fail_msg: >
       Invalid value -> hostvars definition must contain valid values for keys
