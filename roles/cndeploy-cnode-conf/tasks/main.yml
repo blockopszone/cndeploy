@@ -54,6 +54,10 @@
       ansible.builtin.set_fact:
         cndeploy_relay_custom_peers: '{{ cndeploy_relay_custom_peers | trim | replace(" ", "|") }}'
 
+- name: 'Show cndeploy_relay_custom_peers'
+  ansible.builtin.debug:
+    msg: '{{ cndeploy_relay_custom_peers }}'
+
 - name: 'Resolve calculated vars if not already set and node is bp: cndeploy_bp_topology_producers'
   when:
     - cndeploy_node_type|lower|default("") == 'bp'
@@ -85,6 +89,10 @@
         - hostvars[item]['cndeploy_node_type']|lower|default('') == 'relay'
       ansible.builtin.set_fact:
         cndeploy_bp_topology_producers: "{{ cndeploy_bp_topology_producers + [{'addr':hostvars[item]['cndeploy_node_ip'], 'port':hostvars[item]['cndeploy_node_port'], 'valency':'1'}] }}"
+
+- name: 'Show cndeploy_bp_topology_producers'
+  ansible.builtin.debug:
+    msg: '{{ cndeploy_bp_topology_producers }}'
 
 - name: 'Check variables: cndeploy_node_port'
   ansible.builtin.assert:
