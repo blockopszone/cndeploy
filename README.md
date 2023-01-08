@@ -333,7 +333,7 @@ Default value:
 Used by roles:  
 Description:  
 
-### Access and Firewall clauses
+### Access and Firewall clauses
 
 #### cndeploy_firewall_enabled
 
@@ -391,7 +391,7 @@ Default value:
 Used by roles:  
 Description:  
 
-### Cardano node clauses
+### Cardano node clauses
 
 #### cndeploy_cnode_dir_local
 
@@ -481,7 +481,7 @@ Default value:
 Used by roles:  
 Description:  
 
-### Cncli clauses
+### Cncli clauses
 
 #### cndeploy_cnode_cncli_install
 
