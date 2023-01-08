@@ -26,7 +26,7 @@ Be aware that cntools and the other scripts from Guild Operators are installed i
 
 Finally, some of the roles expect to have a Cardano node installed on the Ansible master host, in order to copy the stake pool files from it, or even the binaries and/or the blocks database. In the case that this master host is properly protected, it could also be used to hold the cold.* files and perform the rotations.  
   
-## Configuration examples 
+## Configuration examples 
 
 See below the inventary files comprising a configuration example. As per Ansible's standard functioning, the defined variables have the following precedence (from less to more):  
 
