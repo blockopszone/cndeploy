@@ -1,10 +1,14 @@
+
 ## What is cndeploy
+
 cndeploy is a collection of Ansible roles that provide automated deployments of Cardano staking pools with related community scripts, following the best practices, with the ultimate goal to be integrated with other tools to achieve a secure and highly available setup.
 
 ## Disclaimer
+
 This project is in alpha stage, code provided isn't thoroughly tested, and documentation is not complete, so at the moment it is meant to be used only in development and test environments.
 
 ## Requirements
+
 A full working installation of Ansible is required in order to run a playbook with the roles provided in this package. At the time of writting the version core 2.12.9 is being used for the development process. Testing is needed for other versions. For more information about Ansible please see :  
 - https://docs.ansible.com/
 
@@ -20,8 +24,9 @@ or, if the use of a script is preferred, cntools from Guild Operators could be u
 Be aware that cntools and the other scripts from Guild Operators are installed in the nodes by the roles, but certain operations require the cold.* files and those won't be available in the block producer or relays as mentioned earlier.
 
 Finally, some of the roles expect to have a Cardano node installed on the Ansible master host, in order to copy the stake pool files from it, or even the binaries and/or the blocks database. In the case that this master host is properly protected, it could also be used to hold the cold.* files and perform the rotations.  
+  
+## Configuration example  
 
-## Configuration example
 See below the inventary files comprising a configuration example. As per Ansible's standard functioning, the defined variables have the following precedence (from less to more):  
 - hosts inventary file
 - <
@@ -188,6 +193,7 @@ cndeploy_pkgs_upgrade: false
 ```
 
 ## Deploying the nodes example
+
 In the main directory of the cndeploy project there are many playbook examples available to use, from the ones executing only one role, to another that sets up an entire stake pool. Edit the desired one to customise it accordingly, and proceed to execute it as below (please note that we keep using Ansible's vault in the example, so we provide a key file):
 ```
 ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setup_stake_pool.yml -i my_sp_inventory/hosts -l my_sp_prod
@@ -196,8 +202,9 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
 ## Reference of all configuration clauses available
 
 ### Host setup clauses
----
+
 #### cndeploy_node_hostname
+
 Required:  
 Value type:  
 Default value:  
@@ -205,6 +212,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_pkgs_update
+
 Required:  
 Value type:  
 Default value:  
@@ -212,6 +220,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_pkgs_upgrade
+
 Required:  
 Value type:  
 Default value:  
@@ -219,6 +228,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_pkgs_add
+
 Required:  
 Value type:  
 Default value:  
@@ -226,6 +236,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_pkgs_add_list
+
 Required:  
 Value type:  
 Default value:  
@@ -233,6 +244,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_node_hostname_change
+
 Required:  
 Value type:  
 Default value:  
@@ -240,6 +252,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_hosts_change
+
 Required:  
 Value type:  
 Default value:  
@@ -247,6 +260,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_hosts
+
 Required:  
 Value type:  
 Default value:  
@@ -254,6 +268,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_add_aliases
+
 Required:  
 Value type:  
 Default value:  
@@ -261,6 +276,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_aliases
+
 Required:  
 Value type:  
 Default value:  
@@ -268,6 +284,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_swap_configure
+
 Required:  
 Value type:  
 Default value:  
@@ -275,6 +292,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_swap_enable
+
 Required:  
 Value type:  
 Default value:  
@@ -282,6 +300,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_swap_file_path
+
 Required:  
 Value type:  
 Default value:  
@@ -289,6 +308,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_swap_file_size_mb
+
 Required:  
 Value type:  
 Default value:  
@@ -296,6 +316,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_swappiness
+
 Required:  
 Value type:  
 Default value:  
@@ -303,6 +324,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_disable_ipv6
+
 Required:  
 Value type:  
 Default value:  
@@ -310,8 +332,9 @@ Used by roles:
 Description:  
 
 ### Access and Firewall clauses
----
+
 #### cndeploy_firewall_enabled
+
 Required:  
 Value type:  
 Default value:  
@@ -319,6 +342,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_whitelist_ip
+
 Required:  
 Value type:  
 Default value:  
@@ -326,6 +350,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_blacklist_ip
+
 Required:  
 Value type:  
 Default value:  
@@ -333,6 +358,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_allowhostname_enabled
+
 Required:  
 Value type:  
 Default value:  
@@ -340,6 +366,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_allowhostname
+
 Required:  
 Value type:  
 Default value:  
@@ -347,6 +374,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_ssh_restrict
+
 Required:  
 Value type:  
 Default value:  
@@ -354,6 +382,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_ssh_pubkeys
+
 Required:  
 Value type:  
 Default value:  
@@ -361,8 +390,9 @@ Used by roles:
 Description:  
 
 ### Cardano node clauses
----
+
 #### cndeploy_cnode_dir_local
+
 Required:  
 Value type:  
 Default value:  
@@ -370,6 +400,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_cnode_dir_local_check_override
+
 Required:  
 Value type:  
 Default value:  
@@ -377,6 +408,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_cnode_bin_archive_url
+
 Required:  
 Value type:  
 Default value:  
@@ -384,6 +416,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_cnode_dir
+
 Required:  
 Value type:  
 Default value:  
@@ -391,6 +424,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_node_type
+
 Required:  
 Value type:  
 Default value:  
@@ -398,6 +432,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_cnode_logmonitor_enabled
+
 Required:  
 Value type:  
 Default value:  
@@ -405,6 +440,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_cnode_submitapi_enabled
+
 Required:  
 Value type:  
 Default value:  
@@ -412,6 +448,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_cnode_blockperf_enabled
+
 Required:  
 Value type:  
 Default value:  
@@ -419,6 +456,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_bp_topology_producers_auto
+
 Required:  
 Value type:  
 Default value:  
@@ -426,6 +464,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_relay_custom_peers_auto
+
 Required:  
 Value type:  
 Default value:  
@@ -433,6 +472,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_relay_custom_peers_auto_iptables
+
 Required:  
 Value type:  
 Default value:  
@@ -440,8 +480,9 @@ Used by roles:
 Description:  
 
 ### Cncli clauses
----
+
 #### cndeploy_cnode_cncli_install
+
 Required:  
 Value type:  
 Default value:  
@@ -449,6 +490,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_cncli_bin_archive_url
+
 Required:  
 Value type:  
 Default value:  
@@ -456,6 +498,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_cnode_cncli_ptapikey
+
 Required:  
 Value type:  
 Default value:  
@@ -463,6 +506,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_cnode_cncli_sync_enabled
+
 Required:  
 Value type:  
 Default value:  
@@ -470,6 +514,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_cnode_cncli_leaderlog_enabled
+
 Required:  
 Value type:  
 Default value:  
@@ -477,6 +522,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_cnode_cncli_validate_enabled
+
 Required:  
 Value type:  
 Default value:  
@@ -484,6 +530,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_cnode_cncli_ptsendtip_enabled
+
 Required:  
 Value type:  
 Default value:  
@@ -491,6 +538,7 @@ Used by roles:
 Description:  
 
 #### cndeploy_cnode_cncli_ptsendslots_enabled
+
 Required:  
 Value type:  
 Default value:  
@@ -498,12 +546,14 @@ Used by roles:
 Description:  
 
 ## TODO
+
 - Finish documentation
 - Further testing  
 - Mythril integration
 - Publish on Galaxy
 
 ## Contribute
+
 This software is developed on my free time and is provided under a GPLv3 license. I use it to manage my stake pool BZONE, feel free to use it and to contribute in any way. If you find it useful please consider to support the development by staking with me or by donating some ADA.  
 
 - https://www.blockops.zone/contribute/  
