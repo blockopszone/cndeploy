@@ -24,6 +24,7 @@
   when:
     - cndeploy_node_type|lower|default('') == 'relay'
     - cndeploy_relay_custom_peers_auto|bool
+    - not cndeploy_relay_custom_peers_auto_iptables|bool
   block:
     - name: 'Check variables: hostvars for required fields to calculate: cndeploy_relay_custom_peers'
       when:
@@ -56,6 +57,41 @@
     - name: 'Format cndeploy_relay_custom_peers'
       ansible.builtin.set_fact:
         cndeploy_relay_custom_peers: '{{ cndeploy_relay_custom_peers | trim | replace(" ", "|") }}'
+
+- name: 'Resolve: cndeploy_relay_custom_peers calculated var for relays if auto is set using iptables mode'
+  when:
+    - cndeploy_node_type|lower|default('') == 'relay'
+    - cndeploy_relay_custom_peers_auto|bool
+    - cndeploy_relay_custom_peers_auto_iptables|bool
+  block:
+    - name: 'Check variables: hostvars for required fields to calculate: cndeploy_relay_custom_peers'
+      ansible.builtin.assert:
+        fail_msg: >
+          Invalid value -> hostvars definition must contain valid values for keys
+          cndeploy_node_ip
+          cndeploy_node_type
+          cndeploy_node_port
+        quiet: true
+        that:
+          - (hostvars[item]['cndeploy_node_ip']|ipv4 or lookup('dig', hostvars[item]['cndeploy_node_ip']) != 'NXDOMAIN')
+          - hostvars[item]['cndeploy_node_port'] is integer
+          - hostvars[item]['cndeploy_node_port'] >= 1
+          - hostvars[item]['cndeploy_node_port'] <= 65535
+      with_items: '{{ groups["relay"] }}'
+    - name: 'Initialise cndeploy_relay_custom_peers'
+      ansible.builtin.set_fact:
+        cndeploy_relay_custom_peers: '127.0.0.1,6000 '
+    - name: 'Calculate cndeploy_relay_custom_peers'
+      with_items: '{{ groups["relay"] }}'
+      when:
+        - hostvars[item]['cndeploy_node_ip'] != ssh_host_ip
+        - hostvars[item]['ansible_host'] != ssh_host_ip
+      ansible.builtin.set_fact:
+        cndeploy_relay_custom_peers: '{{ cndeploy_relay_custom_peers | default("") }}{{ hostvars[item]["cndeploy_node_ip"] }},{{ hostvars[item]["cndeploy_node_port"] }} '
+    - name: 'Format cndeploy_relay_custom_peers'
+      ansible.builtin.set_fact:
+        cndeploy_relay_custom_peers: '{{ cndeploy_relay_custom_peers | trim | replace(" ", "|") }}'
+
 
 - name: 'Show cndeploy_relay_custom_peers'
   ansible.builtin.debug:
