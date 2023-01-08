@@ -203,9 +203,9 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
 
 ## Reference of all configuration clauses available
 
-### Host setup clauses
+### Host setup clauses
 
-#### cndeploy_node_hostname
+#### cndeploy_node_hostname
 
 Required:  
 Value type:  
