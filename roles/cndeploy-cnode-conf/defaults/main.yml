@@ -52,12 +52,22 @@ cndeploy_cnode_blockperf_enabled: false
 # Set to the API key of pooltool.io (use Ansible vault to protect the key)
 #cndeploy_cnode_cncli_ptapikey: '{{ vault_cndeploy_cnode_cncli_ptapikey }}'
 
+# Set to true to auto calulate cndeploy_relay_custom_peers based on the
+# other bp and relay nodes according to the ansible groups defintion.
+# When set to true the value of cndeploy_relay_custom_peers will be ignored.
+cndeploy_relay_custom_peers_auto: true
+
 # Custom peers field for topology following (IP,port[,valency]) format
 # for example: 10.0.0.1,3001|10.0.0.2,3002|relays.mydomain.com,3003,3
 # Used by Relay Nodes to generate topology.json via topologyUpdater script.
 # When this variable is commented (not defined), the value is auto generated
 # from the list of hosts / groups.
 #cndeploy_relay_custom_peers:
+
+# Set to true to auto calulate cndeploy_bp_topology_producers based on the
+# relay nodes according to the ansible groups defintion.
+# When set to true the value of cndeploy_bp_topology_producers will be ignored.
+cndeploy_bp_topology_producers_auto: true
 
 # Define the list of relay nodes, used by a template for topology.json generation
 # Used by BP Nodes to generate topology.json via template.
