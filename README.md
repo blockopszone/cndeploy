@@ -344,155 +344,177 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
   </tr>  
 </table>
 
-### Access and Firewall clauses
+### Access and Firewall
 
-#### cndeploy_firewall_enabled
+<table>
+  <tr>
+    <th align="left">Variable</th>
+    <th align="left">Type</th>
+    <th align="left">Default</th>
+    <th align="left">Required</th>
+    <th align="left">Roles</th>
+    <th align="left">Description</th>
+  </tr>
+  <tr>
+    <td>cndeploy_firewall_enabled</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_whitelist_ip</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_blacklist_ip</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_allowhostname_enabled</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_allowhostname</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_ssh_restrict</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_ssh_pubkeys</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>  
+</table>
 
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
+### Cardano node 
 
-#### cndeploy_whitelist_ip
+<table>
+  <tr>
+    <th align="left">Variable</th>
+    <th align="left">Type</th>
+    <th align="left">Default</th>
+    <th align="left">Required</th>
+    <th align="left">Roles</th>
+    <th align="left">Description</th>
+  </tr>
+  <tr>
+    <td>cndeploy_node_type</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_cnode_dir</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_cnode_dir_local</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_cnode_dir_local_check_override</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_cnode_bin_archive_url</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_cnode_logmonitor_enabled</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_cnode_submitapi_enabled</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_cnode_blockperf_enabled</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_bp_topology_producers_auto</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_relay_custom_peers_auto</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_relay_custom_peers_auto_iptables</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>  
+</table>
 
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_blacklist_ip
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_allowhostname_enabled
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_allowhostname
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_ssh_restrict
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_ssh_pubkeys
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-### Cardano node clauses
-
-#### cndeploy_node_type
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_cnode_dir
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_cnode_dir_local
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_cnode_dir_local_check_override
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_cnode_bin_archive_url
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_cnode_logmonitor_enabled
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_cnode_submitapi_enabled
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_cnode_blockperf_enabled
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_bp_topology_producers_auto
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_relay_custom_peers_auto
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_relay_custom_peers_auto_iptables
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-### Cncli clauses
+### Cncli 
 
 #### cndeploy_cnode_cncli_install
 
