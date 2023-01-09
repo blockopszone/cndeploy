@@ -201,137 +201,148 @@ In the main directory of the cndeploy project there are many playbook examples a
 ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setup_stake_pool.yml -i my_sp_inventory/hosts -l my_sp_prod
 ```
 
-## Reference of all configuration clauses available
+## Configuration variables reference
 
-### Host setup clauses
+### Host setup 
 
-#### cndeploy_node_hostname_change
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_node_hostname
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_hosts_change
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_hosts
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_pkgs_update
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_pkgs_upgrade
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_pkgs_add
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_pkgs_add_list
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_add_aliases
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_aliases
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_swap_configure
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_swap_enable
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_swap_file_path
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_swap_file_size_mb
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_swappiness
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_disable_ipv6
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
+<table>
+  <tr>
+    <th align="left">Variable</th>
+    <th align="left">Type</th>
+    <th align="left">Default</th>
+    <th align="left">Required</th>
+    <th align="left">Roles</th>
+    <th align="left">Description</th>
+  </tr>
+  <tr>
+    <td>cndeploy_node_hostname_change</td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_os_tweaks</td>
+    <td>Set to true to change hostname</td>
+  </tr>
+  <tr>
+    <td>cndeploy_node_hostname</td>
+    <td>String</td>
+    <td>None</td>
+    <td>No</td>
+    <td>cndeploy_os_tweaks</td>
+    <td>Set to the desired hostname</td>
+  </tr>
+  <tr>
+    <td>cndeploy_hosts_change</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_hosts</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_pkgs_update</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_pkgs_upgrade</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_pkgs_add</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_pkgs_add_list</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_add_aliases</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_aliases</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_swap_configure</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_swap_enable</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_swap_file_path</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_swap_file_size_mb</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_swappiness</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_disable_ipv6</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>  
+</table>
 
 ### Access and Firewall clauses
 
