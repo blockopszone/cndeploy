@@ -205,7 +205,31 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
 
 ### Host setup clauses
 
+#### cndeploy_node_hostname_change
+
+Required:  
+Value type:  
+Default value:  
+Used by roles:  
+Description:  
+
 #### cndeploy_node_hostname
+
+Required:  
+Value type:  
+Default value:  
+Used by roles:  
+Description:  
+
+#### cndeploy_hosts_change
+
+Required:  
+Value type:  
+Default value:  
+Used by roles:  
+Description:  
+
+#### cndeploy_hosts
 
 Required:  
 Value type:  
@@ -238,30 +262,6 @@ Used by roles:
 Description:  
 
 #### cndeploy_pkgs_add_list
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_node_hostname_change
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_hosts_change
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_hosts
 
 Required:  
 Value type:  
@@ -393,6 +393,22 @@ Description:
 
 ### Cardano node clauses
 
+#### cndeploy_node_type
+
+Required:  
+Value type:  
+Default value:  
+Used by roles:  
+Description:  
+
+#### cndeploy_cnode_dir
+
+Required:  
+Value type:  
+Default value:  
+Used by roles:  
+Description:  
+
 #### cndeploy_cnode_dir_local
 
 Required:  
@@ -410,22 +426,6 @@ Used by roles:
 Description:  
 
 #### cndeploy_cnode_bin_archive_url
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_cnode_dir
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_node_type
 
 Required:  
 Value type:  
