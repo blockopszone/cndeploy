@@ -516,69 +516,80 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
 
 ### Cncli 
 
-#### cndeploy_cnode_cncli_install
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_cncli_bin_archive_url
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_cnode_cncli_ptapikey
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_cnode_cncli_sync_enabled
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_cnode_cncli_leaderlog_enabled
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_cnode_cncli_validate_enabled
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_cnode_cncli_ptsendtip_enabled
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
-
-#### cndeploy_cnode_cncli_ptsendslots_enabled
-
-Required:  
-Value type:  
-Default value:  
-Used by roles:  
-Description:  
+<table>
+  <tr>
+    <th align="left">Variable</th>
+    <th align="left">Type</th>
+    <th align="left">Default</th>
+    <th align="left">Required</th>
+    <th align="left">Roles</th>
+    <th align="left">Description</th>
+  </tr>
+  <tr>
+    <td>cndeploy_cnode_cncli_install</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_cncli_bin_archive_url</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_cnode_cncli_ptapikey</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_cnode_cncli_sync_enabled</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_cnode_cncli_leaderlog_enabled</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_cnode_cncli_validate_enabled</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_cnode_cncli_ptsendtip_enabled</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>cndeploy_cnode_cncli_ptsendslots_enabled</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+</table>
 
 ## TODO
 
