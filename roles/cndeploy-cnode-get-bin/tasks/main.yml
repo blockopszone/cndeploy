@@ -153,6 +153,12 @@
     state: 'absent'
   changed_when: false
 
+- name: 'Make sure .cabal/bin is in the PATH'
+  ansible.builtin.lineinfile:
+    dest: '~/.profile'
+    insertafter: EOF
+    line: "PATH=$HOME/.cabal/bin:$PATH"
+
 - name: 'Copy systemd unit files for all operation modes using templates'
   become: true
   become_user: 'root'
