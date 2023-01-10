@@ -232,19 +232,19 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
   </tr>
   <tr>
     <td>cndeploy_hosts_change</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_os_tweaks</td>
+    <td>Set to true to add entries to the hosts file.</td>
   </tr>
   <tr>
     <td>cndeploy_hosts</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>String</td>
+    <td>None</td>
+    <td>No</td>
+    <td>cndeploy_os_tweaks</td>
+    <td>Set to the additional entries for the hosts file.</td>
   </tr>
   <tr>
     <td>cndeploy_pkgs_update</td>
