@@ -248,51 +248,51 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
   </tr>
   <tr>
     <td>cndeploy_pkgs_update</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_os_pkgs</td>
+    <td>Set to true to update the package list from the repository.</td>
   </tr>
   <tr>
     <td>cndeploy_pkgs_upgrade</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_os_pkgs</td>
+    <td>Set to true to upgrade installed the packages.</td>
   </tr>
   <tr>
     <td>cndeploy_pkgs_add</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_os_pkgs</td>
+    <td>Set to true to install an additional list of packages.</td>
   </tr>
   <tr>
     <td>cndeploy_pkgs_add_list</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>List</td>
+    <td>None</td>
+    <td>No</td>
+    <td>cndeploy_os_pkgs</td>
+    <td>List of additional packages to install.</td>
   </tr>
   <tr>
     <td>cndeploy_add_aliases</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_cnode_conf</td>
+    <td>Set to true to add bash aliases.</td>
   </tr>
   <tr>
     <td>cndeploy_aliases</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>String</td>
+    <td>None</td>
+    <td>No</td>
+    <td>cndeploy_cnode_conf</td>
+    <td>Set the aliases to add.</td>
   </tr>
   <tr>
     <td>cndeploy_swap_configure</td>
