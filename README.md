@@ -466,19 +466,19 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
   </tr>
   <tr>
     <td>cndeploy_cnode_logmonitor_enabled</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_cnode_conf</td>
+    <td>Set to true to enable the logmonitor service. Check https://cardano-community.github.io/guild-operators/Scripts/logmonitor/ for further details.</td>
   </tr>
   <tr>
     <td>cndeploy_cnode_submitapi_enabled</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_cnode_conf</td>
+    <td>Set to true to enable the submitapi service. Check https://input-output-hk.github.io/cardano-rest/submit-api/ for further details.</td>
   </tr>
   <tr>
     <td>cndeploy_cnode_blockperf_enabled</td>
