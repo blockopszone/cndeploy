@@ -434,35 +434,35 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
   </tr>
   <tr>
     <td>cndeploy_cnode_dir</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>String</td>
+    <td>/opt/cardano/cnode</td>
+    <td>No</td>
+    <td>cndeploy_cnode_conf, cndeploy_cnode_get_bin, cndeploy_cnode_build, cndeploy_cnode_sync_bin, cndeploy_cnode_sync_db, cndeploy_cnode_mon</td>
+    <td>Set the install directory for config files and scripts. IMPORTANT, the /opt/cardano/cnode default may be hardcoded in some places, so don't change this value until further testing.</td>
   </tr>
   <tr>
     <td>cndeploy_cnode_dir_local</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>String</td>
+    <td>/opt/cardano/cnode</td>
+    <td>No</td>
+    <td>cndeploy_cnode_conf</td>
+    <td>Set the local cnode install directory for config files and scripts. It is used to locate the private files that needs to be copied to the block producer under the directory structure priv/pool/{{ cndeploy_node_ticker }}</td>
   </tr>
   <tr>
     <td>cndeploy_cnode_dir_local_check_override</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>Bool</td>
+    <td>True</td>
+    <td>No</td>
+    <td>cndeploy_cnode_conf</td>
+    <td>Set to true to bypass the task that checks the env variable CNODE_HOME for a value equal to the one defined by cndeploy_cnode_dir_local on the local system.</td>
   </tr>
   <tr>
     <td>cndeploy_cnode_bin_archive_url</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>String (url)</td>
+    <td>https://update-cardano-mainnet.iohk.io/cardano-node-releases/cardano-node-1.35.4-linux.tar.gz</td>
+    <td>No</td>
+    <td>cndeploy_cnode_get_bin</td>
+    <td>Set to the url pointing to the archive with the node binaries to be installed.</td>
   </tr>
   <tr>
     <td>cndeploy_cnode_logmonitor_enabled</td>
