@@ -426,11 +426,11 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
   </tr>
   <tr>
     <td>cndeploy_node_type</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>String</td>
+    <td>None</td>
+    <td>Yes</td>
+    <td>cndeploy_node_conf, cndeploy_os_fw</td>
+    <td>Define the type of node, valid values are "relay", "bp" and "standby".</td>
   </tr>
   <tr>
     <td>cndeploy_cnode_dir</td>
