@@ -357,27 +357,27 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
   </tr>
   <tr>
     <td>cndeploy_firewall_enabled</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_os_fw, cndeploy_cnode_sync_bin, cndeploy_cnode_sync_db</td>
+    <td>Set to true to enable the firewall so only connections to the necessary ports are allowed.</td>
   </tr>
   <tr>
     <td>cndeploy_whitelist_ip</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>List of IPv4 host/net</td>
+    <td>{{ master_ip }}</td>
+    <td>No</td>
+    <td>cndeploy_os_fw</td>
+    <td>Define the list of IPv4 to whitelist (allow all connections from), for example the management or monitoring IP, as they usually require access to any port on the nodes.  "{{ master_ip }}" is set in the default list to allow connections from the Ansible master, in order to avoid accidental lockdowns. Consider adding it also to your custom whitelist.  Finally, to allow connections from everywhere, i.e. to SSH (not recommended), add 0.0.0.0/0 to the list.</td>
   </tr>
   <tr>
     <td>cndeploy_blacklist_ip</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>List of IPv4 host/net</td>
+    <td>None</td>
+    <td>No</td>
+    <td>cndeploy_os_fw</td>
+    <td>Define a list of IPv4 addresses to deny all connections from</td>
   </tr>
   <tr>
     <td>cndeploy_allowhostname_enabled</td>
