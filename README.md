@@ -482,11 +482,11 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
   </tr>
   <tr>
     <td>cndeploy_cnode_blockperf_enabled</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_cnode_conf</td>
+    <td>Set to true to enable the blockperf service. Check https://github.com/cardano-community/guild-operators/blob/alpha/scripts/cnode-helper-scripts/blockPerf.sh for further details.</td>
   </tr>
   <tr>
     <td>cndeploy_bp_topology_producers_auto</td>
