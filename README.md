@@ -527,19 +527,19 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
   </tr>
   <tr>
     <td>cndeploy_cnode_cncli_install</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_cnode_get_bin, cndeploy_cnode_build, cndeploy_cnode_sync_bin</td>
+    <td>Set to true to install cncli.</td>
   </tr>
   <tr>
     <td>cndeploy_cncli_bin_archive_url</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>String (url)</td>
+    <td>https://github.com/cardano-community/cncli/releases/download/v5.2.0/cncli-5.2.0-x86_64-unknown-linux-gnu.tar.gz</td>
+    <td>No</td>
+    <td>cndeploy_cnode_get_bin</td>
+    <td>Set to the url pointing to the archive containing the cncli binaries to install.</td>
   </tr>
   <tr>
     <td>cndeploy_cnode_cncli_ptapikey</td>
