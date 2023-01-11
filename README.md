@@ -296,51 +296,51 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
   </tr>
   <tr>
     <td>cndeploy_swap_configure</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_os_tweaks</td>
+    <td>Set to true to make changes to the swapfile.</td>
   </tr>
   <tr>
     <td>cndeploy_swap_enable</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_os_tweaks</td>
+    <td>Set to true to create a swapfile, or to false to delete it.</td>
   </tr>
   <tr>
     <td>cndeploy_swap_file_path</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>String</td>
+    <td>/swapfile</td>
+    <td>No</td>
+    <td>cndeploy_os_tweak</td>
+    <td>Set the swapfile path.</td>
   </tr>
   <tr>
     <td>cndeploy_swap_file_size_mb</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>Integer</td>
+    <td>8192</td>
+    <td>No</td>
+    <td>cndeploy_os_tweak</td>
+    <td>Set the size of the swapfile in MB.</td>
   </tr>
   <tr>
     <td>cndeploy_swappiness</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>Integer</td>
+    <td>60</td>
+    <td>No</td>
+    <td>cndeploy_os_tweak</td>
+    <td>Set swapiness value, from 0 to 100. Check https://access.redhat.com/solutions/103833 for more information.</td>
   </tr>
   <tr>
     <td>cndeploy_disable_ipv6</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_os_fw</td>
+    <td>Set to true to disable IPv6.</td>
   </tr>  
 </table>
 
