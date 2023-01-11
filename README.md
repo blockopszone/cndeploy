@@ -381,35 +381,35 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
   </tr>
   <tr>
     <td>cndeploy_allowhostname_enabled</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_os_fw</td>
+    <td>Set to true to enable the use of allow-hostname script to grant access to all node ports from a dynamic dns hostname. Check https://github.com/jmhoms/allow-hostname for further details.</td>
   </tr>
   <tr>
     <td>cndeploy_allowhostname</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>String (fqdn)</td>
+    <td>None</td>
+    <td>No</td>
+    <td>cndeploy_of_fw</td>
+    <td>Define the hostname to whitelist if cndeploy_allowhostname_enabled is set to true.</td>
   </tr>
   <tr>
     <td>cndeploy_ssh_restrict</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_os_tweaks</td>
+    <td>Set to true to restrict some ssh access options, not allowing root login or password auth.</td>
   </tr>
   <tr>
     <td>cndeploy_ssh_pubkeys</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>List of public key strings</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_os_user</td>
+    <td>Set to a list of public keys to authtenticate as the defined user.</td>
   </tr>  
 </table>
 
