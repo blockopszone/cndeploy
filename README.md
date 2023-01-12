@@ -5,16 +5,16 @@
 cndeploy is a collection of Ansible roles that provide automated deployments of Cardano staking pools with related community scripts, following the best practices, with the ultimate goal to be integrated with other tools to achieve a secure and highly available setup.  
 
 The roles currently included are:
-- cndeploy-os-user: this role expects a root connection to the host, in order to create an admin user (with sudo privileges), that can be used afterwards by other roles to connect to the host using a pubkey.
-- cndeploy-os-tweaks: this role prepares the OS before installing the cardano node, by changing the hostname, adding hosts, enforcing secure options for the SSH service, and setting up swap.
-- cndeploy-os-pkgs: this role installs and updates packages for Debian and RedHat based OS.
-- cndeploy-os-fw: this role sets the firewall policy using iptables and disable ufw, firewalld and optionally IPv6.
-- cndeploy-cnode-get-bin: this role provides tasks to install the Cardano node binaries from an archive located at a given URL. 
-- cndeploy-cnode-build: this role provides tasks to build and install a Cardano node using Guild's operator scripts.
-- cndeploy-cnode-sync-bin: this role provides tasks to copy the Cardano node binaries from a builder node origin.
-- cndeploy-cnode-sync-db: this role provides tasks to copy the Cardano node db from an origin host.
-- cndeploy-cnode-conf: this role provides tasks to configure Cardano stake pool nodes and Guild operator's cnode scripts.
-- cndeploy-cnode-mon: this role provides tasks to prepare the hosts to be monitored thru ssh tunnels by a monitoring server.
+- **cndeploy-os-user:** this role expects a root connection to the host, in order to create an admin user (with sudo privileges), that can be used afterwards by other roles to connect to the host using a pubkey.
+- **cndeploy-os-tweaks:** this role prepares the OS before installing the cardano node, by changing the hostname, adding hosts, enforcing secure options for the SSH service, and setting up swap.
+- **cndeploy-os-pkgs:** this role installs and updates packages for Debian and RedHat based OS.
+- **cndeploy-os-fw:** this role sets the firewall policy using iptables and disable ufw, firewalld and optionally IPv6.
+- **cndeploy-cnode-get-bin:** this role provides tasks to install the Cardano node binaries from an archive located at a given URL. 
+- **cndeploy-cnode-build:** this role provides tasks to build and install a Cardano node using Guild's operator scripts.
+- **cndeploy-cnode-sync-bin:** this role provides tasks to copy the Cardano node binaries from a builder node origin.
+- **cndeploy-cnode-sync-db:** this role provides tasks to copy the Cardano node db from an origin host.
+- **cndeploy-cnode-conf:** this role provides tasks to configure Cardano stake pool nodes and Guild operator's cnode scripts.
+- **cndeploy-cnode-mon:** this role provides tasks to prepare the hosts to be monitored thru ssh tunnels by a monitoring server.
 
 ## Disclaimer
 
