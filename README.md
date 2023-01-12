@@ -542,52 +542,52 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>Set to the url pointing to the archive containing the cncli binaries to install.</td>
   </tr>
   <tr>
-    <td>cndeploy_cnode_cncli_ptapikey</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-  </tr>
-  <tr>
     <td>cndeploy_cnode_cncli_sync_enabled</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_cnode_conf</td>
+    <td>Set to true to enable cncli sync command on the node. Check https://github.com/cardano-community/cncli/blob/develop/USAGE.md#sync-command for further details.</td>
   </tr>
   <tr>
     <td>cndeploy_cnode_cncli_leaderlog_enabled</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_cnode_conf</td>
+    <td>Set to true to enable cncli leaderlog command on the node. Check https://github.com/cardano-community/cncli/blob/develop/USAGE.md#leaderlog-command for further details.</td>
   </tr>
   <tr>
     <td>cndeploy_cnode_cncli_validate_enabled</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_cnode_conf</td>
+    <td>Set to true to enable cncli validate command on the node. Check https://github.com/cardano-community/cncli/blob/develop/USAGE.md#validate-command for further details.</td>
   </tr>
   <tr>
     <td>cndeploy_cnode_cncli_ptsendtip_enabled</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_cnode_conf</td>
+    <td>Set to true to enable cncli sendtip command on the node. Check https://github.com/cardano-community/cncli/blob/develop/USAGE.md#sendtip-command for further details.</td>
   </tr>
   <tr>
     <td>cndeploy_cnode_cncli_ptsendslots_enabled</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_cnode_conf</td>
+    <td>Set to true to enable cncli sendslots command on the node. Check https://github.com/cardano-community/cncli/blob/develop/USAGE.md#sendslots-command for further details.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_cnode_cncli_ptapikey</td>
+    <td>String</td>
+    <td>None</td>
+    <td>No</td>
+    <td>cndeploy_cnode_conf</td>
+    <td>Set to the API key of pooltool.io. Used by ptsendtip and ptsendslots.</td>
   </tr>
 </table>
 
