@@ -40,9 +40,9 @@ Finally, some of the roles expect to have a Cardano node installed on the Ansibl
   
 ## Configuration examples 
 
-See below the inventary files comprising a configuration example. As per Ansible's standard functioning, the defined variables have the following precedence (from less to more):  
+See below the inventory files comprising a configuration example. As per Ansible's standard functioning, the defined variables have the following precedence (from less to more):  
 
-hosts inventary file < all in group_vars < any in group_vars < any in host_vars  
+hosts inventory file < all in group_vars < any in group_vars < any in host_vars  
 
 Of course variables can be specified in any of the available locations, but some only make sense for a certain group. Additionally, please note that in the example, Ansible vault is used to protect an api key secret, please refer to Ansible documentation for further explanation on how it works.
 
