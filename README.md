@@ -207,7 +207,137 @@ In the main directory of the cndeploy project there are many playbook examples a
 ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setup_stake_pool.yml -i my_sp_inventory/hosts -l my_sp_prod
 ```
 
-## Configuration variables reference
+## Reference of configuration variables by role
+
+### cndeploy-os-user
+
+<table>
+  <tr>
+    <th align="left">Variable</th>
+    <th align="left">Type</th>
+    <th align="left">Default</th>
+    <th align="left">Required</th>
+    <th align="left">Roles</th>
+    <th align="left">Description</th>
+  </tr>
+</table>
+
+### cndeploy-os-tweaks
+
+<table>
+  <tr>
+    <th align="left">Variable</th>
+    <th align="left">Type</th>
+    <th align="left">Default</th>
+    <th align="left">Required</th>
+    <th align="left">Roles</th>
+    <th align="left">Description</th>
+  </tr>
+</table>
+
+### cndeploy-os-pkgs
+
+<table>
+  <tr>
+    <th align="left">Variable</th>
+    <th align="left">Type</th>
+    <th align="left">Default</th>
+    <th align="left">Required</th>
+    <th align="left">Roles</th>
+    <th align="left">Description</th>
+  </tr>
+</table>
+
+### cndeploy-os-fw
+
+<table>
+  <tr>
+    <th align="left">Variable</th>
+    <th align="left">Type</th>
+    <th align="left">Default</th>
+    <th align="left">Required</th>
+    <th align="left">Roles</th>
+    <th align="left">Description</th>
+  </tr>
+</table>
+
+### cndeploy-cnode-get-bin
+
+<table>
+  <tr>
+    <th align="left">Variable</th>
+    <th align="left">Type</th>
+    <th align="left">Default</th>
+    <th align="left">Required</th>
+    <th align="left">Roles</th>
+    <th align="left">Description</th>
+  </tr>
+</table>
+
+### cndeploy-cnode-build
+
+<table>
+  <tr>
+    <th align="left">Variable</th>
+    <th align="left">Type</th>
+    <th align="left">Default</th>
+    <th align="left">Required</th>
+    <th align="left">Roles</th>
+    <th align="left">Description</th>
+  </tr>
+</table>
+
+### cndeploy-cnode-sync-bin
+
+<table>
+  <tr>
+    <th align="left">Variable</th>
+    <th align="left">Type</th>
+    <th align="left">Default</th>
+    <th align="left">Required</th>
+    <th align="left">Roles</th>
+    <th align="left">Description</th>
+  </tr>
+</table>
+
+### cndeploy-cnode-sync-db
+
+<table>
+  <tr>
+    <th align="left">Variable</th>
+    <th align="left">Type</th>
+    <th align="left">Default</th>
+    <th align="left">Required</th>
+    <th align="left">Roles</th>
+    <th align="left">Description</th>
+  </tr>
+</table>
+
+### cndeploy-cnode-conf
+
+<table>
+  <tr>
+    <th align="left">Variable</th>
+    <th align="left">Type</th>
+    <th align="left">Default</th>
+    <th align="left">Required</th>
+    <th align="left">Roles</th>
+    <th align="left">Description</th>
+  </tr>
+</table>
+
+### cndeploy-cnode-mon
+
+<table>
+  <tr>
+    <th align="left">Variable</th>
+    <th align="left">Type</th>
+    <th align="left">Default</th>
+    <th align="left">Required</th>
+    <th align="left">Roles</th>
+    <th align="left">Description</th>
+  </tr>
+</table>
 
 ### Host setup 
 
