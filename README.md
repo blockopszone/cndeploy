@@ -767,6 +767,14 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>Set to true to auto calulate cndeploy_bp_topology_producers based on the relay nodes according to the ansible groups defintion. When set to true the value of cndeploy_bp_topology_producers will be ignored.</td>
   </tr>
   <tr>
+    <td>cndeploy_bp_topology_producers</td>
+    <td>List</td>
+    <td>None</td>
+    <td>No</td>
+    <td>cndeploy-cnode-conf</td>
+    <td>Define the list of relay nodes, used by a template for topology.json generation. This list of dictionaries (with keys addr,port and valency) is only used when cndeploy_bp_topology_producers_auto is false.</td>
+  </tr>  
+  <tr>
     <td>cndeploy_relay_custom_peers_auto</td>
     <td>Bool</td>
     <td>True</td>
@@ -781,6 +789,15 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>No</td>
     <td>cndeploy_cnode_conf</td>
     <td>Set this option to true to use the iptables redirect that is setup by the cndeploy_os_fw role and makes all the connections directed to 127.0.0.1:6000, to be redirected to the actual bp ip:port. Doing so, allows to configure this localhost ip in the relay's topology, so it is possible for relays to failover to another warm bp instantly without needing to restart the node. This is an experimental feature, use with caution.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_relay_custom_peers</td>
+    <td>String</td>
+    <td>None</td>
+    <td>No</td>
+    <td>cndeploy-cnode-conf</td>
+    <td>Set the custom peers field for topology following (IP,port[,valency]) format, for example: "10.0.0.1,3001|10.0.0.2,3002|relays.mydomain.com,3003,3". Only when cndeploy_relay_custom_peers_auto is false, this value is used by the Relay Nodes to generate topology.json via the topologyUpdater script.
+</td>
   </tr>
   <tr>
     <td>cndeploy_cnode_logmonitor_enabled</td>
