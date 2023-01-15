@@ -244,6 +244,22 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>cndeploy-os-user</td>
     <td>Define the groups of the user to be created.</td>
   </tr>  
+  <tr>
+    <td>cndeploy_admin_groups</td>
+    <td>List</td>
+    <td>Based on OS</td>
+    <td><No/td>
+    <td>cndeploy-os-user</td>
+    <td>Define the groups of the user to be created.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_ssh_pubkeys</td>
+    <td>List of public key strings</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_os_user</td>
+    <td>Set to a list of public keys to authtenticate as the user to be created. Keys can additionally be defined by copying the files to the public_keys directory.</td>
+  </tr>        
 </table>
 
 ### cndeploy-os-tweaks
@@ -563,14 +579,6 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>cndeploy_os_tweaks</td>
     <td>Set to true to restrict some ssh access options, not allowing root login or password auth.</td>
   </tr>
-  <tr>
-    <td>cndeploy_ssh_pubkeys</td>
-    <td>List of public key strings</td>
-    <td>False</td>
-    <td>No</td>
-    <td>cndeploy_os_user</td>
-    <td>Set to a list of public keys to authtenticate as the defined user.</td>
-  </tr>  
 </table>
 
 ### Cardano node 
