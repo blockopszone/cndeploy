@@ -703,6 +703,14 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>Define the type of node, valid values are "relay", "bp" and "standby".</td>
   </tr>
   <tr>
+    <td>cndeploy_cnode_dir</td>
+    <td>String</td>
+    <td>/opt/cardano/cnode</td>
+    <td>No</td>
+    <td>cndeploy-cnode-conf, cndeploy-cnode-get-bin, cndeploy-cnode-build, cndeploy-cnode-sync-bin, cndeploy-cnode-sync-db, cndeploy-cnode_mon</td>
+    <td>Set the install directory for config files and scripts. IMPORTANT, the /opt/cardano/cnode default may be hardcoded in some places, so don't change this value until further testing.</td>
+  </tr>
+  <tr>
     <td>cndeploy_cnode_dir_local</td>
     <td>String</td>
     <td>/opt/cardano/cnode</td>
