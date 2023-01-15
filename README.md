@@ -358,6 +358,38 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <th align="left">Roles</th>
     <th align="left">Description</th>
   </tr>
+  <tr>
+    <td>cndeploy_pkgs_update</td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy-os-pkgs</td>
+    <td>Set to true to update the package list from the repository.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_pkgs_upgrade</td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy-os-pkgs</td>
+    <td>Set to true to upgrade installed the packages.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_pkgs_add</td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy-os-pkgs</td>
+    <td>Set to true to install an additional list of packages.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_pkgs_add_list</td>
+    <td>List</td>
+    <td>None</td>
+    <td>No</td>
+    <td>cndeploy-os-pkgs</td>
+    <td>List of additional packages to install.</td>
+  </tr>
 </table>
 
 ### cndeploy-os-fw
@@ -461,38 +493,6 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <th align="left">Required</th>
     <th align="left">Roles</th>
     <th align="left">Description</th>
-  </tr>
-  <tr>
-    <td>cndeploy_pkgs_update</td>
-    <td>Bool</td>
-    <td>False</td>
-    <td>No</td>
-    <td>cndeploy_os_pkgs</td>
-    <td>Set to true to update the package list from the repository.</td>
-  </tr>
-  <tr>
-    <td>cndeploy_pkgs_upgrade</td>
-    <td>Bool</td>
-    <td>False</td>
-    <td>No</td>
-    <td>cndeploy_os_pkgs</td>
-    <td>Set to true to upgrade installed the packages.</td>
-  </tr>
-  <tr>
-    <td>cndeploy_pkgs_add</td>
-    <td>Bool</td>
-    <td>False</td>
-    <td>No</td>
-    <td>cndeploy_os_pkgs</td>
-    <td>Set to true to install an additional list of packages.</td>
-  </tr>
-  <tr>
-    <td>cndeploy_pkgs_add_list</td>
-    <td>List</td>
-    <td>None</td>
-    <td>No</td>
-    <td>cndeploy_os_pkgs</td>
-    <td>List of additional packages to install.</td>
   </tr>
   <tr>
     <td>cndeploy_add_aliases</td>
