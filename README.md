@@ -464,6 +464,54 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <th align="left">Roles</th>
     <th align="left">Description</th>
   </tr>
+  <tr>
+    <td>cndeploy_user</td>
+    <td>String</td>
+    <td>Based on OS</td>
+    <td>No</td>
+    <td>cndeploy-os-user</td>
+    <td>Set the user to be created.</td>
+  </tr>  
+  <tr>
+    <td>cndeploy_user_home</td>
+    <td>String</td>
+    <td>/home/{{ cndeploy_user }}</td>
+    <td>No</td>
+    <td>cndeploy-os-user</td>
+    <td>Set the home directory of the user to be created.</td>
+  </tr>  
+  <tr>
+    <td>cndeploy_cnode_dir</td>
+    <td>String</td>
+    <td>/opt/cardano/cnode</td>
+    <td>No</td>
+    <td>cndeploy-cnode-conf, cndeploy-cnode-get-bin, cndeploy-cnode-build, cndeploy-cnode-sync-bin, cndeploy-cnode-sync-db, cndeploy-cnode_mon</td>
+    <td>Set the install directory for config files and scripts. IMPORTANT, the /opt/cardano/cnode default may be hardcoded in some places, so don't change this value until further testing.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_cnode_bin_archive_url</td>
+    <td>String (url)</td>
+    <td>https://update-cardano-mainnet.iohk.io/cardano-node-releases/cardano-node-1.35.4-linux.tar.gz</td>
+    <td>No</td>
+    <td>cndeploy-cnode-get-bin</td>
+    <td>Set to the url pointing to the archive with the node binaries to be installed.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_cnode_cncli_install</td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy-cnode-get-bin, cndeploy-cnode-build, cndeploy-cnode-sync-bin</td>
+    <td>Set to true to install cncli.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_cncli_bin_archive_url</td>
+    <td>String (url)</td>
+    <td>https://github.com/cardano-community/cncli/releases/download/v5.2.0/cncli-5.2.0-x86_64-unknown-linux-gnu.tar.gz</td>
+    <td>No</td>
+    <td>cndeploy-cnode-get-bin</td>
+    <td>Set to the url pointing to the archive containing the cncli binaries to install.</td>
+  </tr>
 </table>
 
 ### cndeploy-cnode-build
@@ -560,19 +608,6 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
   </tr>
 </table>
 
-### Access and Firewall
-
-<table>
-  <tr>
-    <th align="left">Variable</th>
-    <th align="left">Type</th>
-    <th align="left">Default</th>
-    <th align="left">Required</th>
-    <th align="left">Roles</th>
-    <th align="left">Description</th>
-  </tr>
-</table>
-
 ### Cardano node 
 
 <table>
@@ -593,14 +628,6 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>Define the type of node, valid values are "relay", "bp" and "standby".</td>
   </tr>
   <tr>
-    <td>cndeploy_cnode_dir</td>
-    <td>String</td>
-    <td>/opt/cardano/cnode</td>
-    <td>No</td>
-    <td>cndeploy_cnode_conf, cndeploy_cnode_get_bin, cndeploy_cnode_build, cndeploy_cnode_sync_bin, cndeploy_cnode_sync_db, cndeploy_cnode_mon</td>
-    <td>Set the install directory for config files and scripts. IMPORTANT, the /opt/cardano/cnode default may be hardcoded in some places, so don't change this value until further testing.</td>
-  </tr>
-  <tr>
     <td>cndeploy_cnode_dir_local</td>
     <td>String</td>
     <td>/opt/cardano/cnode</td>
@@ -615,14 +642,6 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>No</td>
     <td>cndeploy_cnode_conf</td>
     <td>Set to true to bypass the task that checks the env variable CNODE_HOME for a value equal to the one defined by cndeploy_cnode_dir_local on the local system.</td>
-  </tr>
-  <tr>
-    <td>cndeploy_cnode_bin_archive_url</td>
-    <td>String (url)</td>
-    <td>https://update-cardano-mainnet.iohk.io/cardano-node-releases/cardano-node-1.35.4-linux.tar.gz</td>
-    <td>No</td>
-    <td>cndeploy_cnode_get_bin</td>
-    <td>Set to the url pointing to the archive with the node binaries to be installed.</td>
   </tr>
   <tr>
     <td>cndeploy_cnode_logmonitor_enabled</td>
@@ -684,22 +703,6 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <th align="left">Required</th>
     <th align="left">Roles</th>
     <th align="left">Description</th>
-  </tr>
-  <tr>
-    <td>cndeploy_cnode_cncli_install</td>
-    <td>Bool</td>
-    <td>False</td>
-    <td>No</td>
-    <td>cndeploy_cnode_get_bin, cndeploy_cnode_build, cndeploy_cnode_sync_bin</td>
-    <td>Set to true to install cncli.</td>
-  </tr>
-  <tr>
-    <td>cndeploy_cncli_bin_archive_url</td>
-    <td>String (url)</td>
-    <td>https://github.com/cardano-community/cncli/releases/download/v5.2.0/cncli-5.2.0-x86_64-unknown-linux-gnu.tar.gz</td>
-    <td>No</td>
-    <td>cndeploy_cnode_get_bin</td>
-    <td>Set to the url pointing to the archive containing the cncli binaries to install.</td>
   </tr>
   <tr>
     <td>cndeploy_cnode_cncli_sync_enabled</td>
