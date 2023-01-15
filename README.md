@@ -270,7 +270,7 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>Bool</td>
     <td>False</td>
     <td>No</td>
-    <td>cndeploy_os_tweaks</td>
+    <td>cndeploy-os-tweaks</td>
     <td>Set to true to change hostname</td>
   </tr>
   <tr>
@@ -278,7 +278,7 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>String</td>
     <td>None</td>
     <td>No</td>
-    <td>cndeploy_os_tweaks</td>
+    <td>cndeploy-os-tweaks</td>
     <td>Set to the desired hostname</td>
   </tr>
   <tr>
@@ -286,7 +286,7 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>Bool</td>
     <td>False</td>
     <td>No</td>
-    <td>cndeploy_os_tweaks</td>
+    <td>cndeploy-os-tweaks</td>
     <td>Set to true to add entries to the hosts file.</td>
   </tr>
   <tr>
@@ -294,7 +294,7 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>String</td>
     <td>None</td>
     <td>No</td>
-    <td>cndeploy_os_tweaks</td>
+    <td>cndeploy-os-tweaks</td>
     <td>Set to the additional entries for the hosts file.</td>
   </tr>
   <tr>
@@ -302,7 +302,7 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>Bool</td>
     <td>False</td>
     <td>No</td>
-    <td>cndeploy_os_tweaks</td>
+    <td>cndeploy-os-tweaks</td>
     <td>Set to true to restrict some ssh access options, not allowing root login or password auth.</td>
   </tr>
   <tr>
@@ -310,7 +310,7 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>Bool</td>
     <td>False</td>
     <td>No</td>
-    <td>cndeploy_os_tweaks</td>
+    <td>cndeploy-os-tweaks</td>
     <td>Set to true to make changes to the swapfile.</td>
   </tr>
   <tr>
@@ -318,7 +318,7 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>Bool</td>
     <td>False</td>
     <td>No</td>
-    <td>cndeploy_os_tweaks</td>
+    <td>cndeploy-os-tweaks</td>
     <td>Set to true to create a swapfile, or to false to delete it.</td>
   </tr>
   <tr>
@@ -326,7 +326,7 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>String</td>
     <td>/swapfile</td>
     <td>No</td>
-    <td>cndeploy_os_tweak</td>
+    <td>cndeploy-os-tweaks</td>
     <td>Set the swapfile path.</td>
   </tr>
   <tr>
@@ -334,7 +334,7 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>Integer</td>
     <td>8192</td>
     <td>No</td>
-    <td>cndeploy_os_tweak</td>
+    <td>cndeploy-os-tweaks</td>
     <td>Set the size of the swapfile in MB.</td>
   </tr>
   <tr>
@@ -342,7 +342,7 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>Integer</td>
     <td>60</td>
     <td>No</td>
-    <td>cndeploy_os_tweak</td>
+    <td>cndeploy-os-tweaks</td>
     <td>Set swapiness value, from 0 to 100. Check https://access.redhat.com/solutions/103833 for more information.</td>
   </tr>
 </table>
