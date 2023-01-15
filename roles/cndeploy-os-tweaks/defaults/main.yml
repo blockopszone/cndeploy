@@ -1,12 +1,10 @@
 # set to true to change hostname
-# Required
 cndeploy_node_hostname_change: false
 
 # set to the desired hostname
 #cndeploy_node_hostname: cn
 
 # set to true to add entries to the hosts file
-# Required
 cndeploy_hosts_change: false
 
 # uncomment to define the additional entries for the hosts file
@@ -14,27 +12,23 @@ cndeploy_hosts_change: false
 #  1.1.1.1 some_host.some_domain.com some_host
 #  1.1.1.2 other_host.some_domain.com other_host
 
-# set to true to restrict ssh access by not allowing root login neither password auth
-# Required
+# Set to true to restrict some ssh access options, not allowing root login or password auth.
 cndeploy_ssh_restrict: false
 
-# Set to true to configure the swapfile, or to false to not make changes
-# Required
+# Set to true to make changes to the swapfile.
 cndeploy_swap_configure: false
 
-# Set to true to create a swapfile, or to false to delete it
-# Required
+# Set to true to create a swapfile, or to false to delete it.
 cndeploy_swap_enable: false
 
-# Define the path for the swapfile to use
-# Required
+# Set the swapfile path.
 cndeploy_swap_file_path: '/swapfile'
 
-# Define the size of the swapfile
-# Required
+# Set the size of the swapfile in MB.
 cndeploy_swap_file_size_mb: 8192
 
-# Set swapiness value, from 0 to 100, default is 60.
-# For a full explanation see https://lwn.net/Articles/83588/
-# Required
+# Set swapiness value, from 0 to 100.
+# For further explanation see:
+# https://access.redhat.com/solutions/103833
+# https://lwn.net/Articles/83588/
 cndeploy_swappiness: 60

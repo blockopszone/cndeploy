@@ -23,8 +23,8 @@
 - name: 'Resolve: cndeploy_relay_custom_peers calculated var for relays if auto is set'
   when:
     - cndeploy_node_type|lower|default('') == 'relay'
-    - cndeploy_relay_custom_peers_auto|bool
-    - not cndeploy_relay_custom_peers_auto_iptables|bool
+    - cndeploy_relay_custom_peers_auto|default(true)|bool
+    - not cndeploy_relay_custom_peers_auto_iptables|default(false)|bool
   block:
     - name: 'Check variables: hostvars for required fields to calculate: cndeploy_relay_custom_peers'
       when:
@@ -61,8 +61,8 @@
 - name: 'Resolve: cndeploy_relay_custom_peers calculated var for relays if auto is set using iptables mode'
   when:
     - cndeploy_node_type|lower|default('') == 'relay'
-    - cndeploy_relay_custom_peers_auto|bool
-    - cndeploy_relay_custom_peers_auto_iptables|bool
+    - cndeploy_relay_custom_peers_auto|default(true)|bool
+    - cndeploy_relay_custom_peers_auto_iptables|default(false)|bool
   block:
     - name: 'Check variables: hostvars for required fields to calculate: cndeploy_relay_custom_peers'
       ansible.builtin.assert:
@@ -96,12 +96,12 @@
 - name: 'Show cndeploy_relay_custom_peers'
   ansible.builtin.debug:
     msg: '{{ cndeploy_relay_custom_peers }}'
-  when: cndeploy_node_type == 'relay'
+  when: cndeploy_node_type|lower|default('') == 'relay'
 
 - name: 'Resolve: cndeploy_bp_topology_producers calculated var for bp if auto is set'
   when:
     - cndeploy_node_type|lower|default('') == 'bp'
-    - cndeploy_bp_topology_producers_auto|bool
+    - cndeploy_bp_topology_producers_auto|default(true)|bool
   block:
     - name: 'Check variables: hostvars for required fields to calculate: cndeploy_bp_topology_producers'
       ansible.builtin.assert:
@@ -128,7 +128,7 @@
 - name: 'Show cndeploy_bp_topology_producers'
   ansible.builtin.debug:
     msg: '{{ cndeploy_bp_topology_producers }}'
-  when: cndeploy_node_type == 'bp'
+  when: cndeploy_node_type|lower|default('') == 'bp'
 
 - name: 'Check variables: cndeploy_node_port'
   ansible.builtin.assert:
@@ -168,7 +168,7 @@
     quiet: true
     that:
       - cndeploy_cnode_dir_local == lookup('env', 'CNODE_HOME')
-        or cndeploy_cnode_dir_local_check_override
+        or cndeploy_cnode_dir_local_check_override|default(true)|bool
   delegate_to: localhost
 
 - name: 'Check variables: cndeploy_node_ticker'
@@ -182,7 +182,7 @@
 
 - name: 'Check variables: cndeploy_bp_topology_producers'
   when:
-    - cndeploy_node_type|lower == 'bp'
+    - cndeploy_node_type|lower|default('') == 'bp'
   ansible.builtin.assert:
     fail_msg: >
       Invalid value -> addr must be an IPv4 address or a resolvable host,
@@ -209,7 +209,7 @@
         - name: 'Set POOL_NAME in {{ cndeploy_cnode_dir }}/scripts/env'
           ansible.builtin.lineinfile:
             insertafter: '^#POOL_NAME='
-            line: 'POOL_NAME="{{ cndeploy_node_ticker|default() }}"'
+            line: 'POOL_NAME="{{ cndeploy_node_ticker|default("TICKR") }}"'
             path: '{{ cndeploy_cnode_dir }}/scripts/env'
             regexp: '^POOL_NAME='
             state: 'present'
@@ -217,7 +217,7 @@
         - name: 'Set CNODE_PORT in {{ cndeploy_cnode_dir }}/scripts/env'
           ansible.builtin.lineinfile:
             insertafter: '^#CNODE_PORT='
-            line: 'CNODE_PORT="{{ cndeploy_node_port|default(3000) }}"'
+            line: 'CNODE_PORT="{{ cndeploy_node_port|default(3001) }}"'
             path: '{{ cndeploy_cnode_dir }}/scripts/env'
             regexp: '^CNODE_PORT='
             state: 'present'
@@ -231,7 +231,7 @@
             state: 'present'
           register: cpucores
     - name: 'Set the configuration for Relays'
-      when: cndeploy_node_type == 'relay'
+      when: cndeploy_node_type|lower|default('') == 'relay'
       block:
         # TODO: Ensure changed id correct
         - name: 'For Relays make sure priv directory is empty'
@@ -249,14 +249,14 @@
             state: 'present'
           register: relaycustompeers
     - name: 'Set the configuration for Block Producers'
-      when: cndeploy_node_type == 'bp'
+      when: cndeploy_node_type|lower|default('') == 'bp'
       block:
         # Simpler and quicker option but it requires rsync,
         # by default we'll use the builtin file and copy modules
         #- name: For BP Nodes copy priv directory without cold.skey using synchronize
         #  ansible.posix.synchronize:
-        #    src: '{{ cndeploy_cnode_dir_local }}/priv/pool/{{ cndeploy_node_ticker }}'
-        #    dest: '{{ cndeploy_cnode_dir }}/priv/pool/{{ cndeploy_node_ticker }}'
+        #    src: '{{ cndeploy_cnode_dir_local }}/priv/pool/{{ cndeploy_node_ticker|default("TICKR") }}'
+        #    dest: '{{ cndeploy_cnode_dir }}/priv/pool/{{ cndeploy_node_ticker|default("TICKR") }}'
         #    rsync_opts:
         #      - "--no-motd"
         #      - "--exclude=.git"
@@ -267,7 +267,7 @@
               ansible.builtin.file:
                 mode: '0700'
                 owner: '{{ ansible_user_id }}'
-                path: '{{ cndeploy_cnode_dir }}/priv/pool/{{ cndeploy_node_ticker }}'
+                path: '{{ cndeploy_cnode_dir }}/priv/pool/{{ cndeploy_node_ticker|default("TICKR") }}'
                 state: 'directory'
               register: bpprivdir
             #- name: 'Debug bpprivdir...'
@@ -277,13 +277,13 @@
               ansible.builtin.find:
                 excludes: 'cold.skey,cold.vkey,cold.counter'
                 file_type: 'file'
-                paths: '{{ cndeploy_cnode_dir_local }}/priv/pool/{{ cndeploy_node_ticker }}'
+                paths: '{{ cndeploy_cnode_dir_local }}/priv/pool/{{ cndeploy_node_ticker|default("TICKR") }}'
               delegate_to: localhost
               register: cndeploy_cnode_priv
             # TODO: Ensure changed id correct
             - name: 'For BP Nodes copy private files in list'
               ansible.builtin.copy:
-                dest: '{{ cndeploy_cnode_dir }}/priv/pool/{{ cndeploy_node_ticker }}/'
+                dest: '{{ cndeploy_cnode_dir }}/priv/pool/{{ cndeploy_node_ticker|default("TICKR") }}/'
                 mode: '0600'
                 owner: '{{ ansible_user_id }}'
                 src: '{{ item.path }}'
@@ -307,7 +307,7 @@
         - name: 'Set POOL_TICKER in {{ cndeploy_cnode_dir }}/scripts/cncli.sh'
           ansible.builtin.lineinfile:
             insertafter: '^#POOL_TICKER='
-            line: 'POOL_TICKER={{ cndeploy_node_ticker }}'
+            line: 'POOL_TICKER={{ cndeploy_node_ticker|default("TICKR") }}'
             path: '{{ cndeploy_cnode_dir }}/scripts/cncli.sh'
             regexp: '^POOL_TICKER='
             state: 'present'
@@ -330,7 +330,7 @@
   block:
     - name: 'For Relays ensure proper service status (enabled/disabled)'
       # TODO check if all the required setup is in place for every service
-      when: cndeploy_node_type|lower == 'relay'
+      when: cndeploy_node_type|lower|default('') == 'relay'
       block:
         - name: 'For Relays disable cnode-cncli-leaderlog.service'
           ansible.builtin.systemd:
@@ -393,7 +393,7 @@
             name: 'cnode-tu-restart.timer'
     - name: 'For Standby nodes ensure proper service status (enabled/disabled)'
       # TODO check if all the required setup is in place for every service
-      when: cndeploy_node_type|lower == 'standby'
+      when: cndeploy_node_type|lower|default('') == 'standby'
       block:
         - name: 'For Standby nodes disable cnode-cncli-leaderlog.service'
           ansible.builtin.systemd:
@@ -463,7 +463,7 @@
             state: 'stopped'
     - name: 'For BP Nodes ensure proper service status (enabled/disabled)'
       # TODO check if all the required setup is in place for every service
-      when: cndeploy_node_type|lower == 'bp'
+      when: cndeploy_node_type|lower|default('') == 'bp'
       block:
         - name: 'Get stats of ~/.cargo/bin/cncli'
           ansible.builtin.stat:
@@ -506,7 +506,7 @@
             name: 'cnode-cncli-leaderlog.service'
           when:
             - cndeploy_cncli_info.stat.exists
-            - cndeploy_cnode_cncli_leaderlog_enabled
+            - cndeploy_cnode_cncli_leaderlog_enabled|defaul(false)|bool
         - name: 'For BP Nodes, if set, enable cnode-cncli-ptsendslots.service'
           ansible.builtin.systemd:
             enabled: true
@@ -514,7 +514,7 @@
             name: 'cnode-cncli-ptsendslots.service'
           when:
             - cndeploy_cncli_info.stat.exists
-            - cndeploy_cnode_cncli_ptsendslots_enabled
+            - cndeploy_cnode_cncli_ptsendslots_enabled|default(false)|bool
             - cndeploy_cnode_cncli_ptapikey is defined
             - cndeploy_cnode_cncli_ptapikey|length > 10
         - name: 'For BP Nodes, if set, enable cnode-cncli-validate.service'
@@ -524,7 +524,7 @@
             name: 'cnode-cncli-validate.service'
           when:
             - cndeploy_cncli_info.stat.exists
-            - cndeploy_cnode_cncli_validate_enabled
+            - cndeploy_cnode_cncli_validate_enabled|default(false)|bool
         - name: 'For BP Nodes, if set, enable cnode-cncli-sync.service'
           ansible.builtin.systemd:
             enabled: true
@@ -532,7 +532,7 @@
             name: 'cnode-cncli-sync.service'
           when:
             - cndeploy_cncli_info.stat.exists
-            - cndeploy_cnode_cncli_sync_enabled
+            - cndeploy_cnode_cncli_sync_enabled|default(false)|bool
         - name: 'For BP Nodes, if set, enable cnode-cncli-ptsendtip.service'
           ansible.builtin.systemd:
             enabled: true
@@ -540,7 +540,7 @@
             name: 'cnode-cncli-ptsendtip.service'
           when:
             - cndeploy_cncli_info.stat.exists
-            - cndeploy_cnode_cncli_ptsendtip_enabled
+            - cndeploy_cnode_cncli_ptsendtip_enabled|default(false)|bool
             - cndeploy_cnode_cncli_ptapikey is defined
             - cndeploy_cnode_cncli_ptapikey|length > 10
         - name: 'For BP Nodes, if set, enable cnode-logmonitor.service'
@@ -549,7 +549,7 @@
             masked: false
             name: 'cnode-logmonitor.service'
           when:
-            - cndeploy_cnode_logmonitor_enabled
+            - cndeploy_cnode_logmonitor_enabled|default(false)|bool
     - name: 'Enable Submit Api if defined'
       ansible.builtin.systemd:
         enabled: true
@@ -576,14 +576,14 @@
         masked: false
         name: 'cnode-tu-blockperf.service'
       when:
-        - cndeploy_cnode_blockperf_enabled
+        - cndeploy_cnode_blockperf_enabled|default(false)|bool
     - name: 'Disable Blockperf if not defined'
       ansible.builtin.systemd:
         enabled: false
         name: 'cnode-tu-blockperf.service'
         state: 'stopped'
       when:
-        - cndeploy_cnode_blockperf_enabled
+        - cndeploy_cnode_blockperf_enabled|default(false)|bool
     - name: 'Enable cnode.service'
       ansible.builtin.systemd:
         enabled: true

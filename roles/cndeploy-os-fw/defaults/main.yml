@@ -1,28 +1,29 @@
-# Set to true to disable IPv6
+# Set to true to disable IPv6.
 cndeploy_disable_ipv6: false
 
 # Set to true to enable the firewall so only connections to the necessary ports
-# are allowed
+# are allowed.
 cndeploy_firewall_enabled: false
 
-# Define the list of IPv4 to whitelist (allow all connections), usually
-# management or monitoring IP that will need access to any port on nodes.
-# '{{ master_ip }}' is included by default to allow connections from the Ansible master,
-# in order to avoid accidental lockdowns. Remove only if you know what you are doing.
-# To allow connections to the SSH port from everywhere (not recommended),
+# Define the list of IPv4 to whitelist (allow all connections from), for example
+# the management or monitoring IP, as they usually require access to any port on the nodes.
+# '{{ master_ip }}' is set in the default list to allow connections from the Ansible master,
+# in order to avoid accidental lockdowns. Consider adding it also to your custom whitelist.
+# Finally, to allow connections from everywhere, i.e. to SSH (not recommended),
 # add 0.0.0.0/0 to the list.
 cndeploy_whitelist_ip:
   - '{{ master_ip }}'
 #  - 0.0.0.0/0
 #  - 8.8.8.8
 
-# Define a list of IPv4 addresses to deny all connections from
+# Define a list of IPv4 addresses to deny all connections from.
 cndeploy_blacklist_ip:
 #  - 9.9.9.9
 
-# set to true to enable the use of allow-hostname to grant all ports access
-# to a dynamic dns hostname.
+# Set to true to enable the use of allow-hostname script to grant access to all
+# node ports from a dynamic dns hostname.
+# Check https://github.com/jmhoms/allow-hostname for further details.
 cndeploy_allowhostname_enabled: false
 
-# Specify the hostname to always allow connections from
+# Define the hostname to whitelist if cndeploy_allowhostname_enabled is set to true.
 #cndeploy_allowhostname: set_your_dyn_hostname_here.something

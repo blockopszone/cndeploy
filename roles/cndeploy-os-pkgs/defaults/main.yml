@@ -8,6 +8,6 @@ cndeploy_pkgs_upgrade: false
 cndeploy_pkgs_add: false
 
 # Define a list of additional packages to install
-cndeploy_pkgs_add_list:
-  - htop
-  - net-tools
+#cndeploy_pkgs_add_list:
+#  - htop
+#  - net-tools

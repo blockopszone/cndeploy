@@ -27,7 +27,7 @@
     that:
       - cndeploy_cnode_origin_dir == lookup('env', 'CNODE_HOME')
         or cndeploy_cnode_origin_dir_check_override
-  delegate_to: '{{ cndeploy_cnode_origin_host }}'
+  delegate_to: '{{ cndeploy_cnode_origin_host|default("localhost") }}'
 
 - name: 'Install dependencies for the OS'
   ansible.builtin.package:
@@ -38,7 +38,7 @@
 
 - name: 'Check origin Cardano versions'
   check_mode: false
-  delegate_to: '{{ cndeploy_cnode_origin_host }}'
+  delegate_to: '{{ cndeploy_cnode_origin_host|default("localhost") }}'
   ignore_errors: true
   block:
     - name: 'Check origin Cardano node version'
@@ -126,7 +126,7 @@
           or
           (
             (cndeploy_cncli_version_origin.rc == 0) and
-            (cndeploy_cnode_cncli_install) and
+            (cndeploy_cnode_cncli_install|default(false)|bool) and
             (cndeploy_cncli_version_origin.stdout != cndeploy_cncli_version.stdout)
           )
         )
@@ -137,7 +137,7 @@
         state: 'stopped'
       become: true
       become_user: 'root'
-      delegate_to: '{{ cndeploy_cnode_origin_host }}'
+      delegate_to: '{{ cndeploy_cnode_origin_host|default("localhost") }}'
       notify: 'Start Cardano node in origin'
       register: originservice
     - name: 'Wait 30 seconds to make sure the service in origin is stopped'
@@ -162,8 +162,8 @@
       become_user: 'root'
       when:
         - cndeploy_firewall_enabled|default(false)|bool
-        - cndeploy_cnode_origin_host != 'localhost'
-        - cndeploy_cnode_origin_host != '127.0.0.1'
+        - cndeploy_cnode_origin_host|default("localhost") != 'localhost'
+        - cndeploy_cnode_origin_host|default("localhost") != '127.0.0.1'
       block:
         - name: 'Check if iptables is available'
           ansible.builtin.stat:
@@ -173,7 +173,7 @@
           ansible.builtin.iptables:
             chain: 'INPUT'
             protocol: 'tcp'
-            source: '{{ cndeploy_cnode_origin_host }}'
+            source: '{{ cndeploy_cnode_origin_host|default("localhost") }}'
             destination_ports: '22'
             jump: 'ACCEPT'
           notify: 'Disallow connections on port 22 from origin using iptables'
@@ -183,12 +183,12 @@
       ansible.builtin.command:
         cmd: 'ssh-keygen -q -b 2048 -t rsa -N "" -C "creating SSH" -f ~/.ssh/id_rsa'
         creates: '~/.ssh/id_rsa.pub'
-      delegate_to: '{{ cndeploy_cnode_origin_host }}'
+      delegate_to: '{{ cndeploy_cnode_origin_host|default("localhost") }}'
     - name: 'Get the pub key into a variable'
       ansible.builtin.command: '/usr/bin/cat ~/.ssh/id_rsa.pub'
       changed_when: false
       check_mode: false
-      delegate_to: '{{ cndeploy_cnode_origin_host }}'
+      delegate_to: '{{ cndeploy_cnode_origin_host|default("localhost") }}'
       register: originpubkey
     - name: 'Temporarily allow origin public key in remote if not already allowed'
       ansible.posix.authorized_key:
@@ -230,7 +230,7 @@
             dest: '~/'
             mode: 'push'
             src: '~/.cabal'
-          delegate_to: '{{ cndeploy_cnode_origin_host }}'
+          delegate_to: '{{ cndeploy_cnode_origin_host|default("localhost") }}'
           # synchronize works better for big transfers
           #ansible.builtin.copy:
           #  src: '~/.cabal'
@@ -349,7 +349,7 @@
 - name: 'If cncli is installed in origin and needs to be installed in destination'
   when:
     - cndeploy_cncli_version_origin.rc == 0
-    - cndeploy_cnode_cncli_install
+    - cndeploy_cnode_cncli_install|default(false)|bool
   block:
     - name: 'Copy cncli binaries if origin and remote versions are not equal'
       when: (cndeploy_cncli_version_origin.stdout != cndeploy_cncli_version.stdout)
@@ -361,7 +361,7 @@
             dest: '~/'
             mode: 'push'
             src: '~/.cargo'
-          delegate_to: '{{ cndeploy_cnode_origin_host }}'
+          delegate_to: '{{ cndeploy_cnode_origin_host|default("localhost") }}'
         - name: 'Check again for remote cncli versions'
           check_mode: false
           ignore_errors: true

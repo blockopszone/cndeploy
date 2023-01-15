@@ -25,7 +25,7 @@
     that:
       - cndeploy_cnode_origin_dir == lookup('env', 'CNODE_HOME')
         or cndeploy_cnode_origin_dir_check_override
-  delegate_to: '{{ cndeploy_cnode_origin_host }}'
+  delegate_to: '{{ cndeploy_cnode_origin_host|default("localhost") }}'
 
 - name: 'Install dependencies for the OS'
   ansible.builtin.package:
@@ -42,7 +42,7 @@
       become_user: 'root'
       changed_when: false
       check_mode: false
-      delegate_to: '{{ cndeploy_cnode_origin_host }}'
+      delegate_to: '{{ cndeploy_cnode_origin_host|default("localhost") }}'
       register: origindbdir
     - name: 'Calculate the size of the db directory'
       ansible.builtin.command: '/usr/bin/du -sk {{ cndeploy_cnode_dir|quote }}/db'
@@ -60,7 +60,7 @@
             state: 'stopped'
           become: true
           become_user: 'root'
-          delegate_to: '{{ cndeploy_cnode_origin_host }}'
+          delegate_to: '{{ cndeploy_cnode_origin_host|default("localhost") }}'
           notify: 'Start Cardano node in origin'
           register: originservice
         - name: 'Wait 30 seconds to make sure the service in origin is stopped'
@@ -84,8 +84,8 @@
           become_user: 'root'
           when:
             - cndeploy_firewall_enabled|default(false)|bool
-            - cndeploy_cnode_origin_host != 'localhost'
-            - cndeploy_cnode_origin_host != '127.0.0.1'
+            - cndeploy_cnode_origin_host|default("localhost") != 'localhost'
+            - cndeploy_cnode_origin_host|default("localhost") != '127.0.0.1'
           block:
             - name: 'Check if iptables is available'
               ansible.builtin.stat:
@@ -95,7 +95,7 @@
               ansible.builtin.iptables:
                 chain: 'INPUT'
                 protocol: 'tcp'
-                source: '{{ cndeploy_cnode_origin_host }}'
+                source: '{{ cndeploy_cnode_origin_host|default("localhost") }}'
                 destination_ports: '22'
                 jump: 'ACCEPT'
               notify: 'Disallow connections on port 22 from origin using iptables'
@@ -105,12 +105,12 @@
           ansible.builtin.command:
             cmd: 'ssh-keygen -q -b 2048 -t rsa -N "" -C "creating SSH" -f ~/.ssh/id_rsa'
             creates: '~/.ssh/id_rsa.pub'
-          delegate_to: '{{ cndeploy_cnode_origin_host }}'
+          delegate_to: '{{ cndeploy_cnode_origin_host|default("localhost") }}'
         - name: 'Get the pub key into a variable'
           ansible.builtin.command: '/usr/bin/cat ~/.ssh/id_rsa.pub'
           changed_when: false
           check_mode: false
-          delegate_to: '{{ cndeploy_cnode_origin_host }}'
+          delegate_to: '{{ cndeploy_cnode_origin_host|default("localhost") }}'
           register: originpubkey
         - name: 'Temporarily allow origin public key in remote if not already allowed'
           ansible.posix.authorized_key:
@@ -125,4 +125,4 @@
             dest: '{{ cndeploy_cnode_dir }}/'
             mode: 'push'
             src: '{{ cndeploy_cnode_origin_dir }}/db'
-          delegate_to: '{{ cndeploy_cnode_origin_host }}'
+          delegate_to: '{{ cndeploy_cnode_origin_host|default("localhost") }}'

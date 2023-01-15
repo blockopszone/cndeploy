@@ -37,8 +37,8 @@
       Invalid value -> swap_file_size_mb must be an integer greater than 1.
     quiet: true
     that:
-      - cndeploy_swap_file_size_mb|int is integer
-      - cndeploy_swap_file_size_mb|int >= 1
+      - cndeploy_swap_file_size_mb|default(8192)|int is integer
+      - cndeploy_swap_file_size_mb|default(8192)|int >= 1
   when:
     - cndeploy_swap_configure|default(false)|bool
     - cndeploy_swap_enable|default(false)|bool
@@ -49,9 +49,9 @@
       Invalid value -> swappiness must be a number between 0 and 100.
     quiet: true
     that:
-      - cndeploy_swappiness|int is integer
-      - cndeploy_swappiness|int >= 0
-      - cndeploy_swappiness|int <= 100
+      - cndeploy_swappiness|default(60)|int is integer
+      - cndeploy_swappiness|default(60)|int >= 0
+      - cndeploy_swappiness|default(60)|int <= 100
   when:
     - cndeploy_swap_configure|default(false)|bool
     - cndeploy_swap_enable|default(false)|bool
@@ -113,7 +113,7 @@
       ansible.builtin.stat:
         get_checksum: false
         get_md5: false
-        path: '{{ cndeploy_swap_file_path }}'
+        path: '{{ cndeploy_swap_file_path|default("/swapfile") }}'
       changed_when: false
       register: swap_file_check
     - name: 'Set variable for existing swap file size'
@@ -126,26 +126,26 @@
       when: swap_file_check.stat.exists
     - name: 'Check if swap is on'
       ansible.builtin.shell:
-        cmd: 'swapon --show | grep {{ cndeploy_swap_file_path|quote }}'
+        cmd: 'swapon --show | grep {{ cndeploy_swap_file_path|default("/swapfile")|quote }}'
       changed_when: false
       check_mode: false
       failed_when: false
       register: swap_is_enabled
     - name: 'Disable swap'
       ansible.builtin.command:
-        cmd: 'swapoff {{ cndeploy_swap_file_path|quote }}'
+        cmd: 'swapoff {{ cndeploy_swap_file_path|default("/swapfile")|quote }}'
       register: swap_disabled
       when: >
         swap_file_check.stat.exists
         and 'rc' in swap_is_enabled and swap_is_enabled.rc == 0
         and (not cndeploy_swap_enable|default(false)|bool
              or (cndeploy_swap_enable|default(false)|bool
-                 and swap_file_existing_size_mb|int != cndeploy_swap_file_size_mb|int
+                 and swap_file_existing_size_mb|int != cndeploy_swap_file_size_mb|default(8192)|int
                 )
             )
     - name: 'Delete the swap file'
       ansible.builtin.file:
-        path: '{{ cndeploy_swap_file_path }}'
+        path: '{{ cndeploy_swap_file_path|default("/swapfile") }}'
         state: 'absent'
       when: not cndeploy_swap_enable|default(false)|bool
     - name: 'Remove swap entry from fstab'
@@ -155,7 +155,7 @@
         name: 'none'
         opts: 'sw'
         passno: '0'
-        src: '{{ cndeploy_swap_file_path }}'
+        src: '{{ cndeploy_swap_file_path|default("/swapfile") }}'
         state: 'absent'
       when: not cndeploy_swap_enable|default(false)|bool
     - name: 'Configure swap'
@@ -163,25 +163,25 @@
       block:
         - name: 'Create or change the size of swap file'
           ansible.builtin.command:
-            cmd: 'dd if=/dev/zero of={{ cndeploy_swap_file_path|quote }} count={{ cndeploy_swap_file_size_mb|quote }} bs=1MiB'
+            cmd: 'dd if=/dev/zero of={{ cndeploy_swap_file_path|default("/swapfile")|quote }} count={{ cndeploy_swap_file_size_mb|default(8192)|quote }} bs=1MiB'
           register: swap_file_created
           when: >
             not swap_file_check.stat.exists
-            or swap_file_existing_size_mb|int != cndeploy_swap_file_size_mb|int
+            or swap_file_existing_size_mb|int != cndeploy_swap_file_size_mb|default(8192)|int
         - name: 'Change swap file permissions'
           ansible.builtin.file:
             mode: '0600'
-            path: '{{ cndeploy_swap_file_path }}'
+            path: '{{ cndeploy_swap_file_path|default("/swapfile") }}'
         - name: 'Check if swap is formatted'
           ansible.builtin.shell:
-            cmd: 'file {{ cndeploy_swap_file_path|quote }} | grep "swap file"'
+            cmd: 'file {{ cndeploy_swap_file_path|default("/swapfile")|quote }} | grep "swap file"'
           changed_when: false
           check_mode: false
           failed_when: false
           register: swap_file_is_formatted
         - name: 'Format swap file if it is not formatted'
           ansible.builtin.command:
-            cmd: 'mkswap {{ cndeploy_swap_file_path|quote }}'
+            cmd: 'mkswap {{ cndeploy_swap_file_path|default("/swapfile")|quote }}'
           when: >
             ('rc' in swap_file_is_formatted and swap_file_is_formatted.rc > 0)
             or swap_file_created.changed
@@ -192,7 +192,7 @@
             name: 'none'
             opts: 'sw'
             passno: '0'
-            src: '{{ cndeploy_swap_file_path }}'
+            src: '{{ cndeploy_swap_file_path|default("/swapfile") }}'
             state: 'present'
         - name: 'Turn on swap'
           ansible.builtin.shell:
@@ -206,4 +206,4 @@
           ansible.posix.sysctl:
             name: 'vm.swappiness'
             state: 'present'
-            value: '{{ cndeploy_swappiness|string }}'
+            value: '{{ cndeploy_swappiness|default(60)|string }}'

@@ -1,35 +1,24 @@
 # Set to the user to be used for installation, it'll be created if don't exist
 # set to '{{ ansible_user_id }}' to use the user that Ansible connects with
-# Required
 cndeploy_user: '{{ ansible_user_id }}'
 
 # Set to the desired/existent home for the user, init scripts will be placed
-# Required
 cndeploy_user_home: '/home/{{ cndeploy_user }}'
 
 # Define the inventory host to be used as origin for the sync of the db.
-# Make sure that the host defined here can access the nodes using ssh without
-# needing to use a password, and to adjust the firewall.
-# Required
-# default is set to 'localhost' to use the ansible master as origin
-# i.e. set to '{{groups['builders'][0]}}' to use the first builders group host
+# This role, when is able to connect and have the proper rights,
+# makes sure that the host defined here can access the nodes using ssh without
+# needing to use a password, and it also adjusts the firewall accordingly.
+# Default is set to 'localhost' to use the ansible master as origin.
+# Alternatively, Ansible groups can be used to specify the host, for example
+# '{{groups['builders'][0]}}' would make use of the first builders group host.
 cndeploy_cnode_origin_host: 'localhost'
-
-# Set the local cnode directory
-# Required
-cndeploy_cnode_origin_dir: '/opt/cardano/cnode'
-
-# Set to true to override the checks for cndeploy_cnode_dir_local
-# Required
-cndeploy_cnode_origin_dir_check_override: false
 
 # Set the install directory, by default /opt/cardano/cnode
 # IMPORTANT, for now, please use the default value to
 # keep the compatibility with other cndeploy roles.
-# Required
 cndeploy_cnode_dir: '/opt/cardano/cnode'
 
 # If firewall is enabled the role will try to add a rule to allow SSH connections
 # from origin
-# Required
 cndeploy_firewall_enabled: false

@@ -1,29 +1,27 @@
 # Set to the user to be used for installation, it'll be created if don't exist
 # set to '{{ ansible_user_id }}' to use the user that Ansible connects with
-# Required
 cndeploy_user: '{{ ansible_user_id }}'
 
 # Set to the desired/existent home for the user, init scripts will be placed
-# Required
 cndeploy_user_home: '/home/{{ cndeploy_user }}'
 
-# Set the local cnode directory
-# Required
+# Set the local cnode install directory for config files and scripts.
+# It is used to locate the private files that needs to be copied to the block
+# producer under the directory structure priv/pool/{{ cndeploy_node_ticker }}
 cndeploy_cnode_dir_local: '/opt/cardano/cnode'
 
-# Set to true to override the checks for cndeploy_cnode_dir_local
-# Required
-cndeploy_cnode_dir_local_check_override: false
+# Set to true to bypass the task that checks the env variable CNODE_HOME for a
+# value equal to the one defined by cndeploy_cnode_dir_local on the local system.
+cndeploy_cnode_dir_local_check_override: true
 
 # Set the install directory, by default /opt/cardano/cnode
 # IMPORTANT, for now, please use the default value to
 # keep the compatibility with other cndeploy roles.
-# Required
 cndeploy_cnode_dir: '/opt/cardano/cnode'
 
 # Define the type of node, valid values are 'relay' or 'bp'
 # Required
-cndeploy_node_type: 'relay'
+cndeploy_node_type: 'standby'
 
 # Define stake pool ticker (between 3 and 5 characters)
 # Used in configuration files and for filesystem paths
@@ -32,24 +30,32 @@ cndeploy_node_ticker: 'TICKR'
 
 # Define the TCP port where the node will listen
 # Required
-cndeploy_node_port: 3000
+cndeploy_node_port: 3001
 
 # Define the number of cores to use by the node at the target system
 # Do not specify more cores than the ones available
-# Required
 cndeploy_node_cores: 2
 
-# Define the cncli and logmonitor services to enable
+# Define the services to enable:
+# https://cardano-community.github.io/guild-operators/Scripts/logmonitor/
 cndeploy_cnode_logmonitor_enabled: false
+# https://github.com/cardano-community/cncli/blob/develop/USAGE.md#sync-command
 cndeploy_cnode_cncli_sync_enabled: false
+# https://github.com/cardano-community/cncli/blob/develop/USAGE.md#leaderlog-command
 cndeploy_cnode_cncli_leaderlog_enabled: false
+# https://github.com/cardano-community/cncli/blob/develop/USAGE.md#validate-command
 cndeploy_cnode_cncli_validate_enabled: false
+# https://github.com/cardano-community/cncli/blob/develop/USAGE.md#sendtip-command
 cndeploy_cnode_cncli_ptsendtip_enabled: false
+# https://github.com/cardano-community/cncli/blob/develop/USAGE.md#sendslots-command
 cndeploy_cnode_cncli_ptsendslots_enabled: false
+# https://input-output-hk.github.io/cardano-rest/submit-api/
 cndeploy_cnode_submitapi_enabled: false
+# https://github.com/cardano-community/guild-operators/blob/alpha/scripts/cnode-helper-scripts/blockPerf.sh
 cndeploy_cnode_blockperf_enabled: false
 
-# Set to the API key of pooltool.io (use Ansible vault to protect the key)
+# Set to the API key of pooltool.io. Used by ptsendtip and ptsendslots.
+# (Ansible vault is used to protect the key)
 #cndeploy_cnode_cncli_ptapikey: '{{ vault_cndeploy_cnode_cncli_ptapikey }}'
 
 # Set to true to auto calulate cndeploy_relay_custom_peers based on the
@@ -58,18 +64,17 @@ cndeploy_cnode_blockperf_enabled: false
 cndeploy_relay_custom_peers_auto: true
 
 # Set this option to true to use the iptables redirect that is setup by the
-# cndeploy_os_fw role that makes all the connections directed to 127.0.0.1:6000
-# be redirected to the actual bp ip:port. Doing so allows to configure this
-# localhost ip in the relay's topology, so it is possible to failover to
-# another warm bp instantly without needing to restart the relay node.
+# cndeploy_os_fw role and makes all the connections directed to 127.0.0.1:6000,
+# to be redirected to the actual bp ip:port. Doing so, allows to configure this
+# localhost ip in the relay's topology, so it is possible for relays to failover
+# to another warm bp instantly without needing to restart the node.
 # This is an experimental feature, use with caution.
 cndeploy_relay_custom_peers_auto_iptables: false
 
-# Custom peers field for topology following (IP,port[,valency]) format
-# for example: 10.0.0.1,3001|10.0.0.2,3002|relays.mydomain.com,3003,3
-# Used by Relay Nodes to generate topology.json via topologyUpdater script.
-# When this variable is commented (not defined), the value is auto generated
-# from the list of hosts / groups.
+# Set the custom peers field for topology following (IP,port[,valency]) format,
+# for example: "10.0.0.1,3001|10.0.0.2,3002|relays.mydomain.com,3003,3"
+# When cndeploy_relay_custom_peers_auto is false, this value is used by
+# the Relay Nodes to generate topology.json via the topologyUpdater script.
 #cndeploy_relay_custom_peers:
 
 # Set to true to auto calulate cndeploy_bp_topology_producers based on the
@@ -77,10 +82,8 @@ cndeploy_relay_custom_peers_auto_iptables: false
 # When set to true the value of cndeploy_bp_topology_producers will be ignored.
 cndeploy_bp_topology_producers_auto: true
 
-# Define the list of relay nodes, used by a template for topology.json generation
-# Used by BP Nodes to generate topology.json via template.
-# When this variable is commented (not defined), the value is auto generated
-# from the list of hosts / groups.
+# Define the list of relay nodes, used by a template for topology.json generation.
+# This list is only used when cndeploy_bp_topology_producers_auto is false.
 #cndeploy_bp_topology_producers:
 #  - addr: some.host.dom
 #    port: 3000

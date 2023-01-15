@@ -1,4 +1,4 @@
-# Ansible role that setup the firewall policy.
+# Ansible role that sets the firewall policy.
 # Actions performed:
 # - Check input variables
 # - Optionally disable IPv6

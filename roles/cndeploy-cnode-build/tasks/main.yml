@@ -49,11 +49,11 @@
     - name: 'Run prereqs.sh installer without Rust and cncli'
       ansible.builtin.command:
         cmd: '~/tmp/prereqs.sh -f'
-      when: not cndeploy_cnode_cncli_install
+      when: not cndeploy_cnode_cncli_install|default(false)|bool
     - name: 'Run prereqs.sh installer with Rust and cncli'
       ansible.builtin.command:
         cmd: '~/tmp/prereqs.sh -f -c'
-      when: cndeploy_cnode_cncli_install
+      when: cndeploy_cnode_cncli_install|default(false)|bool
     - name: 'Run git clone'
       ansible.builtin.command:
         chdir: '~/git'

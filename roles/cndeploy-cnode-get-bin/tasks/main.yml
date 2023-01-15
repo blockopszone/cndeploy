@@ -1,7 +1,4 @@
 # Ansible role containing tasks to get the Cardano node binaries from an URL
-# TODO: Add user variable in templates
-# TODO: Add dbsync and ogmios systemd templates
-# TODO: Check for changes in last template versions from guild operators
 
 ---
 
@@ -237,7 +234,7 @@
 
 - name: 'If cncli needs to be installed in destination'
   when:
-    - cndeploy_cnode_cncli_install
+    - cndeploy_cnode_cncli_install|default(false)|bool
   block:
     - name: Download and extract the archive with the cncli binaries
       ansible.builtin.unarchive:
