@@ -703,6 +703,38 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>Define the type of node, valid values are "relay", "bp" and "standby".</td>
   </tr>
   <tr>
+    <td>cndeploy_node_ticker</td>
+    <td>String(5)</td>
+    <td>None</td>
+    <td>Yes</td>
+    <td>cndeploy-node-conf</td>
+    <td>Define stake pool ticker (between 3 and 5 characters) to be used in configuration files and for filesystem paths.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_node_ip</td>
+    <td>String (IPv4)</td>
+    <td>None</td>
+    <td>Yes</td>
+    <td>cndeploy-node-conf</td>
+    <td>Define the node IPv4 address to be used in many configuration files among the host members of the stake pool. Be aware that the IP address that is used by the Ansible master to reach every node is not this one, but the one defined in the variable ansible_host.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_node_port</td>
+    <td>Integer (1-65535)</td>
+    <td>None</td>
+    <td>Yes</td>
+    <td>cndeploy-node-conf</td>
+    <td>Define the node tcp port to be used in many configuration files among the host members of the stake pool.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_node_cores</td>
+    <td>Integer</td>
+    <td>2</td>
+    <td>No</td>
+    <td>cndeploy-node-conf</td>
+    <td>Define the number of cores that the Cardano node must use in the node. Please note that this number should be equal or less to the number of available cores in the host.</td>
+  </tr>
+  <tr>
     <td>cndeploy_cnode_dir</td>
     <td>String</td>
     <td>/opt/cardano/cnode</td>
@@ -727,30 +759,6 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>Set to true to bypass the task that checks the env variable CNODE_HOME for a value equal to the one defined by cndeploy_cnode_dir_local on the local system.</td>
   </tr>
   <tr>
-    <td>cndeploy_cnode_logmonitor_enabled</td>
-    <td>Bool</td>
-    <td>False</td>
-    <td>No</td>
-    <td>cndeploy_cnode_conf</td>
-    <td>Set to true to enable the logmonitor service. Check https://cardano-community.github.io/guild-operators/Scripts/logmonitor/ for further details.</td>
-  </tr>
-  <tr>
-    <td>cndeploy_cnode_submitapi_enabled</td>
-    <td>Bool</td>
-    <td>False</td>
-    <td>No</td>
-    <td>cndeploy_cnode_conf</td>
-    <td>Set to true to enable the submitapi service. Check https://input-output-hk.github.io/cardano-rest/submit-api/ for further details.</td>
-  </tr>
-  <tr>
-    <td>cndeploy_cnode_blockperf_enabled</td>
-    <td>Bool</td>
-    <td>False</td>
-    <td>No</td>
-    <td>cndeploy_cnode_conf</td>
-    <td>Set to true to enable the blockperf service. Check https://github.com/cardano-community/guild-operators/blob/alpha/scripts/cnode-helper-scripts/blockPerf.sh for further details.</td>
-  </tr>
-  <tr>
     <td>cndeploy_bp_topology_producers_auto</td>
     <td>Bool</td>
     <td>True</td>
@@ -773,23 +781,31 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>No</td>
     <td>cndeploy_cnode_conf</td>
     <td>Set this option to true to use the iptables redirect that is setup by the cndeploy_os_fw role and makes all the connections directed to 127.0.0.1:6000, to be redirected to the actual bp ip:port. Doing so, allows to configure this localhost ip in the relay's topology, so it is possible for relays to failover to another warm bp instantly without needing to restart the node. This is an experimental feature, use with caution.</td>
-  </tr>  
+  </tr>
   <tr>
-    <td>cndeploy_add_aliases</td>
+    <td>cndeploy_cnode_logmonitor_enabled</td>
     <td>Bool</td>
     <td>False</td>
     <td>No</td>
     <td>cndeploy_cnode_conf</td>
-    <td>Set to true to add bash aliases.</td>
+    <td>Set to true to enable the logmonitor service. Check https://cardano-community.github.io/guild-operators/Scripts/logmonitor/ for further details.</td>
   </tr>
   <tr>
-    <td>cndeploy_aliases</td>
-    <td>String</td>
-    <td>None</td>
+    <td>cndeploy_cnode_submitapi_enabled</td>
+    <td>Bool</td>
+    <td>False</td>
     <td>No</td>
     <td>cndeploy_cnode_conf</td>
-    <td>Set the aliases to add.</td>
+    <td>Set to true to enable the submitapi service. Check https://input-output-hk.github.io/cardano-rest/submit-api/ for further details.</td>
   </tr>
+  <tr>
+    <td>cndeploy_cnode_blockperf_enabled</td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_cnode_conf</td>
+    <td>Set to true to enable the blockperf service. Check https://github.com/cardano-community/guild-operators/blob/alpha/scripts/cnode-helper-scripts/blockPerf.sh for further details.</td>
+  </tr>  
   <tr>
     <td>cndeploy_cnode_cncli_sync_enabled</td>
     <td>Bool</td>
@@ -837,6 +853,22 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>No</td>
     <td>cndeploy_cnode_conf</td>
     <td>Set to the API key of pooltool.io. Used by ptsendtip and ptsendslots.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_add_aliases</td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_cnode_conf</td>
+    <td>Set to true to add bash aliases.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_aliases</td>
+    <td>String</td>
+    <td>None</td>
+    <td>No</td>
+    <td>cndeploy_cnode_conf</td>
+    <td>Set the aliases to add.</td>
   </tr>
 </table>
 
