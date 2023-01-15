@@ -678,61 +678,22 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <th align="left">Roles</th>
     <th align="left">Description</th>
   </tr>
-</table>
-
-### cndeploy-cnode-mon
-
-<table>
   <tr>
-    <th align="left">Variable</th>
-    <th align="left">Type</th>
-    <th align="left">Default</th>
-    <th align="left">Required</th>
-    <th align="left">Roles</th>
-    <th align="left">Description</th>
-  </tr>
-</table>
-
-### Host setup 
-
-<table>
-  <tr>
-    <th align="left">Variable</th>
-    <th align="left">Type</th>
-    <th align="left">Default</th>
-    <th align="left">Required</th>
-    <th align="left">Roles</th>
-    <th align="left">Description</th>
-  </tr>
-  <tr>
-    <td>cndeploy_add_aliases</td>
-    <td>Bool</td>
-    <td>False</td>
-    <td>No</td>
-    <td>cndeploy_cnode_conf</td>
-    <td>Set to true to add bash aliases.</td>
-  </tr>
-  <tr>
-    <td>cndeploy_aliases</td>
+    <td>cndeploy_user</td>
     <td>String</td>
-    <td>None</td>
+    <td>Based on OS</td>
     <td>No</td>
-    <td>cndeploy_cnode_conf</td>
-    <td>Set the aliases to add.</td>
-  </tr>
-</table>
-
-### Cardano node 
-
-<table>
+    <td>cndeploy-os-user</td>
+    <td>Set the user to be created.</td>
+  </tr>  
   <tr>
-    <th align="left">Variable</th>
-    <th align="left">Type</th>
-    <th align="left">Default</th>
-    <th align="left">Required</th>
-    <th align="left">Roles</th>
-    <th align="left">Description</th>
-  </tr>
+    <td>cndeploy_user_home</td>
+    <td>String</td>
+    <td>/home/{{ cndeploy_user }}</td>
+    <td>No</td>
+    <td>cndeploy-os-user</td>
+    <td>Set the home directory of the user to be created.</td>
+  </tr>  
   <tr>
     <td>cndeploy_node_type</td>
     <td>String</td>
@@ -805,18 +766,21 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>cndeploy_cnode_conf</td>
     <td>Set this option to true to use the iptables redirect that is setup by the cndeploy_os_fw role and makes all the connections directed to 127.0.0.1:6000, to be redirected to the actual bp ip:port. Doing so, allows to configure this localhost ip in the relay's topology, so it is possible for relays to failover to another warm bp instantly without needing to restart the node. This is an experimental feature, use with caution.</td>
   </tr>  
-</table>
-
-### Cncli 
-
-<table>
   <tr>
-    <th align="left">Variable</th>
-    <th align="left">Type</th>
-    <th align="left">Default</th>
-    <th align="left">Required</th>
-    <th align="left">Roles</th>
-    <th align="left">Description</th>
+    <td>cndeploy_add_aliases</td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy_cnode_conf</td>
+    <td>Set to true to add bash aliases.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_aliases</td>
+    <td>String</td>
+    <td>None</td>
+    <td>No</td>
+    <td>cndeploy_cnode_conf</td>
+    <td>Set the aliases to add.</td>
   </tr>
   <tr>
     <td>cndeploy_cnode_cncli_sync_enabled</td>
@@ -865,6 +829,19 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>No</td>
     <td>cndeploy_cnode_conf</td>
     <td>Set to the API key of pooltool.io. Used by ptsendtip and ptsendslots.</td>
+  </tr>
+</table>
+
+### cndeploy-cnode-mon
+
+<table>
+  <tr>
+    <th align="left">Variable</th>
+    <th align="left">Type</th>
+    <th align="left">Default</th>
+    <th align="left">Required</th>
+    <th align="left">Roles</th>
+    <th align="left">Description</th>
   </tr>
 </table>
 
