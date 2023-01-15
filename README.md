@@ -220,6 +220,30 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <th align="left">Roles</th>
     <th align="left">Description</th>
   </tr>
+  <tr>
+    <td>cndeploy_user</td>
+    <td>String</td>
+    <td>Based on OS</td>
+    <td>No</td>
+    <td>cndeploy-os-user</td>
+    <td>Set the user to be created.</td>
+  </tr>  
+  <tr>
+    <td>cndeploy_user_home</td>
+    <td>String</td>
+    <td>/home/{{ cndeploy_user }}</td>
+    <td>No</td>
+    <td>cndeploy-os-user</td>
+    <td>Set the home directory of the user to be created.</td>
+  </tr>  
+  <tr>
+    <td>cndeploy_admin_groups</td>
+    <td>List</td>
+    <td>Based on OS</td>
+    <td><No/td>
+    <td>cndeploy-os-user</td>
+    <td>Define the groups of the user to be created.</td>
+  </tr>  
 </table>
 
 ### cndeploy-os-tweaks
