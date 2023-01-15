@@ -616,6 +616,55 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <th align="left">Roles</th>
     <th align="left">Description</th>
   </tr>
+  <tr>
+    <td>cndeploy_user</td>
+    <td>String</td>
+    <td>Based on OS</td>
+    <td>No</td>
+    <td>cndeploy-os-user</td>
+    <td>Set the user to be created.</td>
+  </tr>  
+  <tr>
+    <td>cndeploy_user_home</td>
+    <td>String</td>
+    <td>/home/{{ cndeploy_user }}</td>
+    <td>No</td>
+    <td>cndeploy-os-user</td>
+    <td>Set the home directory of the user to be created.</td>
+  </tr>  
+  <tr>
+    <td>cndeploy_cnode_dir</td>
+    <td>String</td>
+    <td>/opt/cardano/cnode</td>
+    <td>No</td>
+    <td>cndeploy-cnode-conf, cndeploy-cnode-get-bin, cndeploy-cnode-build, cndeploy-cnode-sync-bin, cndeploy-cnode-sync-db, cndeploy-cnode_mon</td>
+    <td>Set the install directory for config files and scripts. IMPORTANT, the /opt/cardano/cnode default may be hardcoded in some places, so don't change this value until further testing.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_cnode_cncli_install</td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy-cnode-get-bin, cndeploy-cnode-build, cndeploy-cnode-sync-bin</td>
+    <td>Set to true to install cncli.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_firewall_enabled</td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy-os-fw, cndeploy-cnode-sync-bin, cndeploy-cnode-sync-db</td>
+    <td>Set to true to enable the firewall so only connections to the necessary ports are allowed.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_cnode_origin_host</td>
+    <td>String</td>
+    <td>localhost</td>
+    <td>No</td>
+    <td>cndeploy-cnode-sync-bin</td>
+    <td>Define the inventory host to be used as origin for the sync of the db. This role, when is able to connect and have the proper rights, makes sure that the host defined here can access the nodes using ssh without needing to use a password, and it also adjusts the firewall accordingly. Default is set to 'localhost' to use the ansible master as origin. Alternatively, Ansible groups can be used to specify the host, for example '{{groups['builders'][0]}}' would make use of the first builders group host.
+    </td>
+  </tr>
 </table>
 
 ### cndeploy-cnode-conf
