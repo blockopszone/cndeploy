@@ -485,7 +485,7 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>String</td>
     <td>/opt/cardano/cnode</td>
     <td>No</td>
-    <td>cndeploy-cnode-conf, cndeploy-cnode-get-bin, cndeploy-cnode-build, cndeploy-cnode-sync-bin, cndeploy-cnode-sync-db, cndeploy-cnode_mon</td>
+    <td>cndeploy-cnode-conf, cndeploy-cnode-get-bin, cndeploy-cnode-build, cndeploy-cnode-sync-bin, cndeploy-cnode-sync-db, cndeploy-cnode-mon</td>
     <td>Set the install directory for config files and scripts. IMPORTANT, the /opt/cardano/cnode default may be hardcoded in some places, so don't change this value until further testing.</td>
   </tr>
   <tr>
@@ -530,7 +530,7 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>String</td>
     <td>/opt/cardano/cnode</td>
     <td>No</td>
-    <td>cndeploy-cnode-conf, cndeploy-cnode-get-bin, cndeploy-cnode-build, cndeploy-cnode-sync-bin, cndeploy-cnode-sync-db, cndeploy-cnode_mon</td>
+    <td>cndeploy-cnode-conf, cndeploy-cnode-get-bin, cndeploy-cnode-build, cndeploy-cnode-sync-bin, cndeploy-cnode-sync-db, cndeploy-cnode-mon</td>
     <td>Set the install directory for config files and scripts. IMPORTANT, the /opt/cardano/cnode default may be hardcoded in some places, so don't change this value until further testing.</td>
   </tr>
   <tr>
@@ -575,7 +575,7 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>String</td>
     <td>/opt/cardano/cnode</td>
     <td>No</td>
-    <td>cndeploy-cnode-conf, cndeploy-cnode-get-bin, cndeploy-cnode-build, cndeploy-cnode-sync-bin, cndeploy-cnode-sync-db, cndeploy-cnode_mon</td>
+    <td>cndeploy-cnode-conf, cndeploy-cnode-get-bin, cndeploy-cnode-build, cndeploy-cnode-sync-bin, cndeploy-cnode-sync-db, cndeploy-cnode-mon</td>
     <td>Set the install directory for config files and scripts. IMPORTANT, the /opt/cardano/cnode default may be hardcoded in some places, so don't change this value until further testing.</td>
   </tr>
   <tr>
@@ -637,7 +637,7 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>String</td>
     <td>/opt/cardano/cnode</td>
     <td>No</td>
-    <td>cndeploy-cnode-conf, cndeploy-cnode-get-bin, cndeploy-cnode-build, cndeploy-cnode-sync-bin, cndeploy-cnode-sync-db, cndeploy-cnode_mon</td>
+    <td>cndeploy-cnode-conf, cndeploy-cnode-get-bin, cndeploy-cnode-build, cndeploy-cnode-sync-bin, cndeploy-cnode-sync-db, cndeploy-cnode-mon</td>
     <td>Set the install directory for config files and scripts. IMPORTANT, the /opt/cardano/cnode default may be hardcoded in some places, so don't change this value until further testing.</td>
   </tr>
   <tr>
@@ -739,7 +739,7 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>String</td>
     <td>/opt/cardano/cnode</td>
     <td>No</td>
-    <td>cndeploy-cnode-conf, cndeploy-cnode-get-bin, cndeploy-cnode-build, cndeploy-cnode-sync-bin, cndeploy-cnode-sync-db, cndeploy-cnode_mon</td>
+    <td>cndeploy-cnode-conf, cndeploy-cnode-get-bin, cndeploy-cnode-build, cndeploy-cnode-sync-bin, cndeploy-cnode-sync-db, cndeploy-cnode-mon</td>
     <td>Set the install directory for config files and scripts. IMPORTANT, the /opt/cardano/cnode default may be hardcoded in some places, so don't change this value until further testing.</td>
   </tr>
   <tr>
@@ -899,6 +899,38 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <th align="left">Required</th>
     <th align="left">Roles</th>
     <th align="left">Description</th>
+  </tr>
+  <tr>
+    <td>cndeploy_cnode_dir</td>
+    <td>String (path)</td>
+    <td>/opt/cardano/cnode</td>
+    <td>No</td>
+    <td>cndeploy-cnode-conf, cndeploy-cnode-get-bin, cndeploy-cnode-build, cndeploy-cnode-sync-bin, cndeploy-cnode-sync-db, cndeploy-cnode-mon</td>
+    <td>Set the install directory for config files and scripts. IMPORTANT, the /opt/cardano/cnode default may be hardcoded in some places, so don't change this value until further testing.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_node_config</td>
+    <td>String (path)</td>
+    <td>{{ cndeploy_cnode_dir }}/files/config.json</td>
+    <td>No</td>
+    <td>cndeploy-cnode-mon</td>
+    <td>Set to path of the config file for the Cardano node.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_sshtunnel_user</td>
+    <td>String</td>
+    <td>sshtunnel</td>
+    <td>No</td>
+    <td>cndeploy-cnode-mon</td>
+    <td>Define a user to run the ssh tunnels to protect the monitoring services.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_sshtunnel_sshpubkey</td>
+    <td>String (pubkey/url)</td>
+    <td>None</td>
+    <td>Yes</td>
+    <td>cndeploy-cnode-mon</td>
+    <td>Define the public key to allow access with the sshtunnel user or alternatively provide an URL to download the key.</td>
   </tr>
 </table>
 
