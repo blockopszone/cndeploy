@@ -936,6 +936,7 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
 
 ## TODO
 
+- Reorganization of tasks and roles
 - Finish documentation
 - Further testing  
 - Mythril integration
