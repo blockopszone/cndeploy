@@ -403,6 +403,54 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <th align="left">Roles</th>
     <th align="left">Description</th>
   </tr>
+  <tr>
+    <td>cndeploy_firewall_enabled</td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy-os-fw, cndeploy-cnode-sync-bin, cndeploy-cnode-sync-db</td>
+    <td>Set to true to enable the firewall so only connections to the necessary ports are allowed.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_whitelist_ip</td>
+    <td>List of IPv4 host/net</td>
+    <td>{{ master_ip }}</td>
+    <td>No</td>
+    <td>cndeploy-os-fw</td>
+    <td>Define the list of IPv4 to whitelist (allow all connections from), for example the management or monitoring IP, as they usually require access to any port on the nodes.  "{{ master_ip }}" is set in the default list to allow connections from the Ansible master, in order to avoid accidental lockdowns. Consider adding it also to your custom whitelist.  Finally, to allow connections from everywhere, i.e. to SSH (not recommended), add 0.0.0.0/0 to the list.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_blacklist_ip</td>
+    <td>List of IPv4 host/net</td>
+    <td>None</td>
+    <td>No</td>
+    <td>cndeploy-os-fw</td>
+    <td>Define a list of IPv4 addresses to deny all connections from</td>
+  </tr>
+  <tr>
+    <td>cndeploy_allowhostname_enabled</td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy-os-fw</td>
+    <td>Set to true to enable the use of allow-hostname script to grant access to all node ports from a dynamic dns hostname. Check https://github.com/jmhoms/allow-hostname for further details.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_allowhostname</td>
+    <td>String (fqdn)</td>
+    <td>None</td>
+    <td>No</td>
+    <td>cndeploy-of-fw</td>
+    <td>Define the hostname to whitelist if cndeploy_allowhostname_enabled is set to true.</td>
+  </tr>
+  <tr>
+    <td>cndeploy_disable_ipv6</td>
+    <td>Bool</td>
+    <td>False</td>
+    <td>No</td>
+    <td>cndeploy-os-fw</td>
+    <td>Set to true to disable IPv6.</td>
+  </tr>  
 </table>
 
 ### cndeploy-cnode-get-bin
@@ -510,14 +558,6 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <td>cndeploy_cnode_conf</td>
     <td>Set the aliases to add.</td>
   </tr>
-  <tr>
-    <td>cndeploy_disable_ipv6</td>
-    <td>Bool</td>
-    <td>False</td>
-    <td>No</td>
-    <td>cndeploy_os_fw</td>
-    <td>Set to true to disable IPv6.</td>
-  </tr>  
 </table>
 
 ### Access and Firewall
@@ -530,46 +570,6 @@ ansible-playbook --vault-password-file=my_sp_inventory/.vault_pass cndeploy/setu
     <th align="left">Required</th>
     <th align="left">Roles</th>
     <th align="left">Description</th>
-  </tr>
-  <tr>
-    <td>cndeploy_firewall_enabled</td>
-    <td>Bool</td>
-    <td>False</td>
-    <td>No</td>
-    <td>cndeploy_os_fw, cndeploy_cnode_sync_bin, cndeploy_cnode_sync_db</td>
-    <td>Set to true to enable the firewall so only connections to the necessary ports are allowed.</td>
-  </tr>
-  <tr>
-    <td>cndeploy_whitelist_ip</td>
-    <td>List of IPv4 host/net</td>
-    <td>{{ master_ip }}</td>
-    <td>No</td>
-    <td>cndeploy_os_fw</td>
-    <td>Define the list of IPv4 to whitelist (allow all connections from), for example the management or monitoring IP, as they usually require access to any port on the nodes.  "{{ master_ip }}" is set in the default list to allow connections from the Ansible master, in order to avoid accidental lockdowns. Consider adding it also to your custom whitelist.  Finally, to allow connections from everywhere, i.e. to SSH (not recommended), add 0.0.0.0/0 to the list.</td>
-  </tr>
-  <tr>
-    <td>cndeploy_blacklist_ip</td>
-    <td>List of IPv4 host/net</td>
-    <td>None</td>
-    <td>No</td>
-    <td>cndeploy_os_fw</td>
-    <td>Define a list of IPv4 addresses to deny all connections from</td>
-  </tr>
-  <tr>
-    <td>cndeploy_allowhostname_enabled</td>
-    <td>Bool</td>
-    <td>False</td>
-    <td>No</td>
-    <td>cndeploy_os_fw</td>
-    <td>Set to true to enable the use of allow-hostname script to grant access to all node ports from a dynamic dns hostname. Check https://github.com/jmhoms/allow-hostname for further details.</td>
-  </tr>
-  <tr>
-    <td>cndeploy_allowhostname</td>
-    <td>String (fqdn)</td>
-    <td>None</td>
-    <td>No</td>
-    <td>cndeploy_of_fw</td>
-    <td>Define the hostname to whitelist if cndeploy_allowhostname_enabled is set to true.</td>
   </tr>
 </table>
 
